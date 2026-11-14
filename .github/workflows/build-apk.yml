@@ -29,7 +29,9 @@ jobs:
           cache: true
 
       - name: Scaffold Official Platform Files
-        run: flutter create --project-name compass_app --platforms=android --org com.example .
+        run: |
+          flutter create --project-name compass_app --platforms=android --org com.example .
+          rm -f test/widget_test.dart
 
       - name: Restore Custom AndroidManifest Permissions
         run: |
