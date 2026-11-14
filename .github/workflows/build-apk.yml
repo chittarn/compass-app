@@ -7,6 +7,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,11 +38,9 @@ jobs:
 
       - name: Fix AGP 8 Namespace & MinSDK for Older Plugins
         run: |
-          # Ensure minSdk is at least 21
           sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
 
-          # Inject namespace fallback into root android/build.gradle for plugins like flutter_compass
           cat << 'EOF' >> android/build.gradle
 
           subprojects {
@@ -98,25 +99,29 @@ jobs:
       - name: Run Tests
         run: flutter test
 
-      - name: Build Release APK
+      - name: Build APK
         run: |
-          flutter build apk --release -v > build.log 2>&1 || {
-            echo "## ❌ Build Failure Log (Last 100 lines)" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 100 build.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
+          flutter build apk --debug -v > build.log 2>&1
 
-      - name: Upload Build Log if Failed
+      - name: Publish Build Logs to GitHub Branch if Failed
         if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-failure-log
-          path: build.log
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B build-logs
+          git add -f build.log
+          git commit -m "Add build.log"
+          git push -f origin build-logs
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        if: success()
         with:
-          name: compass-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          tag_name: v1.0.0
+          name: Compass App v1.0.0
+          draft: false
+          prerelease: false
+          files: |
+            build/app/outputs/flutter-apk/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
