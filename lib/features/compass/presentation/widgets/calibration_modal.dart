@@ -51,7 +51,7 @@ class _CalibrationModalState extends State<CalibrationModal>
         border: Border.all(color: AppColors.dialRing, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: Colors.black.withOpacity(0.5),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -176,7 +176,7 @@ class _Figure8Painter extends CustomPainter {
       nodePos,
       12,
       Paint()
-        ..color = AppColors.accentCyan.withValues(alpha: 0.3)
+        ..color = AppColors.accentCyan.withOpacity(0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
 

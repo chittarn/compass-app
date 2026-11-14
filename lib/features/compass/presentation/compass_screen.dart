@@ -195,7 +195,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                           borderRadius: BorderRadius.circular(2),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.northRed.withValues(alpha: 0.8),
+                              color: AppColors.northRed.withOpacity(0.8),
                               blurRadius: 4,
                             ),
                           ],

@@ -21,7 +21,7 @@ class BubbleLevelPainter extends CustomPainter {
 
     // 1. Level container background
     final bgPaint = Paint()
-      ..color = AppColors.surfaceElevated.withValues(alpha: 0.9)
+      ..color = AppColors.surfaceElevated.withOpacity(0.9)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, maxRadius, bgPaint);
 
@@ -34,8 +34,8 @@ class BubbleLevelPainter extends CustomPainter {
     // 2. Center Target Crosshairs
     final crosshairPaint = Paint()
       ..color = isLevel
-          ? AppColors.bubbleLevel.withValues(alpha: 0.6)
-          : AppColors.dialTick.withValues(alpha: 0.4)
+          ? AppColors.bubbleLevel.withOpacity(0.6)
+          : AppColors.dialTick.withOpacity(0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -53,7 +53,7 @@ class BubbleLevelPainter extends CustomPainter {
     // Center target ring (sweet spot)
     final targetRingPaint = Paint()
       ..color = isLevel
-          ? AppColors.bubbleLevel.withValues(alpha: 0.5)
+          ? AppColors.bubbleLevel.withOpacity(0.5)
           : AppColors.bubbleTargetRing
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
@@ -77,7 +77,7 @@ class BubbleLevelPainter extends CustomPainter {
 
     // Bubble shadow/glow
     final glowPaint = Paint()
-      ..color = bubbleColor.withValues(alpha: 0.35)
+      ..color = bubbleColor.withOpacity(0.35)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
     canvas.drawCircle(bubblePos, targetRadius * 0.7, glowPaint);
 
@@ -89,7 +89,7 @@ class BubbleLevelPainter extends CustomPainter {
 
     // Bubble highlight reflection
     final highlightPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.6)
+      ..color = Colors.white.withOpacity(0.6)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(
       Offset(bubblePos.dx - 2.5, bubblePos.dy - 2.5),

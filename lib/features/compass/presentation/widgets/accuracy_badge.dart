@@ -48,7 +48,7 @@ class AccuracyBadge extends StatelessWidget {
           color: AppColors.surfaceElevated,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: _badgeColor.withValues(alpha: 0.5),
+            color: _badgeColor.withOpacity(0.5),
             width: 1.2,
           ),
         ),
@@ -63,7 +63,7 @@ class AccuracyBadge extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: _badgeColor.withValues(alpha: 0.6),
+                    color: _badgeColor.withOpacity(0.6),
                     blurRadius: 4,
                     spreadRadius: 1,
                   ),
