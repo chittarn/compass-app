@@ -33,6 +33,28 @@ jobs:
           flutter create --project-name compass_app --platforms=android --org com.example .
           rm -f test/widget_test.dart
 
+      - name: Fix AGP 8 Namespace & MinSDK for Older Plugins
+        run: |
+          # Ensure minSdk is at least 21
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
+          sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
+
+          # Inject namespace fallback into root android/build.gradle for plugins like flutter_compass
+          cat << 'EOF' >> android/build.gradle
+
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.hasProperty('android')) {
+                      project.android {
+                          if (namespace == null || namespace.isEmpty()) {
+                              namespace = "com.library.${project.name.replaceAll('-', '_')}"
+                          }
+                      }
+                  }
+              }
+          }
+          EOF
+
       - name: Restore Custom AndroidManifest Permissions
         run: |
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
@@ -78,7 +100,13 @@ jobs:
 
       - name: Build Release APK
         run: |
-          flutter build apk --release -v > build.log 2>&1 || (echo "=== BUILD LOG FAILURE TAIL ===" && tail -n 120 build.log && exit 1)
+          flutter build apk --release -v > build.log 2>&1 || {
+            echo "## ❌ Build Failure Log (Last 100 lines)" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 build.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
 
       - name: Upload Build Log if Failed
         if: failure()
