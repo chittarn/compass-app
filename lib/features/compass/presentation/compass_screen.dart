@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../controllers/compass_controller.dart';
+import 'controllers/compass_controller.dart';
 import '../domain/heading_type.dart';
 import 'widgets/compass_dial_painter.dart';
 import 'widgets/bubble_level_painter.dart';
 import 'widgets/accuracy_badge.dart';
 import 'widgets/calibration_modal.dart';
-import '../../../../core/constants/compass_constants.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../core/constants/compass_constants.dart';
+import '../../../core/theme/app_colors.dart';
 
 class CompassScreen extends ConsumerStatefulWidget {
   const CompassScreen({super.key});
