@@ -100,9 +100,10 @@ jobs:
       - name: Run Tests
         run: flutter test
 
-      - name: Build APK
+      - name: Build Optimized Release APKs
         run: |
-          flutter build apk --debug -v >> build.log 2>&1
+          flutter build apk --release >> build.log 2>&1
+          flutter build apk --release --split-per-abi >> build.log 2>&1
 
       - name: Publish Build Logs to GitHub Branch if Failed
         if: failure()
@@ -119,10 +120,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: success()
         with:
-          tag_name: v1.0.0
-          name: Compass App v1.0.0
+          tag_name: v1.0.1
+          name: Compass App v1.0.1 (Optimized Release)
           draft: false
           prerelease: false
+          make_latest: true
           files: |
             build/app/outputs/flutter-apk/*.apk
         env:
