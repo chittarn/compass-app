@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-// Inlined or imported logic to verify standalone with Dart SDK
 class AngleUnwrapper {
   double _currentUnwrappedAngle;
   bool _isInitialized = false;
@@ -106,9 +105,11 @@ void main() {
   print('  Counter-Clockwise 1° -> 359° unwrapped to: $ccw° (Expected: 359.0°)');
   assert(ccw == 359.0, 'Wrap-around counter-clockwise failed');
 
-  // Test multi-revolutions
-  unwrapper.unwrap(10.0); // 370
+  // Test multi-revolutions continuously
+  unwrapper.unwrap(10.0);  // 370
   unwrapper.unwrap(180.0); // 540
+  unwrapper.unwrap(270.0); // 630
+  unwrapper.unwrap(350.0); // 710
   final rev2 = unwrapper.unwrap(10.0); // 730
   print('  Multiple revolutions reached: $rev2° (Expected: 730.0°)');
   assert(rev2 == 730.0, 'Multi-revolution unwrapping failed');

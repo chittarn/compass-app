@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:compass_app/core/utils/haptic_throttler.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('HapticThrottler Tests', () {
     test('Triggers heavy haptic when reaching North sector (0°)', () async {
       int heavyCalls = 0;
@@ -102,7 +104,7 @@ void main() {
         currentTime: time2,
       );
       expect(triggered2, isFalse);
-      expect(lightCalls, 1); // Not incremented
+      expect(lightCalls, 1);
     });
   });
 }

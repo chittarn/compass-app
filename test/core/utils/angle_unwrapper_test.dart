@@ -44,14 +44,21 @@ void main() {
       final unwrapper = AngleUnwrapper(350.0);
       unwrapper.unwrap(350.0);
 
-      // Turn past north into next revolution
+      // Turn past north into revolution 1
       var angle = unwrapper.unwrap(10.0);
       expect(angle, 370.0);
 
       angle = unwrapper.unwrap(180.0);
       expect(angle, 540.0);
 
-      // Turn past north again into 2nd full revolution
+      // Continue clockwise: 180° -> 270° -> 350° -> 10°
+      angle = unwrapper.unwrap(270.0);
+      expect(angle, 630.0);
+
+      angle = unwrapper.unwrap(350.0);
+      expect(angle, 710.0);
+
+      // Turn past north into revolution 2
       angle = unwrapper.unwrap(10.0);
       expect(angle, 730.0);
     });
