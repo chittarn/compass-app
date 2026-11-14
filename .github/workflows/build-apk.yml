@@ -36,11 +36,17 @@ jobs:
           flutter create --project-name compass_app --platforms=android --org com.example .
           rm -f test/widget_test.dart
 
-      - name: Fix AGP 8 Namespace & MinSDK for Older Plugins
+      - name: Update Gradle Wrapper to 8.4 & Fix AGP 8
         run: |
+          # Upgrade Gradle wrapper from 7.6.3 to 8.4 as required by AGP 8.3
+          sed -i 's/gradle-[0-9.]*-all.zip/gradle-8.4-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/gradle-[0-9.]*-bin.zip/gradle-8.4-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+
+          # Ensure minSdk is at least 21
           sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
 
+          # Inject namespace fallback into root android/build.gradle for plugins like flutter_compass
           cat << 'EOF' >> android/build.gradle
 
           subprojects {
