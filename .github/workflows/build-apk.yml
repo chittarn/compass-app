@@ -52,22 +52,6 @@ jobs:
           sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 21/g' android/app/build.gradle || true
           sed -i 's/minSdkVersion = flutter.minSdkVersion/minSdkVersion = 21/g' android/app/build.gradle || true
 
-          # Inject namespace fallback into root android/build.gradle for plugins like flutter_compass
-          cat << 'EOF' >> android/build.gradle
-
-          subprojects {
-              afterEvaluate { project ->
-                  if (project.hasProperty('android')) {
-                      project.android {
-                          if (namespace == null || namespace.isEmpty()) {
-                              namespace = "com.library.${project.name.replaceAll('-', '_')}"
-                          }
-                      }
-                  }
-              }
-          }
-          EOF
-
       - name: Restore Custom AndroidManifest Permissions
         run: |
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
