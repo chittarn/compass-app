@@ -1,21 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../controllers/pro_controller.dart';
 import '../pro_upgrade_modal.dart';
 import '../../../../../core/theme/app_colors.dart';
 
-class NavigationAdBanner extends ConsumerWidget {
+class NavigationAdBanner extends ConsumerStatefulWidget {
   const NavigationAdBanner({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NavigationAdBanner> createState() => _NavigationAdBannerState();
+}
+
+class _NavigationAdBannerState extends ConsumerState<NavigationAdBanner> {
+  // Official Google AdMob Android Sample Banner Unit ID for Testing
+  static const String _testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    final isPro = ref.read(proControllerProvider).isPro;
+    if (isPro) return;
+
+    try {
+      _bannerAd = BannerAd(
+        adUnitId: _testBannerAdUnitId,
+        size: AdSize.banner,
+        request: const AdRequest(),
+        listener: BannerAdListener(
+          onAdLoaded: (ad) {
+            if (mounted) {
+              setState(() {
+                _isAdLoaded = true;
+              });
+            }
+          },
+          onAdFailedToLoad: (ad, error) {
+            ad.dispose();
+            _bannerAd = null;
+          },
+        ),
+      )..load();
+    } catch (_) {
+      // Platform channels not initialized (e.g. desktop/unit tests)
+    }
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final proState = ref.watch(proControllerProvider);
     if (proState.isPro) {
+      _bannerAd?.dispose();
+      _bannerAd = null;
       return const SizedBox.shrink();
     }
 
     final theme = proState.isNightVision ? CompassTheme.nightVision : CompassTheme.normal;
 
+    // If Google AdMob banner is live and loaded, show real AdWidget
+    if (_isAdLoaded && _bannerAd != null) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        height: _bannerAd!.size.height.toDouble(),
+        width: _bannerAd!.size.width.toDouble(),
+        alignment: Alignment.center,
+        child: AdWidget(ad: _bannerAd!),
+      );
+    }
+
+    // Elegant fallback tactical sponsor card (offline or loading)
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -26,7 +92,6 @@ class NavigationAdBanner extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          // Ad Badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
@@ -45,8 +110,6 @@ class NavigationAdBanner extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 10),
-
-          // Ad Copy
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,8 +136,6 @@ class NavigationAdBanner extends ConsumerWidget {
               ],
             ),
           ),
-
-          // Remove Ads / Go Pro Pill
           InkWell(
             onTap: () => ProUpgradeModal.show(context),
             borderRadius: BorderRadius.circular(16),

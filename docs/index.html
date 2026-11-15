@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Compass Tactical & Inclinometer</title>
+  <style>
+    :root {
+      --bg: #0F1115;
+      --card: #181B22;
+      --border: #282C37;
+      --accent: #00E5FF;
+      --text: #F9FAFB;
+      --muted: #9CA3AF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 40px 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .effective-date {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    p, ul {
+      font-size: 14.5px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    strong {
+      color: var(--text);
+    }
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">LEGAL COMPLIANCE & DATA SAFETY</div>
+    <h1>Privacy Policy</h1>
+    <p class="effective-date">Application: <strong>Compass (Tactical Navigation & Inclinometer)</strong> • Effective Date: November 15, 2026</p>
+  </header>
+
+  <section>
+    <h2>1. Overview & Privacy Commitment</h2>
+    <p>
+      Your privacy is paramount. <strong>Compass</strong> is designed with an on-device architecture. 
+      The app functions as an offline instrument tool: your sensors, heading calculations, attitude angles, 
+      and navigation data are computed purely in local memory on your mobile device.
+    </p>
+    <p>
+      <strong>We do not harvest, track, record, or transmit your GPS coordinates, sensor readings, or personal information.</strong>
+    </p>
+  </section>
+
+  <section>
+    <h2>2. Permissions Requested & Purpose</h2>
+    <ul>
+      <li>
+        <strong>Location (ACCESS_FINE_LOCATION & ACCESS_COARSE_LOCATION):</strong><br>
+        Used strictly in real-time to compute the geographic offset between Magnetic North and True North 
+        (magnetic declination using the World Magnetic Model) and to display current altitude (elevation MSL). 
+        Your coordinates are processed in volatile RAM and are never uploaded to any remote server.
+      </li>
+      <li>
+        <strong>Hardware Sensors (MAGNETOMETER & ACCELEROMETER):</strong><br>
+        Used to calculate device heading, orientation, pitch, and roll for the 360° compass rose and 2D artificial horizon bubble level.
+      </li>
+      <li>
+        <strong>Haptics & Vibration (VIBRATE):</strong><br>
+        Used to provide physical tactile feedback when crossing cardinal directions and the North azimuth.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Advertising & Third-Party SDKs</h2>
+    <p>
+      The free version of Compass displays non-intrusive banner advertisements provided by <strong>Google AdMob</strong>. 
+      Google AdMob may collect and process standard anonymous device identifiers (such as the Google Advertising ID) 
+      in accordance with Google's Privacy Policy to serve relevant ads.
+    </p>
+    <p>
+      Users who purchase the <strong>Pro Tier</strong> receive a 100% ad-free experience with all advertising SDK activity completely disabled.
+    </p>
+  </section>
+
+  <section>
+    <h2>4. Data Retention & Security</h2>
+    <p>
+      Because we do not operate telemetry servers or store user databases, no user data is retained by us. 
+      All user preferences (such as True North mode or Pro upgrade status) are stored locally on your device via Android SharedPreferences.
+    </p>
+  </section>
+
+  <section>
+    <h2>5. Contact & Inquiries</h2>
+    <p>
+      If you have questions regarding this Privacy Policy or app safety disclosures, you may contact the developer directly at:<br>
+      <strong>chitta.rn@gmail.com</strong>
+    </p>
+  </section>
+
+  <footer>
+    &copy; 2026 Chittaranjan Nayak. All rights reserved. • Package: com.chittaranjan.compass
+  </footer>
+
+</body>
+</html>
