@@ -271,7 +271,7 @@ class CompassController extends StateNotifier<CompassState> {
       if (_filteredPitch!.abs() < 0.2) {
         displayPitch = 0.0;
       } else {
-        displayPitch = (math.round(_filteredPitch! * 10)) / 10.0;
+        displayPitch = ((_filteredPitch! * 10).round()) / 10.0;
       }
     }
 
@@ -279,7 +279,7 @@ class CompassController extends StateNotifier<CompassState> {
       if (_filteredRoll!.abs() < 0.2) {
         displayRoll = 0.0;
       } else {
-        displayRoll = (math.round(_filteredRoll! * 10)) / 10.0;
+        displayRoll = ((_filteredRoll! * 10).round()) / 10.0;
       }
     }
 
@@ -309,7 +309,7 @@ class CompassController extends StateNotifier<CompassState> {
     final currentVal = state.magneticFieldStrength ?? _filteredEmf!;
     double displayEmf = currentVal;
     if ((_filteredEmf! - currentVal).abs() > 0.35) {
-      displayEmf = (math.round(_filteredEmf! * 10)) / 10.0;
+      displayEmf = ((_filteredEmf! * 10).round()) / 10.0;
     }
 
     state = state.copyWith(magneticFieldStrength: displayEmf);
