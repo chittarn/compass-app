@@ -7,6 +7,9 @@ import 'widgets/bubble_level_painter.dart';
 import 'widgets/accuracy_badge.dart';
 import 'widgets/calibration_modal.dart';
 import 'widgets/telemetry_guide_modal.dart';
+import '../../pro/controllers/pro_controller.dart';
+import '../../pro/presentation/pro_upgrade_modal.dart';
+import '../../pro/presentation/widgets/navigation_ad_banner.dart';
 import '../../../core/constants/compass_constants.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -38,29 +41,46 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(compassControllerProvider);
     final controller = ref.read(compassControllerProvider.notifier);
+    final proState = ref.watch(proControllerProvider);
+    final proNotifier = ref.read(proControllerProvider.notifier);
+
+    final theme = proState.isNightVision ? CompassTheme.nightVision : CompassTheme.normal;
 
     _checkCalibrationAlert(state.accuracy);
 
     final directionLabel = CompassConstants.getDirectionLabel(state.heading);
     final isTrueNorth = state.headingType == HeadingType.trueNorth;
 
+    // Calculate Bearing Deviation if Bearing is Locked
+    double? driftAngle;
+    String driftLabel = '';
+    if (proState.lockedBearing != null) {
+      double diff = (state.heading - proState.lockedBearing!) % 360;
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+      driftAngle = diff;
+      driftLabel = diff >= 0
+          ? '+${diff.round()}° RIGHT'
+          : '${diff.round()}° LEFT';
+    }
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.background,
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar: App Title, Field Guide Button & Accuracy Badge
+            // Top App Bar: Title, Field Guide, Night Vision, PRO Badge, Accuracy Badge
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      const Text(
+                      Text(
                         'COMPASS',
                         style: TextStyle(
-                          color: AppColors.textPrimary,
+                          color: theme.textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 2.0,
@@ -68,9 +88,9 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                       ),
                       const SizedBox(width: 4),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.info_outline_rounded,
-                          color: AppColors.accentCyan,
+                          color: theme.accentCyan,
                           size: 20,
                         ),
                         tooltip: 'Field Guide & Telemetry Glossary',
@@ -78,9 +98,72 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                       ),
                     ],
                   ),
-                  AccuracyBadge(
-                    accuracy: state.accuracy,
-                    onTap: () => CalibrationModal.show(context, state.accuracy),
+                  Row(
+                    children: [
+                      // Red OLED Night Vision Toggle (Pro only)
+                      if (proState.isPro)
+                        IconButton(
+                          icon: Icon(
+                            proState.isNightVision ? Icons.lightbulb_rounded : Icons.nightlight_round,
+                            color: proState.isNightVision ? theme.northRed : theme.textSecondary,
+                            size: 20,
+                          ),
+                          tooltip: 'Red OLED Night Vision',
+                          onPressed: () => proNotifier.toggleNightVision(),
+                        ),
+
+                      // PRO / UPGRADE Badge
+                      InkWell(
+                        onTap: () => ProUpgradeModal.show(context),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            gradient: proState.isPro
+                                ? LinearGradient(colors: [
+                                    theme.accentCyan.withOpacity(0.25),
+                                    theme.accentCyan.withOpacity(0.08)
+                                  ])
+                                : LinearGradient(colors: [
+                                    theme.goldPro.withOpacity(0.3),
+                                    theme.accentAmber.withOpacity(0.15)
+                                  ]),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                proState.isPro ? Icons.verified_rounded : Icons.workspace_premium_rounded,
+                                color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                proState.isPro ? 'PRO' : 'GET PRO',
+                                style: TextStyle(
+                                  color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Accuracy Badge
+                      AccuracyBadge(
+                        accuracy: state.accuracy,
+                        onTap: () => CalibrationModal.show(context, state.accuracy),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -88,90 +171,140 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             const Spacer(flex: 1),
 
-            // Heading & Cardinal Readout
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+            // Heading & Cardinal Readout (Tap to Lock Target Bearing)
+            InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                if (proState.isPro) {
+                  if (proState.hasLockedBearing) {
+                    proNotifier.clearLockedBearing();
+                  } else {
+                    proNotifier.lockBearing(state.heading);
+                  }
+                } else {
+                  ProUpgradeModal.show(context);
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Column(
                   children: [
-                    Text(
-                      state.heading.round().toString().padLeft(3, '0'),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 64,
-                        fontWeight: FontWeight.w300,
-                        fontFamily: 'monospace',
-                        letterSpacing: -1.0,
-                      ),
-                    ),
-                    const Text(
-                      '°',
-                      style: TextStyle(
-                        color: AppColors.northRed,
-                        fontSize: 42,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      directionLabel,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Heading Mode Toggle Pill (Magnetic vs True North)
-                GestureDetector(
-                  onTap: () async {
-                    final success = await controller.toggleHeadingType();
-                    if (!success && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Location permission required for True North declination.'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isTrueNorth ? AppColors.accentCyan : AppColors.dialRing,
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Icon(
-                          isTrueNorth ? Icons.navigation : Icons.explore,
-                          size: 14,
-                          color: isTrueNorth ? AppColors.accentCyan : AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: 6),
                         Text(
-                          isTrueNorth ? 'True North (GPS)' : 'Magnetic North',
+                          state.heading.round().toString().padLeft(3, '0'),
                           style: TextStyle(
-                            color: isTrueNorth ? AppColors.accentCyan : AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            color: theme.textPrimary,
+                            fontSize: 64,
+                            fontWeight: FontWeight.w300,
+                            fontFamily: 'monospace',
+                            letterSpacing: -1.0,
+                          ),
+                        ),
+                        Text(
+                          '°',
+                          style: TextStyle(
+                            color: theme.northRed,
+                            fontSize: 42,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          directionLabel,
+                          style: TextStyle(
+                            color: theme.textSecondary,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
                           ),
                         ),
                       ],
                     ),
+
+                    // Target Bearing Lock HUD Chip (PRO)
+                    if (proState.lockedBearing != null) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: theme.goldPro.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: theme.goldPro.withOpacity(0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.my_location_rounded, color: theme.goldPro, size: 14),
+                            const SizedBox(width: 6),
+                            Text(
+                              'TARGET: ${proState.lockedBearing!.round().toString().padLeft(3, '0')}°  |  $driftLabel',
+                              style: TextStyle(
+                                color: theme.goldPro,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(Icons.cancel_rounded, color: theme.goldPro, size: 14),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Heading Mode Toggle Pill (Magnetic vs True North)
+            GestureDetector(
+              onTap: () async {
+                final success = await controller.toggleHeadingType();
+                if (!success && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Location permission required for True North declination.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isTrueNorth ? theme.accentCyan : theme.dialRing,
+                    width: 1.2,
                   ),
                 ),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isTrueNorth ? Icons.navigation : Icons.explore,
+                      size: 14,
+                      color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isTrueNorth ? 'True North (GPS)' : 'Magnetic North',
+                      style: TextStyle(
+                        color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
 
             const Spacer(flex: 1),
@@ -193,7 +326,11 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         return RepaintBoundary(
                           child: CustomPaint(
                             size: const Size(320, 320),
-                            painter: CompassDialPainter(heading: animatedHeading),
+                            painter: CompassDialPainter(
+                              heading: animatedHeading,
+                              lockedBearing: proState.lockedBearing,
+                              theme: theme,
+                            ),
                           ),
                         );
                       },
@@ -206,11 +343,11 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         width: 3,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: AppColors.northRed,
+                          color: theme.northRed,
                           borderRadius: BorderRadius.circular(2),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.northRed.withOpacity(0.8),
+                              color: theme.northRed.withOpacity(0.8),
                               blurRadius: 4,
                             ),
                           ],
@@ -218,17 +355,14 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                       ),
                     ),
 
-                    // Central 2D Bubble Level / Inclinometer
-                    SizedBox(
-                      width: 90,
-                      height: 90,
-                      child: RepaintBoundary(
-                        child: CustomPaint(
-                          painter: BubbleLevelPainter(
-                            pitch: state.pitch,
-                            roll: state.roll,
-                            isLevel: state.isLevel,
-                          ),
+                    // Center 2D Artificial Horizon / Bubble Level
+                    RepaintBoundary(
+                      child: CustomPaint(
+                        size: const Size(120, 120),
+                        painter: BubbleLevelPainter(
+                          pitch: state.pitch,
+                          roll: state.roll,
+                          isLevel: state.isLevel,
                         ),
                       ),
                     ),
@@ -241,33 +375,36 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             // Bottom Pitch & Roll / Attitude Telemetry Bar (Tap for Glossary)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
                 onTap: () => TelemetryGuideModal.show(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.dialRing),
+                    border: Border.all(color: theme.dialRing),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildTelemetryItem(
+                        theme: theme,
                         label: 'PITCH',
                         value: '${state.pitch >= 0 ? '+' : ''}${state.pitch.toStringAsFixed(1)}°',
                         isLevel: state.isLevel,
                       ),
-                      Container(width: 1, height: 28, color: AppColors.dialRing),
+                      Container(width: 1, height: 28, color: theme.dialRing),
                       _buildTelemetryItem(
+                        theme: theme,
                         label: 'ROLL',
                         value: '${state.roll >= 0 ? '+' : ''}${state.roll.toStringAsFixed(1)}°',
                         isLevel: state.isLevel,
                       ),
-                      Container(width: 1, height: 28, color: AppColors.dialRing),
+                      Container(width: 1, height: 28, color: theme.dialRing),
                       _buildTelemetryItem(
+                        theme: theme,
                         label: 'STATUS',
                         value: state.isLevel ? 'LEVEL' : 'TILTED',
                         isLevel: state.isLevel,
@@ -279,7 +416,10 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            // Bottom Navigation Ad Banner (Free Tier only, vanishes in Pro!)
+            const NavigationAdBanner(),
+
+            const SizedBox(height: 4),
           ],
         ),
       ),
@@ -287,14 +427,15 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
   }
 
   Widget _buildTelemetryItem({
+    required CompassTheme theme,
     required String label,
     required String value,
     required bool isLevel,
     bool isStatus = false,
   }) {
-    Color valColor = AppColors.textPrimary;
+    Color valColor = theme.textPrimary;
     if (isStatus) {
-      valColor = isLevel ? AppColors.bubbleLevel : AppColors.dialTick;
+      valColor = isLevel ? theme.bubbleLevel : theme.dialTick;
     }
 
     return Column(
@@ -302,8 +443,8 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: theme.textSecondary,
             fontSize: 10,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.0,

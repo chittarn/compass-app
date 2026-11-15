@@ -127,8 +127,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: success()
         with:
-          tag_name: v1.0.3
-          name: Compass App v1.0.3 (Package com.chittaranjan.compass)
+          tag_name: v1.0.4
+          name: Compass App v1.0.4 (Pro Features & Seamless Dark Icon)
           draft: false
           prerelease: false
           make_latest: true

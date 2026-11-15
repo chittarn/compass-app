@@ -4,8 +4,14 @@ import '../../../../core/theme/app_colors.dart';
 
 class CompassDialPainter extends CustomPainter {
   final double heading; // Current heading in degrees
+  final double? lockedBearing; // Target bearing for Pro users
+  final CompassTheme theme;
 
-  CompassDialPainter({required this.heading});
+  CompassDialPainter({
+    required this.heading,
+    this.lockedBearing,
+    this.theme = CompassTheme.normal,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -19,29 +25,29 @@ class CompassDialPainter extends CustomPainter {
     canvas.rotate(-heading * (math.pi / 180.0));
 
     final dialBgPaint = Paint()
-      ..color = AppColors.surface
+      ..color = theme.surface
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset.zero, radius - 8, dialBgPaint);
 
     final outerRingPaint = Paint()
-      ..color = AppColors.dialRing
+      ..color = theme.dialRing
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
     canvas.drawCircle(Offset.zero, radius - 10, outerRingPaint);
 
     final tickPaint = Paint()
-      ..color = AppColors.dialTick
+      ..color = theme.dialTick
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
     final majorTickPaint = Paint()
-      ..color = AppColors.dialTickMajor
+      ..color = theme.dialTickMajor
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5;
 
     final northTickPaint = Paint()
-      ..color = AppColors.northRed
+      ..color = theme.northRed
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.0;
@@ -49,71 +55,119 @@ class CompassDialPainter extends CustomPainter {
     // Draw ticks & labels around 360 degrees
     for (int deg = 0; deg < 360; deg++) {
       final rad = deg * (math.pi / 180.0);
-      final isMajor = deg % 15 == 0;
-      final isFive = deg % 5 == 0;
-      final isNorth = deg == 0;
+      final cosVal = math.cos(rad);
+      final sinVal = math.sin(rad);
 
-      double tickLength;
-      Paint currentPaint;
+      final outerR = radius - 12;
+      double innerR;
 
-      if (isNorth) {
-        tickLength = 22.0;
-        currentPaint = northTickPaint;
-      } else if (isMajor) {
-        tickLength = 16.0;
-        currentPaint = majorTickPaint;
-      } else if (isFive) {
-        tickLength = 10.0;
-        currentPaint = tickPaint..strokeWidth = 1.5;
+      if (deg == 0) {
+        // True North tick
+        innerR = radius - 26;
+        canvas.drawLine(
+          Offset(sinVal * innerR, -cosVal * innerR),
+          Offset(sinVal * outerR, -cosVal * outerR),
+          northTickPaint,
+        );
+      } else if (deg % 30 == 0) {
+        // Major 30-degree ticks
+        innerR = radius - 22;
+        canvas.drawLine(
+          Offset(sinVal * innerR, -cosVal * innerR),
+          Offset(sinVal * outerR, -cosVal * outerR),
+          majorTickPaint,
+        );
+
+        // Degree numbers
+        _drawDegreeText(canvas, '$deg', deg, radius - 36, theme.textSecondary);
+      } else if (deg % 5 == 0) {
+        // 5-degree intermediate ticks
+        innerR = radius - 18;
+        tickPaint.strokeWidth = 1.5;
+        canvas.drawLine(
+          Offset(sinVal * innerR, -cosVal * innerR),
+          Offset(sinVal * outerR, -cosVal * outerR),
+          tickPaint,
+        );
       } else {
-        tickLength = 5.0;
-        currentPaint = tickPaint..strokeWidth = 1.0;
-      }
-
-      final startR = radius - 12;
-      final endR = startR - tickLength;
-
-      final p1 = Offset(startR * math.sin(rad), -startR * math.cos(rad));
-      final p2 = Offset(endR * math.sin(rad), -endR * math.cos(rad));
-
-      canvas.drawLine(p1, p2, currentPaint);
-
-      // Draw numerical labels for major 30-degree intervals (except 0, 90, 180, 270 which have cardinals)
-      if (deg % 30 == 0 && deg % 90 != 0) {
-        _drawDegreeText(canvas, deg.toString(), rad, radius - 46);
+        // 1-degree minor ticks
+        innerR = radius - 15;
+        tickPaint.strokeWidth = 0.8;
+        canvas.drawLine(
+          Offset(sinVal * innerR, -cosVal * innerR),
+          Offset(sinVal * outerR, -cosVal * outerR),
+          tickPaint,
+        );
       }
     }
 
-    // Draw Cardinal Points: N, E, S, W
-    _drawCardinalText(canvas, 'N', 0.0, radius - 48, AppColors.northRed, isBold: true, fontSize: 22);
-    _drawCardinalText(canvas, 'E', 90.0, radius - 48, AppColors.textPrimary, isBold: true, fontSize: 18);
-    _drawCardinalText(canvas, 'S', 180.0, radius - 48, AppColors.textPrimary, isBold: true, fontSize: 18);
-    _drawCardinalText(canvas, 'W', 270.0, radius - 48, AppColors.textPrimary, isBold: true, fontSize: 18);
+    // Draw Cardinal Text (N, E, S, W)
+    final cardinalRadius = radius - 56;
+    _drawCardinalText(canvas, 'N', 0, cardinalRadius, theme.northRed, isBold: true, fontSize: 18);
+    _drawCardinalText(canvas, 'E', 90, cardinalRadius, theme.textPrimary, isBold: true, fontSize: 16);
+    _drawCardinalText(canvas, 'S', 180, cardinalRadius, theme.textPrimary, isBold: true, fontSize: 16);
+    _drawCardinalText(canvas, 'W', 270, cardinalRadius, theme.textPrimary, isBold: true, fontSize: 16);
 
-    // Draw Subcardinal Points: NE, SE, SW, NW
-    _drawCardinalText(canvas, 'NE', 45.0, radius - 46, AppColors.textSecondary, isBold: false, fontSize: 13);
-    _drawCardinalText(canvas, 'SE', 135.0, radius - 46, AppColors.textSecondary, isBold: false, fontSize: 13);
-    _drawCardinalText(canvas, 'SW', 225.0, radius - 46, AppColors.textSecondary, isBold: false, fontSize: 13);
-    _drawCardinalText(canvas, 'NW', 315.0, radius - 46, AppColors.textSecondary, isBold: false, fontSize: 13);
+    // Draw Sub-cardinals (NE, SE, SW, NW)
+    final subCardinalRadius = radius - 55;
+    _drawCardinalText(canvas, 'NE', 45, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
+    _drawCardinalText(canvas, 'SE', 135, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
+    _drawCardinalText(canvas, 'SW', 225, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
+    _drawCardinalText(canvas, 'NW', 315, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
 
-    // North Pointer Triangle at 0°
-    final pointerPath = Path()
-      ..moveTo(0, -(radius - 12))
-      ..lineTo(-8, -(radius - 28))
-      ..lineTo(8, -(radius - 28))
-      ..close();
-    canvas.drawPath(pointerPath, Paint()..color = AppColors.northRed);
+    // If a Target Bearing is Locked (PRO feature), draw the Target Beacon on the dial rim!
+    if (lockedBearing != null) {
+      final targetRad = lockedBearing! * (math.pi / 180.0);
+      final targetR = radius - 12;
+      final targetX = targetR * math.sin(targetRad);
+      final targetY = -targetR * math.cos(targetRad);
+
+      // Target pointer diamond
+      final diamondPaint = Paint()
+        ..color = theme.goldPro
+        ..style = PaintingStyle.fill;
+
+      final diamondPath = Path();
+      const dSize = 8.0;
+      diamondPath.moveTo(targetX, targetY - dSize);
+      diamondPath.lineTo(targetX + dSize, targetY);
+      diamondPath.lineTo(targetX, targetY + dSize);
+      diamondPath.lineTo(targetX - dSize, targetY);
+      diamondPath.close();
+
+      canvas.drawPath(diamondPath, diamondPaint);
+
+      final glowPaint = Paint()
+        ..color = theme.goldPro.withOpacity(0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0;
+      canvas.drawCircle(Offset(targetX, targetY), dSize + 3, glowPaint);
+    }
 
     canvas.restore();
+
+    // Top fixed lubber line indicator (fixed at 12 o'clock outside rotated canvas)
+    final lubberPaint = Paint()
+      ..color = theme.northRed
+      ..style = PaintingStyle.fill;
+
+    final lubberPath = Path()
+      ..moveTo(center.dx, center.dy - radius + 4)
+      ..lineTo(center.dx - 6, center.dy - radius - 6)
+      ..lineTo(center.dx + 6, center.dy - radius - 6)
+      ..close();
+
+    canvas.drawPath(lubberPath, lubberPaint);
   }
 
-  void _drawDegreeText(Canvas canvas, String text, double rad, double r) {
+  void _drawDegreeText(Canvas canvas, String text, int deg, double r, Color color) {
+    final rad = deg * (math.pi / 180.0);
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 11,
+        style: TextStyle(
+          color: color,
+          fontSize: 9,
           fontWeight: FontWeight.w500,
           fontFamily: 'monospace',
         ),
@@ -126,7 +180,6 @@ class CompassDialPainter extends CustomPainter {
 
     canvas.save();
     canvas.translate(x + textPainter.width / 2, y + textPainter.height / 2);
-    // Keep numbers upright relative to the dial spoke
     textPainter.paint(canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
     canvas.restore();
   }
@@ -161,6 +214,8 @@ class CompassDialPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CompassDialPainter oldDelegate) {
-    return oldDelegate.heading != heading;
+    return oldDelegate.heading != heading ||
+        oldDelegate.lockedBearing != lockedBearing ||
+        oldDelegate.theme != theme;
   }
 }
