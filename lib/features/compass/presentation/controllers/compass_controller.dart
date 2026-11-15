@@ -128,10 +128,13 @@ class CompassController extends StateNotifier<CompassState> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
-          return false;
-        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        await Geolocator.openAppSettings();
+        return false;
+      }
+      if (permission == LocationPermission.denied) {
+        return false;
       }
 
       state = state.copyWith(hasLocationPermission: true);
@@ -281,10 +284,13 @@ class CompassController extends StateNotifier<CompassState> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
-          return false;
-        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        await Geolocator.openAppSettings();
+        return false;
+      }
+      if (permission == LocationPermission.denied) {
+        return false;
       }
 
       state = state.copyWith(
