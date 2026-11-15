@@ -5,10 +5,13 @@ class AppColors {
   static const Color background = Color(0xFF0F1115);
   static const Color surface = Color(0xFF181B22);
   static const Color surfaceElevated = Color(0xFF222631);
+  static const Color cardBackground = Color(0xFF222631);
 
   // Tactical Accents
   static const Color northRed = Color(0xFFFF3B30);
   static const Color accentCyan = Color(0xFF00E5FF);
+  static const Color accentGreen = Color(0xFF00E676);
+  static const Color accentAmber = Color(0xFFFF9100);
   static const Color dialRing = Color(0xFF2E3440);
   static const Color dialTick = Color(0xFF6B7280);
   static const Color dialTickMajor = Color(0xFFE5E7EB);
