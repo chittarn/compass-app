@@ -129,5 +129,22 @@ void main() {
       expect(stateWithEphemeris.formattedSunrise, '06:14');
       expect(stateWithEphemeris.formattedSunset, '20:32');
     });
+
+    test('CompassState computes current Vastu zone and room alignment', () {
+      const stateAtNE = CompassState(
+        heading: 45.0,
+        unwrappedHeading: 45.0,
+        headingType: HeadingType.magnetic,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: false,
+        isVastuMode: true,
+      );
+
+      expect(stateAtNE.currentVastuZone.direction, 'NE');
+      expect(stateAtNE.currentVastuZone.sanskritName, contains('Ishan'));
+    });
   });
 }

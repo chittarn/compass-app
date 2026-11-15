@@ -10,6 +10,8 @@ import 'widgets/bubble_level_painter.dart';
 import 'widgets/accuracy_badge.dart';
 import 'widgets/calibration_modal.dart';
 import 'widgets/telemetry_guide_modal.dart';
+import 'widgets/vastu_guide_modal.dart';
+import '../../../core/utils/vastu_calculator.dart';
 import '../../pro/controllers/pro_controller.dart';
 import '../../pro/presentation/pro_upgrade_modal.dart';
 import '../../pro/presentation/widgets/navigation_ad_banner.dart';
@@ -391,6 +393,103 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         ),
                       ),
                     ],
+
+                    // Vastu Shastra Architectural Ribbon
+                    if (state.isVastuMode) ...[
+                      const SizedBox(height: 6),
+                      InkWell(
+                        onTap: () => VastuGuideModal.show(context),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          constraints: const BoxConstraints(maxWidth: 350),
+                          decoration: BoxDecoration(
+                            color: Color(state.currentVastuZone.colorValue).withOpacity(0.14),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Color(state.currentVastuZone.colorValue).withOpacity(0.55),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('🕉️', style: TextStyle(fontSize: 12)),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  '${state.currentVastuZone.sanskritName.toUpperCase()} • ${state.currentVastuZone.elementLabel}',
+                                  style: TextStyle(
+                                    color: Color(state.currentVastuZone.colorValue),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'monospace',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: Color(state.currentVastuZone.colorValue),
+                                size: 13,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (state.activeVastuRoom != null) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          constraints: const BoxConstraints(maxWidth: 350),
+                          decoration: BoxDecoration(
+                            color: state.isVastuRoomAligned
+                                ? const Color(0xFFFFD700).withOpacity(0.25)
+                                : const Color(0xFFFFD700).withOpacity(0.10),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: state.isVastuRoomAligned
+                                  ? const Color(0xFFFFD700)
+                                  : const Color(0xFFFFD700).withOpacity(0.4),
+                              width: state.isVastuRoomAligned ? 1.5 : 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                state.isVastuRoomAligned ? Icons.check_circle_rounded : Icons.explore_rounded,
+                                color: const Color(0xFFFFD700),
+                                size: 13,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  'TARGET: ${VastuCalculator.getGuideline(state.activeVastuRoom!).title.toUpperCase()} (${VastuCalculator.getGuideline(state.activeVastuRoom!).targetHeading.round()}°) ${state.isVastuRoomAligned ? "• ALIGNED 🕉️" : ""}',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFFD700),
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'monospace',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () => controller.setActiveVastuRoom(null),
+                                child: const Icon(
+                                  Icons.cancel_rounded,
+                                  color: Color(0xFFFFD700),
+                                  size: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                   ],
                 ),
               ),
@@ -546,6 +645,50 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                       ),
                     ),
                   ),
+
+                  const SizedBox(width: 8),
+
+                  // Vastu Shastra Mode Toggle Pill
+                  GestureDetector(
+                    onTap: () {
+                      controller.toggleVastuMode();
+                      if (!state.isVastuMode) {
+                        VastuGuideModal.show(context);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: state.isVastuMode
+                            ? const Color(0xFFFFD700).withOpacity(0.18)
+                            : theme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: state.isVastuMode
+                              ? const Color(0xFFFFD700)
+                              : theme.dialRing,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('🕉️', style: TextStyle(fontSize: 11)),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Vastu',
+                            style: TextStyle(
+                              color: state.isVastuMode
+                                  ? const Color(0xFFFFD700)
+                                  : theme.textSecondary,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -578,6 +721,10 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                               moonAzimuth: state.moonAzimuth,
                               waypointBearing: waypointBearing,
                               waypointTitle: activeWp?.title,
+                              isVastuMode: state.isVastuMode,
+                              vastuTargetBearing: state.activeVastuRoom != null
+                                  ? VastuCalculator.getGuideline(state.activeVastuRoom!).targetHeading
+                                  : null,
                               theme: theme,
                             ),
                           ),
@@ -594,13 +741,17 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         decoration: BoxDecoration(
                           color: state.isQiblaMode && state.isQiblaAligned
                               ? const Color(0xFF00E676)
-                              : theme.northRed,
+                              : (state.isVastuMode && state.isVastuRoomAligned
+                                  ? const Color(0xFFFFD700)
+                                  : theme.northRed),
                           borderRadius: BorderRadius.circular(2),
                           boxShadow: [
                             BoxShadow(
-                              color: (state.isQiblaMode && state.isQiblaAligned
+                              color: ((state.isQiblaMode && state.isQiblaAligned)
                                       ? const Color(0xFF00E676)
-                                      : theme.northRed)
+                                      : (state.isVastuMode && state.isVastuRoomAligned
+                                          ? const Color(0xFFFFD700)
+                                          : theme.northRed))
                                   .withOpacity(0.8),
                               blurRadius: 4,
                             ),

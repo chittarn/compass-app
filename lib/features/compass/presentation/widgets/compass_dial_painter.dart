@@ -11,6 +11,8 @@ class CompassDialPainter extends CustomPainter {
   final double? moonAzimuth; // Lunar azimuth in degrees [0, 360)
   final double? waypointBearing; // Waypoint azimuth in degrees [0, 360)
   final String? waypointTitle; // Waypoint label (e.g. "Car")
+  final bool isVastuMode; // Whether Vastu Shastra mode is active
+  final double? vastuTargetBearing; // Target room azimuth in degrees [0, 360)
   final CompassTheme theme;
 
   CompassDialPainter({
@@ -22,6 +24,8 @@ class CompassDialPainter extends CustomPainter {
     this.moonAzimuth,
     this.waypointBearing,
     this.waypointTitle,
+    this.isVastuMode = false,
+    this.vastuTargetBearing,
     this.theme = CompassTheme.normal,
   });
 
@@ -316,6 +320,48 @@ class CompassDialPainter extends CustomPainter {
       canvas.restore();
     }
 
+    // Vastu Target Beacon Marker (Golden Om Sacred Needle)
+    if (isVastuMode && vastuTargetBearing != null) {
+      final vRad = vastuTargetBearing! * (math.pi / 180.0);
+      final vR = radius - 16;
+      final vX = vR * math.sin(vRad);
+      final vY = -vR * math.cos(vRad);
+
+      canvas.save();
+      canvas.translate(vX, vY);
+      canvas.rotate(vRad);
+
+      // Gold aura
+      final vGlow = Paint()
+        ..color = const Color(0xFFFFD700).withOpacity(0.38)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 13, vGlow);
+
+      // Gold pin head
+      final vPin = Paint()
+        ..color = const Color(0xFFFFD700)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 4.5, vPin);
+
+      // Gold radial pointer arrow
+      final vArrow = Path()
+        ..moveTo(0, -10)
+        ..lineTo(-4.5, -5.5)
+        ..lineTo(4.5, -5.5)
+        ..close();
+      canvas.drawPath(vArrow, vPin);
+
+      canvas.restore();
+    }
+
+    // Vastu Sanskrit Sub-Cardinal Labels on Dial Rim
+    if (isVastuMode) {
+      _drawCardinalText(canvas, 'ईशान', 45, radius - 46, const Color(0xFFFFD700), isBold: true, fontSize: 8.5);
+      _drawCardinalText(canvas, 'आग्नेय', 135, radius - 46, const Color(0xFFFFD700), isBold: true, fontSize: 8.5);
+      _drawCardinalText(canvas, 'नैऋत्य', 225, radius - 46, const Color(0xFFFFD700), isBold: true, fontSize: 8.5);
+      _drawCardinalText(canvas, 'वायव्य', 315, radius - 46, const Color(0xFFFFD700), isBold: true, fontSize: 8.5);
+    }
+
     canvas.restore();
 
     // Top fixed lubber line indicator (fixed at 12 o'clock outside rotated canvas)
@@ -394,6 +440,8 @@ class CompassDialPainter extends CustomPainter {
         oldDelegate.moonAzimuth != moonAzimuth ||
         oldDelegate.waypointBearing != waypointBearing ||
         oldDelegate.waypointTitle != waypointTitle ||
+        oldDelegate.isVastuMode != isVastuMode ||
+        oldDelegate.vastuTargetBearing != vastuTargetBearing ||
         oldDelegate.theme != theme;
   }
 }

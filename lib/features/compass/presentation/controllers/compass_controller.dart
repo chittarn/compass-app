@@ -14,6 +14,7 @@ import '../../../../core/utils/tilt_calculator.dart';
 import '../../../../core/utils/qibla_calculator.dart';
 import '../../../../core/utils/solar_calculator.dart';
 import '../../../../core/constants/compass_constants.dart';
+import '../../../../core/utils/vastu_calculator.dart';
 
 final compassControllerProvider =
     StateNotifierProvider<CompassController, CompassState>((ref) {
@@ -23,6 +24,7 @@ final compassControllerProvider =
 class CompassController extends StateNotifier<CompassState> {
   static const String _keyHeadingType = 'compass_heading_type';
   static const String _keyQiblaMode = 'compass_qibla_mode';
+  static const String _keyVastuMode = 'compass_vastu_mode';
 
   final AngleUnwrapper _unwrapper = AngleUnwrapper();
   final HapticThrottler _hapticThrottler = HapticThrottler();
@@ -35,6 +37,7 @@ class CompassController extends StateNotifier<CompassState> {
   DateTime _lastTimestamp = DateTime.now();
   double _lastHeading = 0.0;
   bool _lastQiblaAligned = false;
+  bool _lastVastuAligned = false;
   double? _filteredPitch;
   double? _filteredRoll;
   double? _filteredEmf;
@@ -65,6 +68,10 @@ class CompassController extends StateNotifier<CompassState> {
       final savedQibla = prefs.getBool(_keyQiblaMode) ?? false;
       if (savedQibla) {
         state = state.copyWith(isQiblaMode: true);
+      }
+      final savedVastu = prefs.getBool(_keyVastuMode) ?? false;
+      if (savedVastu) {
+        state = state.copyWith(isVastuMode: true);
       }
     } catch (_) {}
   }
@@ -240,6 +247,15 @@ class CompassController extends StateNotifier<CompassState> {
       _lastQiblaAligned = isNowAligned;
     }
 
+    // Vastu Room Target Alignment Haptic Pulse
+    if (state.isVastuMode && state.activeVastuRoom != null) {
+      final isNowAligned = VastuCalculator.isAlignedWithRoom(rawHeading, state.activeVastuRoom!);
+      if (!_lastVastuAligned && isNowAligned) {
+        HapticFeedback.mediumImpact();
+      }
+      _lastVastuAligned = isNowAligned;
+    }
+
     final accuracy = _mapAccuracy(event.accuracy);
 
     state = state.copyWith(
@@ -396,6 +412,33 @@ class CompassController extends StateNotifier<CompassState> {
     }
 
     return newMode;
+  }
+
+  Future<bool> toggleVastuMode() async {
+    final newMode = !state.isVastuMode;
+    state = state.copyWith(
+      isVastuMode: newMode,
+      // Deactivate Qibla if Vastu is turned on to avoid HUD conflicts
+      isQiblaMode: newMode ? false : state.isQiblaMode,
+    );
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyVastuMode, newMode);
+      if (newMode) {
+        await prefs.setBool(_keyQiblaMode, false);
+      }
+    } catch (_) {}
+
+    return newMode;
+  }
+
+  void setActiveVastuRoom(VastuRoomType? room) {
+    if (room == null) {
+      state = state.copyWith(clearVastuRoom: true);
+    } else {
+      state = state.copyWith(activeVastuRoom: room);
+    }
   }
 
   @override

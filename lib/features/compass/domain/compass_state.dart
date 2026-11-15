@@ -1,5 +1,6 @@
 import 'heading_type.dart';
 import '../../../core/utils/qibla_calculator.dart';
+import '../../../core/utils/vastu_calculator.dart';
 
 class CompassState {
   final double heading;              // 0..360 for display readout
@@ -23,6 +24,8 @@ class CompassState {
   final double? moonAzimuth;          // Lunar azimuth in degrees [0, 360) clockwise from True North
   final DateTime? sunriseTime;        // Local Sunrise time
   final DateTime? sunsetTime;         // Local Sunset time
+  final bool isVastuMode;             // Whether Vastu Shastra architectural mode is active
+  final VastuRoomType? activeVastuRoom; // Selected room target beacon
 
   const CompassState({
     required this.heading,
@@ -46,6 +49,8 @@ class CompassState {
     this.moonAzimuth,
     this.sunriseTime,
     this.sunsetTime,
+    this.isVastuMode = false,
+    this.activeVastuRoom,
   });
 
   String get formattedCoordinates {
@@ -106,6 +111,13 @@ class CompassState {
     return '$hour:$min';
   }
 
+  VastuZoneInfo get currentVastuZone => VastuCalculator.getZone(heading);
+
+  bool get isVastuRoomAligned {
+    if (activeVastuRoom == null) return false;
+    return VastuCalculator.isAlignedWithRoom(heading, activeVastuRoom!);
+  }
+
   static String _toDms(double val, {required bool isLat}) {
     final direction = isLat
         ? (val >= 0 ? 'N' : 'S')
@@ -141,6 +153,9 @@ class CompassState {
     double? moonAzimuth,
     DateTime? sunriseTime,
     DateTime? sunsetTime,
+    bool? isVastuMode,
+    VastuRoomType? activeVastuRoom,
+    bool clearVastuRoom = false,
   }) {
     return CompassState(
       heading: heading ?? this.heading,
@@ -164,6 +179,8 @@ class CompassState {
       moonAzimuth: moonAzimuth ?? this.moonAzimuth,
       sunriseTime: sunriseTime ?? this.sunriseTime,
       sunsetTime: sunsetTime ?? this.sunsetTime,
+      isVastuMode: isVastuMode ?? this.isVastuMode,
+      activeVastuRoom: clearVastuRoom ? null : (activeVastuRoom ?? this.activeVastuRoom),
     );
   }
 }
