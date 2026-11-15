@@ -77,5 +77,34 @@ void main() {
       expect(stateWithoutGps.formattedCoordinates, contains('--°--\'--" N'));
       expect(stateWithoutGps.formattedAltitude, '-- m MSL');
     });
+
+    test('CompassState formats magnetic field and Qibla telemetry properly', () {
+      const stateWithTelemetry = CompassState(
+        heading: 58.5,
+        unwrappedHeading: 58.5,
+        headingType: HeadingType.magnetic,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: true,
+        magneticFieldStrength: 48.24,
+        isQiblaMode: true,
+        qiblaBearing: 58.48,
+        qiblaDistanceKm: 10306.0,
+      );
+
+      expect(stateWithTelemetry.formattedMagneticField, '48.2 μT');
+      expect(stateWithTelemetry.magneticFieldStatus, 'NORMAL');
+      expect(stateWithTelemetry.isHighInterference, isFalse);
+      expect(stateWithTelemetry.formattedQiblaDistance, '10306 km');
+      expect(stateWithTelemetry.isQiblaAligned, isTrue);
+
+      final stateWithInterference = stateWithTelemetry.copyWith(
+        magneticFieldStrength: 135.0,
+      );
+      expect(stateWithInterference.isHighInterference, isTrue);
+      expect(stateWithInterference.magneticFieldStatus, 'HIGH INTERFERENCE');
+    });
   });
 }

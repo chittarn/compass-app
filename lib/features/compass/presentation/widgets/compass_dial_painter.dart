@@ -5,11 +5,15 @@ import '../../../../core/theme/app_colors.dart';
 class CompassDialPainter extends CustomPainter {
   final double heading; // Current heading in degrees
   final double? lockedBearing; // Target bearing for Pro users
+  final double? qiblaBearing; // Qibla azimuth in degrees
+  final bool isQiblaMode; // Whether Qibla navigation is active
   final CompassTheme theme;
 
   CompassDialPainter({
     required this.heading,
     this.lockedBearing,
+    this.qiblaBearing,
+    this.isQiblaMode = false,
     this.theme = CompassTheme.normal,
   });
 
@@ -115,7 +119,7 @@ class CompassDialPainter extends CustomPainter {
     _drawCardinalText(canvas, 'SW', 225, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
     _drawCardinalText(canvas, 'NW', 315, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
 
-    // If a Target Bearing is Locked (PRO feature), draw the Target Beacon on the dial rim!
+    // If Target Bearing is Locked (PRO feature), draw Target Beacon on dial rim
     if (lockedBearing != null) {
       final targetRad = lockedBearing! * (math.pi / 180.0);
       final targetR = radius - 12;
@@ -142,6 +146,60 @@ class CompassDialPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.0;
       canvas.drawCircle(Offset(targetX, targetY), dSize + 3, glowPaint);
+    }
+
+    // If Qibla Mode is active, draw the Emerald Green / Gold Kaaba Marker on the dial rim!
+    if (isQiblaMode && qiblaBearing != null) {
+      final qRad = qiblaBearing! * (math.pi / 180.0);
+      final qR = radius - 16;
+      final qX = qR * math.sin(qRad);
+      final qY = -qR * math.cos(qRad);
+
+      canvas.save();
+      canvas.translate(qX, qY);
+      canvas.rotate(qRad); // Align marker radially outward
+
+      // Outer glowing aura
+      final qiblaGlow = Paint()
+        ..color = const Color(0xFF00E676).withOpacity(0.35)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 13, qiblaGlow);
+
+      // Kaaba Cube Body (Black/Dark Slate with Gold Border)
+      final kaabaBodyPaint = Paint()
+        ..color = const Color(0xFF111317)
+        ..style = PaintingStyle.fill;
+      final kaabaBorderPaint = Paint()
+        ..color = const Color(0xFFFFD700)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+
+      final rect = RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset.zero, width: 14, height: 14),
+        const Radius.circular(2.5),
+      );
+      canvas.drawRRect(rect, kaabaBodyPaint);
+      canvas.drawRRect(rect, kaabaBorderPaint);
+
+      // Golden Kiswah Top Stripe
+      final stripePaint = Paint()
+        ..color = const Color(0xFFFFD700)
+        ..strokeWidth = 1.8
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(const Offset(-6, -3), const Offset(6, -3), stripePaint);
+
+      // Emerald Pointer Arrow towards Kaaba rim
+      final arrowPaint = Paint()
+        ..color = const Color(0xFF00E676)
+        ..style = PaintingStyle.fill;
+      final arrowPath = Path()
+        ..moveTo(0, -9)
+        ..lineTo(-4, -6)
+        ..lineTo(4, -6)
+        ..close();
+      canvas.drawPath(arrowPath, arrowPaint);
+
+      canvas.restore();
     }
 
     canvas.restore();
@@ -216,6 +274,8 @@ class CompassDialPainter extends CustomPainter {
   bool shouldRepaint(covariant CompassDialPainter oldDelegate) {
     return oldDelegate.heading != heading ||
         oldDelegate.lockedBearing != lockedBearing ||
+        oldDelegate.qiblaBearing != qiblaBearing ||
+        oldDelegate.isQiblaMode != isQiblaMode ||
         oldDelegate.theme != theme;
   }
 }

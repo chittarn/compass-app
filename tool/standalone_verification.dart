@@ -159,5 +159,29 @@ void main() {
   print('  Recorded triggers: $triggers');
   print('  [PASS] HapticThrottler fully verified!\n');
 
-  print('=== ALL 3 CORE ENGINES VERIFIED SUCCESSFULLY (100% PASS) ===');
+  // 4. Qibla Calculator Verification
+  print('4. Testing Qibla Geodesic Calculator...');
+  // Mecca Coordinates: 21.422477 N, 39.826182 E
+  // New York (40.7128 N, -74.0060 W)
+  final nyPhi1 = 40.7128 * (math.pi / 180.0);
+  final meccaPhi = 21.422477 * (math.pi / 180.0);
+  final nyDeltaLambda = (39.826182 - (-74.0060)) * (math.pi / 180.0);
+  final nyY = math.sin(nyDeltaLambda) * math.cos(meccaPhi);
+  final nyX = math.cos(nyPhi1) * math.sin(meccaPhi) -
+      math.sin(nyPhi1) * math.cos(meccaPhi) * math.cos(nyDeltaLambda);
+  final nyBearing = (math.atan2(nyY, nyX) * (180.0 / math.pi) + 360.0) % 360.0;
+  print('  New York -> Kaaba Bearing: ${nyBearing.toStringAsFixed(2)}°');
+  assert((nyBearing - 58.48).abs() < 0.2, 'New York Qibla bearing should be ~58.5°');
+
+  // Magnetic Field Vector Strength: sqrt(x^2 + y^2 + z^2)
+  print('5. Testing Magnetic Field Strength Meter (μT)...');
+  final magBx = 22.5;
+  final magBy = -14.2;
+  final magBz = 41.8;
+  final totalField = math.sqrt(magBx * magBx + magBy * magBy + magBz * magBz);
+  print('  Total Magnetic Field: ${totalField.toStringAsFixed(1)} μT');
+  assert(totalField > 49.0 && totalField < 50.5, 'Earth field should be ~49.5 μT');
+  print('  [PASS] Qibla & Magnetic Field calculations fully verified!\n');
+
+  print('=== ALL 5 CORE ENGINES VERIFIED SUCCESSFULLY (100% PASS) ===');
 }

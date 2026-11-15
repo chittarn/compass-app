@@ -102,7 +102,48 @@ class TelemetryGuideModal extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                _buildSection(
+                  icon: Icons.mosque_rounded,
+                  iconColor: const Color(0xFF00E676),
+                  title: 'QIBLA MODE (MECCA AZIMUTH & DISTANCE)',
+                  content: [
+                    _buildItem(
+                      term: 'Kaaba Direction (🕋)',
+                      explanation:
+                          'Calculates the exact spherical great-circle bearing from your GPS position directly to the Holy Kaaba in Mecca (21.4225°N, 39.8262°E). The emerald green Kaaba marker on the dial rim shows you the exact bearing.',
+                    ),
+                    _buildItem(
+                      term: 'Alignment Vibration Pulse',
+                      explanation:
+                          'When your phone points directly at the Kaaba (within ±3°), the dial lights up with a green glow and triggers a tactile haptic pulse.',
+                    ),
+                    _buildItem(
+                      term: 'Geodesic Distance',
+                      explanation:
+                          'Displays the real-time distance in kilometers to Mecca calculated via the WGS-84 Haversine geodesic model.',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSection(
+                  icon: Icons.bolt_rounded,
+                  iconColor: AppColors.goldPro,
+                  title: 'MAGNETIC FIELD METER & EMF STUD DETECTOR (μT)',
+                  content: [
+                    _buildItem(
+                      term: 'Magnetic Flux Density (Microteslas)',
+                      explanation:
+                          'Earth\'s natural ambient magnetic field typically measures between 30 μT and 60 μT. Readout updates live with low-pass noise filtering.',
+                    ),
+                    _buildItem(
+                      term: 'Interference & Metal Stud Detection',
+                      explanation:
+                          '• 30–65 μT: NORMAL ambient Earth field.\n• 65–110 μT: ELEVATED magnetic fields (electronics or wiring nearby).\n• >110 μT: HIGH INTERFERENCE. Can be used as a handheld metal stud and ferrous material detector behind drywall, or indicates you should step away from steel objects for accurate compass navigation.',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 _buildSection(
                   icon: Icons.screen_rotation_rounded,
                   iconColor: AppColors.accentGreen,
@@ -125,7 +166,7 @@ class TelemetryGuideModal extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 _buildSection(
                   icon: Icons.tune_rounded,
                   iconColor: AppColors.accentAmber,
@@ -143,7 +184,7 @@ class TelemetryGuideModal extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 _buildSection(
                   icon: Icons.vibration_rounded,
                   iconColor: AppColors.northRed,
@@ -152,7 +193,7 @@ class TelemetryGuideModal extends StatelessWidget {
                     _buildItem(
                       term: 'Sensory Guidance',
                       explanation:
-                          '• Light Click: Every 15° tick mark crossed.\n• Medium Pulse: Major cardinal directions (East 090°, South 180°, West 270°).\n• Heavy Sharp Pulse: True/Magnetic North (000°).\n\nEquipped with velocity suppression to prevent haptic stutter during fast spins.',
+                          '• Light Click: Every 15° tick mark crossed.\n• Medium Pulse: Major cardinal directions (East 090°, South 180°, West 270°).\n• Heavy Sharp Pulse: True/Magnetic North (000°) & Qibla alignment.\n\nEquipped with velocity suppression to prevent haptic stutter during fast spins.',
                     ),
                   ],
                 ),
@@ -185,13 +226,15 @@ class TelemetryGuideModal extends StatelessWidget {
             children: [
               Icon(icon, color: iconColor, size: 20),
               const SizedBox(width: 10),
-              Text(
-                title,
-                style: TextStyle(
-                  color: iconColor,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: iconColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                  ),
                 ),
               ),
             ],

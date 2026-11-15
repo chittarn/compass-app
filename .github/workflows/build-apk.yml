@@ -131,8 +131,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: success()
         with:
-          tag_name: v1.0.6
-          name: "Compass App v1.0.6 (Store Ready - AAB, AdMob SDK, Privacy Policy)"
+          tag_name: v1.0.7
+          name: "Compass App v1.0.7 (Qibla Mode & Magnetic Field EMF Stud Detector)"
           draft: false
           prerelease: false
           make_latest: true

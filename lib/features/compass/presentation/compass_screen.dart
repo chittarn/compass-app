@@ -51,7 +51,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     final directionLabel = CompassConstants.getDirectionLabel(state.heading);
     final isTrueNorth = state.headingType == HeadingType.trueNorth;
 
-    // Calculate Bearing Deviation if Bearing is Locked
+    // Calculate Bearing Deviation if Bearing is Locked (PRO)
     double? driftAngle;
     String driftLabel = '';
     if (proState.lockedBearing != null) {
@@ -255,6 +255,48 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         ),
                       ),
                     ],
+
+                    // Qibla Navigation Ribbon (When Qibla Mode is active)
+                    if (state.isQiblaMode) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: state.isQiblaAligned
+                              ? const Color(0xFF00E676).withOpacity(0.2)
+                              : const Color(0xFF00E676).withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: state.isQiblaAligned
+                                ? const Color(0xFF00E676)
+                                : const Color(0xFF00E676).withOpacity(0.4),
+                            width: state.isQiblaAligned ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              state.isQiblaAligned ? Icons.check_circle_rounded : Icons.explore_rounded,
+                              color: const Color(0xFF00E676),
+                              size: 14,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              state.qiblaBearing != null
+                                  ? 'KAABA: ${state.qiblaBearing!.round().toString().padLeft(3, '0')}°  |  ${state.formattedQiblaDistance}  ${state.isQiblaAligned ? "• ALIGNED 🕋" : ""}'
+                                  : 'ACQUIRING GPS FIX FOR QIBLA...',
+                              style: const TextStyle(
+                                color: Color(0xFF00E676),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -262,49 +304,104 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             const SizedBox(height: 8),
 
-            // Heading Mode Toggle Pill (Magnetic vs True North)
-            GestureDetector(
-              onTap: () async {
-                final success = await controller.toggleHeadingType();
-                if (!success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Location permission required for True North declination.'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isTrueNorth ? theme.accentCyan : theme.dialRing,
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isTrueNorth ? Icons.navigation : Icons.explore,
-                      size: 14,
-                      color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      isTrueNorth ? 'True North (GPS)' : 'Magnetic North',
-                      style: TextStyle(
-                        color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+            // Mode Selector Controls (Magnetic / True North + Qibla Mode Toggle)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Heading Mode Toggle (Magnetic vs True North)
+                GestureDetector(
+                  onTap: () async {
+                    final success = await controller.toggleHeadingType();
+                    if (!success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Location permission required for True North declination.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isTrueNorth ? theme.accentCyan : theme.dialRing,
+                        width: 1.2,
                       ),
                     ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isTrueNorth ? Icons.navigation : Icons.explore,
+                          size: 14,
+                          color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isTrueNorth ? 'True North' : 'Magnetic North',
+                          style: TextStyle(
+                            color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+
+                const SizedBox(width: 10),
+
+                // Qibla Mode Toggle Pill
+                GestureDetector(
+                  onTap: () async {
+                    final active = await controller.toggleQiblaMode();
+                    if (active && state.latitude == null && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('GPS required to compute geodesic direction to Mecca.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: state.isQiblaMode
+                          ? const Color(0xFF00E676).withOpacity(0.18)
+                          : theme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: state.isQiblaMode
+                            ? const Color(0xFF00E676)
+                            : theme.dialRing,
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('🕋', style: TextStyle(fontSize: 12)),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Qibla Mode',
+                          style: TextStyle(
+                            color: state.isQiblaMode
+                                ? const Color(0xFF00E676)
+                                : theme.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             const Spacer(flex: 1),
@@ -329,6 +426,8 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                             painter: CompassDialPainter(
                               heading: animatedHeading,
                               lockedBearing: proState.lockedBearing,
+                              qiblaBearing: state.qiblaBearing,
+                              isQiblaMode: state.isQiblaMode,
                               theme: theme,
                             ),
                           ),
@@ -343,11 +442,16 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         width: 3,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: theme.northRed,
+                          color: state.isQiblaMode && state.isQiblaAligned
+                              ? const Color(0xFF00E676)
+                              : theme.northRed,
                           borderRadius: BorderRadius.circular(2),
                           boxShadow: [
                             BoxShadow(
-                              color: theme.northRed.withOpacity(0.8),
+                              color: (state.isQiblaMode && state.isQiblaAligned
+                                      ? const Color(0xFF00E676)
+                                      : theme.northRed)
+                                  .withOpacity(0.8),
                               blurRadius: 4,
                             ),
                           ],
@@ -375,7 +479,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             // Live GPS Coordinates & Altitude HUD Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
@@ -422,18 +526,21 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
               ),
             ),
 
-            // Bottom Pitch & Roll / Attitude Telemetry Bar (Tap for Glossary)
+            // Bottom Telemetry Bar: PITCH | ROLL | EMF (μT) | LEVEL STATUS
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
                 onTap: () => TelemetryGuideModal.show(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: theme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.dialRing),
+                    border: Border.all(
+                      color: state.isHighInterference ? theme.northRed : theme.dialRing,
+                      width: state.isHighInterference ? 1.5 : 1.0,
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -450,6 +557,18 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         label: 'ROLL',
                         value: '${state.roll >= 0 ? '+' : ''}${state.roll.toStringAsFixed(1)}°',
                         isLevel: state.isLevel,
+                      ),
+                      Container(width: 1, height: 28, color: theme.dialRing),
+                      _buildTelemetryItem(
+                        theme: theme,
+                        label: 'EMF (μT)',
+                        value: state.formattedMagneticField,
+                        isLevel: state.isLevel,
+                        customValColor: state.isHighInterference
+                            ? theme.northRed
+                            : (state.magneticFieldStrength != null && state.magneticFieldStrength! > 70.0
+                                ? theme.accentAmber
+                                : theme.textPrimary),
                       ),
                       Container(width: 1, height: 28, color: theme.dialRing),
                       _buildTelemetryItem(
@@ -481,8 +600,9 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     required String value,
     required bool isLevel,
     bool isStatus = false,
+    Color? customValColor,
   }) {
-    Color valColor = theme.textPrimary;
+    Color valColor = customValColor ?? theme.textPrimary;
     if (isStatus) {
       valColor = isLevel ? theme.bubbleLevel : theme.dialTick;
     }
@@ -496,7 +616,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
             color: theme.textSecondary,
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            letterSpacing: 1.0,
+            letterSpacing: 0.8,
           ),
         ),
         const SizedBox(height: 3),
@@ -504,7 +624,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
           value,
           style: TextStyle(
             color: valColor,
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
           ),
