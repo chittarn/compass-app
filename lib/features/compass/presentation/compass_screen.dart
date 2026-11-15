@@ -6,6 +6,7 @@ import 'widgets/compass_dial_painter.dart';
 import 'widgets/bubble_level_painter.dart';
 import 'widgets/accuracy_badge.dart';
 import 'widgets/calibration_modal.dart';
+import 'widgets/telemetry_guide_modal.dart';
 import '../../../core/constants/compass_constants.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -48,20 +49,34 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar: App Title & Accuracy Badge
+            // Top App Bar: App Title, Field Guide Button & Accuracy Badge
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'COMPASS',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2.0,
-                    ),
+                  Row(
+                    children: [
+                      const Text(
+                        'COMPASS',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.info_outline_rounded,
+                          color: AppColors.accentCyan,
+                          size: 20,
+                        ),
+                        tooltip: 'Field Guide & Telemetry Glossary',
+                        onPressed: () => TelemetryGuideModal.show(context),
+                      ),
+                    ],
                   ),
                   AccuracyBadge(
                     accuracy: state.accuracy,
@@ -224,38 +239,42 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             const Spacer(flex: 1),
 
-            // Bottom Pitch & Roll / Attitude Telemetry Bar
+            // Bottom Pitch & Roll / Attitude Telemetry Bar (Tap for Glossary)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.dialRing),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildTelemetryItem(
-                      label: 'PITCH',
-                      value: '${state.pitch >= 0 ? '+' : ''}${state.pitch.toStringAsFixed(1)}°',
-                      isLevel: state.isLevel,
-                    ),
-                    Container(width: 1, height: 28, color: AppColors.dialRing),
-                    _buildTelemetryItem(
-                      label: 'ROLL',
-                      value: '${state.roll >= 0 ? '+' : ''}${state.roll.toStringAsFixed(1)}°',
-                      isLevel: state.isLevel,
-                    ),
-                    Container(width: 1, height: 28, color: AppColors.dialRing),
-                    _buildTelemetryItem(
-                      label: 'STATUS',
-                      value: state.isLevel ? 'LEVEL' : 'TILTED',
-                      isLevel: state.isLevel,
-                      isStatus: true,
-                    ),
-                  ],
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => TelemetryGuideModal.show(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.dialRing),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildTelemetryItem(
+                        label: 'PITCH',
+                        value: '${state.pitch >= 0 ? '+' : ''}${state.pitch.toStringAsFixed(1)}°',
+                        isLevel: state.isLevel,
+                      ),
+                      Container(width: 1, height: 28, color: AppColors.dialRing),
+                      _buildTelemetryItem(
+                        label: 'ROLL',
+                        value: '${state.roll >= 0 ? '+' : ''}${state.roll.toStringAsFixed(1)}°',
+                        isLevel: state.isLevel,
+                      ),
+                      Container(width: 1, height: 28, color: AppColors.dialRing),
+                      _buildTelemetryItem(
+                        label: 'STATUS',
+                        value: state.isLevel ? 'LEVEL' : 'TILTED',
+                        isLevel: state.isLevel,
+                        isStatus: true,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
