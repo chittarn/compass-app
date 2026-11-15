@@ -190,12 +190,6 @@ class _VastuGuideModalState extends ConsumerState<VastuGuideModal> {
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 10,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     ],
                   ),
                 ),
