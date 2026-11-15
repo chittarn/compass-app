@@ -116,6 +116,45 @@ class CompassController extends StateNotifier<CompassState> {
     } catch (_) {}
   }
 
+  /// Explicitly requests location permission and acquires an active GPS fix
+  Future<bool> requestGpsPermissionAndFix() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        await Geolocator.openLocationSettings();
+        return false;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          return false;
+        }
+      }
+
+      state = state.copyWith(hasLocationPermission: true);
+      _startGpsStream();
+
+      // Quick last known position
+      final lastPos = await Geolocator.getLastKnownPosition();
+      if (lastPos != null) {
+        _updatePosition(lastPos);
+      }
+
+      // High accuracy current position
+      final currentPos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 8),
+      );
+      _updatePosition(currentPos);
+      return true;
+    } catch (_) {
+      return state.latitude != null && state.longitude != null;
+    }
+  }
+
   void _startGpsStream() {
     _positionSub?.cancel();
     try {

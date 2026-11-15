@@ -467,7 +467,10 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
                 // Waypoint Navigation / Mark Spot Pill
                 GestureDetector(
-                  onTap: () => WaypointModal.show(context),
+                  onTap: () {
+                    controller.requestGpsPermissionAndFix();
+                    WaypointModal.show(context);
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(

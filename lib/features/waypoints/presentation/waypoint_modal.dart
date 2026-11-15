@@ -25,6 +25,25 @@ class WaypointModal extends ConsumerStatefulWidget {
 
 class _WaypointModalState extends ConsumerState<WaypointModal> {
   final TextEditingController _titleController = TextEditingController(text: 'My Spot');
+  bool _isAcquiring = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _acquireGps();
+    });
+  }
+
+  Future<void> _acquireGps() async {
+    final compassState = ref.read(compassControllerProvider);
+    if (compassState.latitude != null && compassState.longitude != null) return;
+    setState(() => _isAcquiring = true);
+    await ref.read(compassControllerProvider.notifier).requestGpsPermissionAndFix();
+    if (mounted) {
+      setState(() => _isAcquiring = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -189,13 +208,40 @@ class _WaypointModalState extends ConsumerState<WaypointModal> {
                   Text(
                     hasGps
                         ? 'Fix: ${compassState.formattedCoordinates}'
-                        : '⚠️ Waiting for GPS fix before marking...',
+                        : (_isAcquiring
+                            ? '📡 Contacting GPS satellites for coordinates...'
+                            : '⚠️ Waiting for GPS fix before marking...'),
                     style: TextStyle(
                       color: hasGps ? AppColors.textSecondary : AppColors.accentAmber,
                       fontSize: 11,
                       fontFamily: 'monospace',
                     ),
                   ),
+
+                  if (!hasGps) ...[
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF00E5FF),
+                        side: const BorderSide(color: Color(0xFF00E5FF)),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      icon: _isAcquiring
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00E5FF)),
+                            )
+                          : const Icon(Icons.my_location_rounded, size: 16),
+                      label: Text(
+                        _isAcquiring ? 'ACQUIRING FIX...' : 'ENABLE LOCATION / GET FIX',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: _isAcquiring ? null : _acquireGps,
+                    ),
+                  ],
+
                   const SizedBox(height: 12),
 
                   // Save Spot Button
