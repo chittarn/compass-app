@@ -33,12 +33,18 @@ jobs:
 
       - name: Scaffold Official Platform Files
         run: |
-          flutter create --project-name compass_app --platforms=android --org com.example .
+          flutter create --project-name compass_app --platforms=android --org com.chittaranjan .
           rm -f test/widget_test.dart
           cp -r assets/res/* android/app/src/main/res/
 
-      - name: Force Gradle 8.4 Wrapper & MinSDK 21
+      - name: Configure Unique Application ID & Gradle 8.4
         run: |
+          # Replace default package ID with unique personal package ID
+          sed -i 's/applicationId = "com.chittaranjan.compass_app"/applicationId = "com.chittaranjan.compass"/g' android/app/build.gradle || true
+          sed -i 's/namespace = "com.chittaranjan.compass_app"/namespace = "com.chittaranjan.compass"/g' android/app/build.gradle || true
+          sed -i 's/applicationId = "com.example.compass_app"/applicationId = "com.chittaranjan.compass"/g' android/app/build.gradle || true
+          sed -i 's/namespace = "com.example.compass_app"/namespace = "com.chittaranjan.compass"/g' android/app/build.gradle || true
+
           # Write exact Gradle 8.4 wrapper configuration
           mkdir -p android/gradle/wrapper
           cat << 'EOF' > android/gradle/wrapper/gradle-wrapper.properties
@@ -121,8 +127,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: success()
         with:
-          tag_name: v1.0.2
-          name: Compass App v1.0.2 (Pro App Icon & Field Guide)
+          tag_name: v1.0.3
+          name: Compass App v1.0.3 (Package com.chittaranjan.compass)
           draft: false
           prerelease: false
           make_latest: true
