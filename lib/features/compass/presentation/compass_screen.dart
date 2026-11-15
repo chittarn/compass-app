@@ -418,10 +418,10 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                               const SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  '${state.currentVastuZone.plainLabel} • ${state.currentVastuZone.direction} (${state.heading.round().toString().padLeft(3, '0')}°)',
+                                  'AIM: ${state.currentVastuZone.direction} (${state.heading.round().toString().padLeft(3, '0')}°) ➔ ${state.currentVastuZone.plainLabel}',
                                   style: TextStyle(
                                     color: Color(state.currentVastuZone.colorValue),
-                                    fontSize: 11,
+                                    fontSize: 10.5,
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'monospace',
                                   ),

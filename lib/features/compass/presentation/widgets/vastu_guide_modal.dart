@@ -103,7 +103,7 @@ class _VastuGuideModalState extends ConsumerState<VastuGuideModal> {
                     ),
                     SizedBox(height: 1),
                     Text(
-                      'Tap any room in the floor plan to aim compass needle',
+                      'Stand in house center. Point phone to check room alignment.',
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 11,
@@ -151,7 +151,7 @@ class _VastuGuideModalState extends ConsumerState<VastuGuideModal> {
                         children: [
                           Flexible(
                             child: Text(
-                              'POINTING: ${currentZone.plainLabel}',
+                              'AIMING AT: ${currentZone.direction} (${state.heading.round().toString().padLeft(3, '0')}°)',
                               style: TextStyle(
                                 color: Color(currentZone.colorValue),
                                 fontSize: 11.5,
@@ -169,10 +169,10 @@ class _VastuGuideModalState extends ConsumerState<VastuGuideModal> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              '${currentZone.direction} (${state.heading.round()}°)',
+                              currentZone.sanskritName.split('(').first.trim().toUpperCase(),
                               style: TextStyle(
                                 color: Color(currentZone.colorValue),
-                                fontSize: 10,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'monospace',
                               ),
@@ -182,7 +182,14 @@ class _VastuGuideModalState extends ConsumerState<VastuGuideModal> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Vedic: ${currentZone.sanskritName} • ${currentZone.elementLabel}',
+                        'Ideal Placement: ${currentZone.plainLabel} • ${currentZone.elementLabel}',
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                         style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 10,
@@ -526,11 +533,29 @@ class _VastuGuideModalState extends ConsumerState<VastuGuideModal> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
-                        'YOU',
+                        'AIM ➔',
                         style: TextStyle(
                           color: AppColors.background,
                           fontSize: 7.5,
                           fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ] else if (isCenter) ...[
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD700).withOpacity(0.18),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4), width: 0.5),
+                      ),
+                      child: const Text(
+                        'STAND HERE',
+                        style: TextStyle(
+                          color: Color(0xFFFFD700),
+                          fontSize: 6.5,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
