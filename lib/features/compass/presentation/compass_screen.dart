@@ -373,6 +373,55 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             const Spacer(flex: 1),
 
+            // Live GPS Coordinates & Altitude HUD Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 4),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: theme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.dialRing.withOpacity(0.6)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.location_on_rounded, color: theme.accentCyan, size: 14),
+                        const SizedBox(width: 6),
+                        Text(
+                          state.formattedCoordinates,
+                          style: TextStyle(
+                            color: theme.textSecondary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'monospace',
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Icon(Icons.terrain_rounded, color: theme.accentGreen, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          state.formattedAltitude,
+                          style: TextStyle(
+                            color: theme.textPrimary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // Bottom Pitch & Roll / Attitude Telemetry Bar (Tap for Glossary)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),

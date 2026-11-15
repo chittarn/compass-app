@@ -43,5 +43,39 @@ void main() {
       expect(updated.accuracy, SensorAccuracyLevel.high);
       expect(updated.headingType, HeadingType.magnetic);
     });
+
+    test('CompassState formats GPS coordinates and altitude properly', () {
+      const stateWithGps = CompassState(
+        heading: 0.0,
+        unwrappedHeading: 0.0,
+        headingType: HeadingType.trueNorth,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: true,
+        latitude: 37.7749,
+        longitude: -122.4194,
+        altitude: 142.6,
+      );
+
+      expect(stateWithGps.formattedCoordinates, contains('37°46\'30" N'));
+      expect(stateWithGps.formattedCoordinates, contains('122°25\'10" W'));
+      expect(stateWithGps.formattedAltitude, '143 m MSL');
+
+      const stateWithoutGps = CompassState(
+        heading: 0.0,
+        unwrappedHeading: 0.0,
+        headingType: HeadingType.magnetic,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: false,
+      );
+
+      expect(stateWithoutGps.formattedCoordinates, contains('--°--\'--" N'));
+      expect(stateWithoutGps.formattedAltitude, '-- m MSL');
+    });
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/compass_state.dart';
 import '../../domain/heading_type.dart';
 import '../../../../core/utils/angle_unwrapper.dart';
@@ -15,11 +16,14 @@ final compassControllerProvider =
 });
 
 class CompassController extends StateNotifier<CompassState> {
+  static const String _keyHeadingType = 'compass_heading_type';
+
   final AngleUnwrapper _unwrapper = AngleUnwrapper();
   final HapticThrottler _hapticThrottler = HapticThrottler();
 
   StreamSubscription? _compassSub;
   StreamSubscription? _accelerometerSub;
+  StreamSubscription? _positionSub;
   DateTime _lastTimestamp = DateTime.now();
   double _lastHeading = 0.0;
 
@@ -34,21 +38,61 @@ class CompassController extends StateNotifier<CompassState> {
           isLevel: true,
           hasLocationPermission: false,
         )) {
+    _loadPreferences();
     _initStreams();
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedTypeIndex = prefs.getInt(_keyHeadingType);
+      if (savedTypeIndex != null && savedTypeIndex < HeadingType.values.length) {
+        final savedType = HeadingType.values[savedTypeIndex];
+        state = state.copyWith(headingType: savedType);
+      }
+    } catch (_) {}
   }
 
   void _initStreams() {
     try {
       _compassSub = FlutterCompass.events?.listen(_onCompassEvent);
-    } catch (_) {
-      // In simulator/desktop environments where sensors are unavailable
-    }
+    } catch (_) {}
 
     try {
       _accelerometerSub = accelerometerEventStream().listen(_onAccelerometerEvent);
-    } catch (_) {
-      // In simulator/desktop environments where sensors are unavailable
-    }
+    } catch (_) {}
+
+    _checkAndStartGps();
+  }
+
+  Future<void> _checkAndStartGps() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse) {
+        state = state.copyWith(hasLocationPermission: true);
+        _startGpsStream();
+      }
+    } catch (_) {}
+  }
+
+  void _startGpsStream() {
+    _positionSub?.cancel();
+    try {
+      _positionSub = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 2,
+        ),
+      ).listen((Position pos) {
+        state = state.copyWith(
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+          altitude: pos.altitude,
+          hasLocationPermission: true,
+        );
+      });
+    } catch (_) {}
   }
 
   void _onCompassEvent(CompassEvent event) {
@@ -103,17 +147,13 @@ class CompassController extends StateNotifier<CompassState> {
   SensorAccuracyLevel _mapAccuracy(double? accuracyVal) {
     if (accuracyVal == null) return SensorAccuracyLevel.medium;
 
-    // Android returns status integer (0=unreliable, 1=low, 2=medium, 3=high)
-    // iOS returns maximum deviation error in degrees (>0 valid, <0 invalid)
     if (accuracyVal <= 0) {
       return SensorAccuracyLevel.unreliable;
     } else if (accuracyVal <= 1.0) {
-      // Low on Android status code 1
       return SensorAccuracyLevel.low;
     } else if (accuracyVal <= 2.0) {
       return SensorAccuracyLevel.medium;
     } else if (accuracyVal <= 15.0) {
-      // iOS degrees <= 15 is high accuracy
       return SensorAccuracyLevel.high;
     } else if (accuracyVal <= 30.0) {
       return SensorAccuracyLevel.medium;
@@ -124,7 +164,6 @@ class CompassController extends StateNotifier<CompassState> {
 
   Future<bool> toggleHeadingType() async {
     if (state.headingType == HeadingType.magnetic) {
-      // User wants True North: check/request location permission
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -138,9 +177,21 @@ class CompassController extends StateNotifier<CompassState> {
         headingType: HeadingType.trueNorth,
         hasLocationPermission: true,
       );
+      _startGpsStream();
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt(_keyHeadingType, HeadingType.trueNorth.index);
+      } catch (_) {}
+
       return true;
     } else {
       state = state.copyWith(headingType: HeadingType.magnetic);
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt(_keyHeadingType, HeadingType.magnetic.index);
+      } catch (_) {}
+
       return true;
     }
   }
@@ -149,6 +200,7 @@ class CompassController extends StateNotifier<CompassState> {
   void dispose() {
     _compassSub?.cancel();
     _accelerometerSub?.cancel();
+    _positionSub?.cancel();
     super.dispose();
   }
 }

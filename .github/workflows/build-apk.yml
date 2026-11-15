@@ -127,8 +127,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: success()
         with:
-          tag_name: v1.0.4
-          name: Compass App v1.0.4 (Pro Features & Seamless Dark Icon)
+          tag_name: v1.0.5
+          name: Compass App v1.0.5 (Persistent Settings & Live GPS HUD)
           draft: false
           prerelease: false
           make_latest: true

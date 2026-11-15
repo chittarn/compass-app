@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/pro_state.dart';
 
 final proControllerProvider =
@@ -8,21 +9,54 @@ final proControllerProvider =
 });
 
 class ProController extends StateNotifier<ProState> {
-  ProController() : super(const ProState());
+  static const String _keyIsPro = 'compass_is_pro';
+  static const String _keyNightVision = 'compass_night_vision';
 
-  void togglePro() {
+  ProController() : super(const ProState()) {
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isPro = prefs.getBool(_keyIsPro) ?? false;
+      final isNightVision = prefs.getBool(_keyNightVision) ?? false;
+      state = state.copyWith(
+        isPro: isPro,
+        isNightVision: isPro ? isNightVision : false,
+      );
+    } catch (_) {
+      // In testing environments where SharedPreferences platform channel is uninitialized
+    }
+  }
+
+  Future<void> togglePro() async {
     HapticFeedback.mediumImpact();
-    state = state.copyWith(isPro: !state.isPro);
+    final newPro = !state.isPro;
+    state = state.copyWith(isPro: newPro);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyIsPro, newPro);
+    } catch (_) {}
   }
 
-  void setPro(bool value) {
+  Future<void> setPro(bool value) async {
     state = state.copyWith(isPro: value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyIsPro, value);
+    } catch (_) {}
   }
 
-  void toggleNightVision() {
+  Future<void> toggleNightVision() async {
     if (!state.isPro) return;
     HapticFeedback.heavyImpact();
-    state = state.copyWith(isNightVision: !state.isNightVision);
+    final newNight = !state.isNightVision;
+    state = state.copyWith(isNightVision: newNight);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyNightVision, newNight);
+    } catch (_) {}
   }
 
   void lockBearing(double currentHeading) {
