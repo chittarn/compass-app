@@ -13,6 +13,7 @@ import '../../../../core/utils/haptic_throttler.dart';
 import '../../../../core/utils/tilt_calculator.dart';
 import '../../../../core/utils/qibla_calculator.dart';
 import '../../../../core/utils/solar_calculator.dart';
+import '../../../../core/constants/compass_constants.dart';
 
 final compassControllerProvider =
     StateNotifierProvider<CompassController, CompassState>((ref) {
@@ -34,6 +35,9 @@ class CompassController extends StateNotifier<CompassState> {
   DateTime _lastTimestamp = DateTime.now();
   double _lastHeading = 0.0;
   bool _lastQiblaAligned = false;
+  double? _filteredPitch;
+  double? _filteredRoll;
+  double? _filteredEmf;
 
   CompassController()
       : super(const CompassState(
@@ -247,18 +251,68 @@ class CompassController extends StateNotifier<CompassState> {
 
   void _onAccelerometerEvent(AccelerometerEvent event) {
     final tilt = TiltCalculator.fromAccelerometer(event.x, event.y, event.z);
+
+    // 1. Exponential Moving Average (EMA) Low-Pass Filter
+    if (_filteredPitch == null || _filteredRoll == null) {
+      _filteredPitch = tilt.pitch;
+      _filteredRoll = tilt.roll;
+    } else {
+      // 0.88 previous + 0.12 new: smooths out MEMS Brownian thermal noise & desk vibrations
+      _filteredPitch = (_filteredPitch! * 0.88) + (tilt.pitch * 0.12);
+      _filteredRoll = (_filteredRoll! * 0.88) + (tilt.roll * 0.12);
+    }
+
+    // 2. Deadband threshold (hysteresis):
+    // Ignore micro-vibrations under ±0.25° to keep the display rock-solid on a table
+    double displayPitch = state.pitch;
+    double displayRoll = state.roll;
+
+    if ((_filteredPitch! - state.pitch).abs() > 0.25) {
+      if (_filteredPitch!.abs() < 0.2) {
+        displayPitch = 0.0;
+      } else {
+        displayPitch = (math.round(_filteredPitch! * 10)) / 10.0;
+      }
+    }
+
+    if ((_filteredRoll! - state.roll).abs() > 0.25) {
+      if (_filteredRoll!.abs() < 0.2) {
+        displayRoll = 0.0;
+      } else {
+        displayRoll = (math.round(_filteredRoll! * 10)) / 10.0;
+      }
+    }
+
+    final isLevel = (displayPitch.abs() <= CompassConstants.levelToleranceDegrees) &&
+                    (displayRoll.abs() <= CompassConstants.levelToleranceDegrees);
+
     state = state.copyWith(
-      pitch: tilt.pitch,
-      roll: tilt.roll,
-      isLevel: tilt.isLevel,
+      pitch: displayPitch,
+      roll: displayRoll,
+      isLevel: isLevel,
     );
   }
 
   void _onMagnetometerEvent(MagnetometerEvent event) {
     final rawMag = math.sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
-    final current = state.magneticFieldStrength;
-    final smoothed = current == null ? rawMag : (current * 0.85 + rawMag * 0.15);
-    state = state.copyWith(magneticFieldStrength: smoothed);
+
+    // 1. Exponential Moving Average Low-Pass Filter
+    if (_filteredEmf == null) {
+      _filteredEmf = rawMag;
+    } else {
+      // 0.90 previous + 0.10 new: smooths 50/60Hz AC ambient noise & internal battery drift
+      _filteredEmf = (_filteredEmf! * 0.90) + (rawMag * 0.10);
+    }
+
+    // 2. Deadband threshold:
+    // If the ambient field changes by less than 0.35 μT, hold steady to prevent decimal jitter
+    final currentVal = state.magneticFieldStrength ?? _filteredEmf!;
+    double displayEmf = currentVal;
+    if ((_filteredEmf! - currentVal).abs() > 0.35) {
+      displayEmf = (math.round(_filteredEmf! * 10)) / 10.0;
+    }
+
+    state = state.copyWith(magneticFieldStrength: displayEmf);
   }
 
   SensorAccuracyLevel _mapAccuracy(double? accuracyVal) {

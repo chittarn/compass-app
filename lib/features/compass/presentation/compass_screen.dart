@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'controllers/compass_controller.dart';
 import '../domain/heading_type.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'widgets/gps_onboarding_modal.dart';
 import 'widgets/compass_dial_painter.dart';
 import 'widgets/bubble_level_painter.dart';
 import 'widgets/accuracy_badge.dart';
@@ -24,6 +27,31 @@ class CompassScreen extends ConsumerStatefulWidget {
 
 class _CompassScreenState extends ConsumerState<CompassScreen> {
   bool _modalShownForUnreliable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _checkFirstLaunchGps();
+      }
+    });
+  }
+
+  Future<void> _checkFirstLaunchGps() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasPrompted = prefs.getBool('has_prompted_gps_onboarding') ?? false;
+      if (hasPrompted) return;
+
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        if (!mounted) return;
+        await GpsOnboardingModal.show(context, ref);
+        await prefs.setBool('has_prompted_gps_onboarding', true);
+      }
+    } catch (_) {}
+  }
 
   void _checkCalibrationAlert(SensorAccuracyLevel accuracy) {
     if ((accuracy == SensorAccuracyLevel.unreliable || accuracy == SensorAccuracyLevel.low) &&

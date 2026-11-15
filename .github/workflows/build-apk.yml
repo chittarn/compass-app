@@ -35,6 +35,7 @@ jobs:
         run: |
           flutter create --project-name compass_app --platforms=android --org com.chittaranjan .
           rm -f test/widget_test.dart
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
           cp -r assets/res/* android/app/src/main/res/
 
       - name: Configure Unique Application ID & Gradle 8.4
