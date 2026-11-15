@@ -414,11 +414,11 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('🕉️', style: TextStyle(fontSize: 12)),
+                              Text(state.currentVastuZone.emoji, style: const TextStyle(fontSize: 13)),
                               const SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  '${state.currentVastuZone.sanskritName.toUpperCase()} • ${state.currentVastuZone.elementLabel}',
+                                  '${state.currentVastuZone.plainLabel} • ${state.currentVastuZone.direction} (${state.heading.round().toString().padLeft(3, '0')}°)',
                                   style: TextStyle(
                                     color: Color(state.currentVastuZone.colorValue),
                                     fontSize: 11,
@@ -466,7 +466,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                               const SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  'TARGET: ${VastuCalculator.getGuideline(state.activeVastuRoom!).title.toUpperCase()} (${VastuCalculator.getGuideline(state.activeVastuRoom!).targetHeading.round()}°) ${state.isVastuRoomAligned ? "• ALIGNED 🕉️" : ""}',
+                                  'AIM: ${VastuCalculator.getGuideline(state.activeVastuRoom!).emoji} ${VastuCalculator.getGuideline(state.activeVastuRoom!).title.toUpperCase()} (${VastuCalculator.getGuideline(state.activeVastuRoom!).targetHeading.round()}°) ${state.isVastuRoomAligned ? "• ALIGNED 🕉️" : ""}',
                                   style: const TextStyle(
                                     color: Color(0xFFFFD700),
                                     fontSize: 10.5,
@@ -850,47 +850,64 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text('☀️', style: TextStyle(fontSize: 10)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'DAWN ${state.formattedSunrise}',
-                                  style: const TextStyle(
-                                    color: Color(0xFFFFD54F),
-                                    fontSize: 10,
-                                    fontFamily: 'monospace',
-                                    fontWeight: FontWeight.bold,
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('☀️', style: TextStyle(fontSize: 10)),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'DAWN ${state.formattedSunrise}',
+                                        style: const TextStyle(
+                                          color: Color(0xFFFFD54F),
+                                          fontSize: 10,
+                                          fontFamily: 'monospace',
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             if (state.sunAzimuth != null)
-                              Text(
-                                'SUN AZ ${state.sunAzimuth!.round()}°',
-                                style: TextStyle(
-                                  color: theme.textSecondary.withOpacity(0.7),
-                                  fontSize: 9.5,
-                                  fontFamily: 'monospace',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text('🌙', style: TextStyle(fontSize: 10)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'DUSK ${state.formattedSunset}',
-                                  style: const TextStyle(
-                                    color: Color(0xFF90CAF9),
-                                    fontSize: 10,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Text(
+                                  'SUN AZ ${state.sunAzimuth!.round()}°',
+                                  style: TextStyle(
+                                    color: theme.textSecondary.withOpacity(0.7),
+                                    fontSize: 9.5,
                                     fontFamily: 'monospace',
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ],
+                              ),
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('🌙', style: TextStyle(fontSize: 10)),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'DUSK ${state.formattedSunset}',
+                                        style: const TextStyle(
+                                          color: Color(0xFF90CAF9),
+                                          fontSize: 10,
+                                          fontFamily: 'monospace',
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -992,13 +1009,16 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: theme.textSecondary,
-            fontSize: 9.5,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.8,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: theme.textSecondary,
+              fontSize: 9.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+            ),
           ),
         ),
         const SizedBox(height: 2),
