@@ -132,7 +132,7 @@ jobs:
         if: success()
         with:
           tag_name: v1.0.6
-          name: Compass App v1.0.6 (Store Ready: AAB, AdMob SDK & Privacy Policy)
+          name: "Compass App v1.0.6 (Store Ready - AAB, AdMob SDK, Privacy Policy)"
           draft: false
           prerelease: false
           make_latest: true
