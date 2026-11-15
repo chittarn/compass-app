@@ -85,99 +85,109 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
           children: [
             // Top App Bar: Title, Field Guide, Night Vision, PRO Badge, Accuracy Badge
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'COMPASS',
                         style: TextStyle(
                           color: theme.textPrimary,
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          letterSpacing: 2.0,
+                          letterSpacing: 1.8,
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 2),
                       IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                         icon: Icon(
                           Icons.info_outline_rounded,
                           color: theme.accentCyan,
-                          size: 20,
+                          size: 18,
                         ),
                         tooltip: 'Field Guide & Telemetry Glossary',
                         onPressed: () => TelemetryGuideModal.show(context),
                       ),
                     ],
                   ),
-                  Row(
-                    children: [
-                      // Red OLED Night Vision Toggle (Pro only)
-                      if (proState.isPro)
-                        IconButton(
-                          icon: Icon(
-                            proState.isNightVision ? Icons.lightbulb_rounded : Icons.nightlight_round,
-                            color: proState.isNightVision ? theme.northRed : theme.textSecondary,
-                            size: 20,
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Red OLED Night Vision Toggle (Pro only)
+                        if (proState.isPro) ...[
+                          IconButton(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            constraints: const BoxConstraints(),
+                            icon: Icon(
+                              proState.isNightVision ? Icons.lightbulb_rounded : Icons.nightlight_round,
+                              color: proState.isNightVision ? theme.northRed : theme.textSecondary,
+                              size: 18,
+                            ),
+                            tooltip: 'Red OLED Night Vision',
+                            onPressed: () => proNotifier.toggleNightVision(),
                           ),
-                          tooltip: 'Red OLED Night Vision',
-                          onPressed: () => proNotifier.toggleNightVision(),
-                        ),
+                          const SizedBox(width: 4),
+                        ],
 
-                      // PRO / UPGRADE Badge
-                      InkWell(
-                        onTap: () => ProUpgradeModal.show(context),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            gradient: proState.isPro
-                                ? LinearGradient(colors: [
-                                    theme.accentCyan.withOpacity(0.25),
-                                    theme.accentCyan.withOpacity(0.08)
-                                  ])
-                                : LinearGradient(colors: [
-                                    theme.goldPro.withOpacity(0.3),
-                                    theme.accentAmber.withOpacity(0.15)
-                                  ]),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: proState.isPro ? theme.accentCyan : theme.goldPro,
-                              width: 1.0,
+                        // PRO / UPGRADE Badge
+                        InkWell(
+                          onTap: () => ProUpgradeModal.show(context),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              gradient: proState.isPro
+                                  ? LinearGradient(colors: [
+                                      theme.accentCyan.withOpacity(0.25),
+                                      theme.accentCyan.withOpacity(0.08)
+                                    ])
+                                  : LinearGradient(colors: [
+                                      theme.goldPro.withOpacity(0.3),
+                                      theme.accentAmber.withOpacity(0.15)
+                                    ]),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                width: 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  proState.isPro ? Icons.verified_rounded : Icons.workspace_premium_rounded,
+                                  color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                  size: 13,
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  proState.isPro ? 'PRO' : 'GET PRO',
+                                  style: TextStyle(
+                                    color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                proState.isPro ? Icons.verified_rounded : Icons.workspace_premium_rounded,
-                                color: proState.isPro ? theme.accentCyan : theme.goldPro,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                proState.isPro ? 'PRO' : 'GET PRO',
-                                style: TextStyle(
-                                  color: proState.isPro ? theme.accentCyan : theme.goldPro,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.8,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
-                      ),
 
-                      // Accuracy Badge
-                      AccuracyBadge(
-                        accuracy: state.accuracy,
-                        onTap: () => CalibrationModal.show(context, state.accuracy),
-                      ),
-                    ],
+                        // Accuracy Badge
+                        AccuracyBadge(
+                          accuracy: state.accuracy,
+                          onTap: () => CalibrationModal.show(context, state.accuracy),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -185,59 +195,46 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             const Spacer(flex: 1),
 
-            // Heading & Cardinal Readout (Tap to Lock Target Bearing)
-            InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                if (proState.isPro) {
-                  if (proState.hasLockedBearing) {
-                    proNotifier.clearLockedBearing();
-                  } else {
-                    proNotifier.lockBearing(state.heading);
-                  }
-                } else {
-                  ProUpgradeModal.show(context);
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          state.heading.round().toString().padLeft(3, '0'),
-                          style: TextStyle(
-                            color: theme.textPrimary,
-                            fontSize: 64,
-                            fontWeight: FontWeight.w300,
-                            fontFamily: 'monospace',
-                            letterSpacing: -1.0,
-                          ),
+            // Heading & Cardinal Readout (Clean Readout - No accidental clicks)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        state.heading.round().toString().padLeft(3, '0'),
+                        style: TextStyle(
+                          color: theme.textPrimary,
+                          fontSize: 60,
+                          fontWeight: FontWeight.w300,
+                          fontFamily: 'monospace',
+                          letterSpacing: -1.0,
                         ),
-                        Text(
-                          '°',
-                          style: TextStyle(
-                            color: theme.northRed,
-                            fontSize: 42,
-                            fontWeight: FontWeight.w400,
-                          ),
+                      ),
+                      Text(
+                        '°',
+                        style: TextStyle(
+                          color: theme.northRed,
+                          fontSize: 38,
+                          fontWeight: FontWeight.w400,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          directionLabel,
-                          style: TextStyle(
-                            color: theme.textSecondary,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.2,
-                          ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        directionLabel,
+                        style: TextStyle(
+                          color: theme.textSecondary,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
 
                     // Target Bearing Lock HUD Chip (PRO)
                     if (proState.lockedBearing != null) ...[
@@ -275,6 +272,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                       const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        constraints: const BoxConstraints(maxWidth: 340),
                         decoration: BoxDecoration(
                           color: state.isQiblaAligned
                               ? const Color(0xFF00E676).withOpacity(0.2)
@@ -296,15 +294,18 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                               size: 14,
                             ),
                             const SizedBox(width: 6),
-                            Text(
-                              state.qiblaBearing != null
-                                  ? 'KAABA: ${state.qiblaBearing!.round().toString().padLeft(3, '0')}°  |  ${state.formattedQiblaDistance}  ${state.isQiblaAligned ? "• ALIGNED 🕋" : ""}'
-                                  : 'ACQUIRING GPS FIX FOR QIBLA...',
-                              style: const TextStyle(
-                                color: Color(0xFF00E676),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'monospace',
+                            Flexible(
+                              child: Text(
+                                state.qiblaBearing != null
+                                    ? 'KAABA: ${state.qiblaBearing!.round().toString().padLeft(3, '0')}° | ${state.formattedQiblaDistance} ${state.isQiblaAligned ? "• ALIGNED 🕋" : ""}'
+                                    : 'ACQUIRING GPS FIX...',
+                                style: const TextStyle(
+                                  color: Color(0xFF00E676),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'monospace',
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -317,6 +318,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                       const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        constraints: const BoxConstraints(maxWidth: 340),
                         decoration: BoxDecoration(
                           color: const Color(0xFF00E5FF).withOpacity(0.12),
                           borderRadius: BorderRadius.circular(16),
@@ -334,15 +336,18 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                               size: 14,
                             ),
                             const SizedBox(width: 6),
-                            Text(
-                              hasGps && waypointBearing != null
-                                  ? '${activeWp.title.toUpperCase()}: $waypointDistance  |  ${waypointBearing.round().toString().padLeft(3, '0')}°'
-                                  : '${activeWp.title.toUpperCase()}: ACQUIRING GPS...',
-                              style: const TextStyle(
-                                color: Color(0xFF00E5FF),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'monospace',
+                            Flexible(
+                              child: Text(
+                                hasGps && waypointBearing != null
+                                    ? '${activeWp.title.toUpperCase()}: $waypointDistance | ${waypointBearing.round().toString().padLeft(3, '0')}°'
+                                    : '${activeWp.title.toUpperCase()}: ACQUIRING GPS...',
+                                style: const TextStyle(
+                                  color: Color(0xFF00E5FF),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'monospace',
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -365,152 +370,157 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             const SizedBox(height: 8),
 
-            // Mode Selector Controls (Magnetic / True North + Qibla Mode Toggle)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Heading Mode Toggle (Magnetic vs True North)
-                GestureDetector(
-                  onTap: () async {
-                    final success = await controller.toggleHeadingType();
-                    if (!success && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Location permission required for True North declination.'),
-                          duration: Duration(seconds: 2),
+            // Mode Selector Controls (Magnetic / True North, Qibla, Waypoint)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Heading Mode Toggle (Magnetic vs True North)
+                  GestureDetector(
+                    onTap: () async {
+                      final success = await controller.toggleHeadingType();
+                      if (!success && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Location permission required for True North declination.'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: theme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isTrueNorth ? theme.accentCyan : theme.dialRing,
+                          width: 1.2,
                         ),
-                      );
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: theme.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isTrueNorth ? theme.accentCyan : theme.dialRing,
-                        width: 1.2,
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isTrueNorth ? Icons.navigation : Icons.explore,
-                          size: 14,
-                          color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isTrueNorth ? 'True North' : 'Magnetic North',
-                          style: TextStyle(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isTrueNorth ? Icons.navigation : Icons.explore,
+                            size: 13,
                             color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 5),
+                          Text(
+                            isTrueNorth ? 'True North' : 'Magnetic North',
+                            style: TextStyle(
+                              color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                const SizedBox(width: 10),
+                  const SizedBox(width: 8),
 
-                // Qibla Mode Toggle Pill
-                GestureDetector(
-                  onTap: () async {
-                    final active = await controller.toggleQiblaMode();
-                    if (active && state.latitude == null && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('GPS required to compute geodesic direction to Mecca.'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: state.isQiblaMode
-                          ? const Color(0xFF00E676).withOpacity(0.18)
-                          : theme.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
+                  // Qibla Mode Toggle Pill
+                  GestureDetector(
+                    onTap: () async {
+                      final active = await controller.toggleQiblaMode();
+                      if (active && state.latitude == null && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('GPS required to compute geodesic direction to Mecca.'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+                      decoration: BoxDecoration(
                         color: state.isQiblaMode
-                            ? const Color(0xFF00E676)
-                            : theme.dialRing,
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('🕋', style: TextStyle(fontSize: 12)),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Qibla Mode',
-                          style: TextStyle(
-                            color: state.isQiblaMode
-                                ? const Color(0xFF00E676)
-                                : theme.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                            ? const Color(0xFF00E676).withOpacity(0.18)
+                            : theme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: state.isQiblaMode
+                              ? const Color(0xFF00E676)
+                              : theme.dialRing,
+                          width: 1.2,
                         ),
-                      ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('🕋', style: TextStyle(fontSize: 11)),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Qibla Mode',
+                            style: TextStyle(
+                              color: state.isQiblaMode
+                                  ? const Color(0xFF00E676)
+                                  : theme.textSecondary,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                const SizedBox(width: 10),
+                  const SizedBox(width: 8),
 
-                // Waypoint Navigation / Mark Spot Pill
-                GestureDetector(
-                  onTap: () {
-                    controller.requestGpsPermissionAndFix();
-                    WaypointModal.show(context);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: wpState.hasActiveWaypoint
-                          ? const Color(0xFF00E5FF).withOpacity(0.18)
-                          : theme.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
+                  // Waypoint Navigation / Mark Spot Pill
+                  GestureDetector(
+                    onTap: () {
+                      controller.requestGpsPermissionAndFix();
+                      WaypointModal.show(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+                      decoration: BoxDecoration(
                         color: wpState.hasActiveWaypoint
-                            ? const Color(0xFF00E5FF)
-                            : theme.dialRing,
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.pin_drop_rounded,
-                          size: 13,
+                            ? const Color(0xFF00E5FF).withOpacity(0.18)
+                            : theme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
                           color: wpState.hasActiveWaypoint
                               ? const Color(0xFF00E5FF)
-                              : theme.textSecondary,
+                              : theme.dialRing,
+                          width: 1.2,
                         ),
-                        const SizedBox(width: 5),
-                        Text(
-                          wpState.hasActiveWaypoint ? 'Backtrack' : 'Mark Spot',
-                          style: TextStyle(
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.pin_drop_rounded,
+                            size: 13,
                             color: wpState.hasActiveWaypoint
                                 ? const Color(0xFF00E5FF)
                                 : theme.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 5),
+                          Text(
+                            wpState.hasActiveWaypoint ? 'Backtrack' : 'Mark Spot',
+                            style: TextStyle(
+                              color: wpState.hasActiveWaypoint
+                                  ? const Color(0xFF00E5FF)
+                                  : theme.textSecondary,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
             const Spacer(flex: 1),
@@ -592,70 +602,122 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             // Live GPS Coordinates & Altitude HUD Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: theme.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: theme.dialRing.withOpacity(0.6)),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Row 1: Coordinates & Elevation
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.location_on_rounded, color: theme.accentCyan, size: 14),
-                        const SizedBox(width: 6),
-                        Text(
-                          state.formattedCoordinates,
-                          style: TextStyle(
-                            color: theme.textSecondary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'monospace',
-                            letterSpacing: 0.5,
+                        Flexible(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.location_on_rounded, color: theme.accentCyan, size: 13),
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  state.formattedCoordinates,
+                                  style: TextStyle(
+                                    color: theme.textSecondary,
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'monospace',
+                                    letterSpacing: 0.3,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.terrain_rounded, color: theme.accentGreen, size: 13),
+                            const SizedBox(width: 4),
+                            Text(
+                              state.formattedAltitude,
+                              style: TextStyle(
+                                color: theme.textPrimary,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    Row(
-                      children: [
-                        if (state.sunriseTime != null && state.sunsetTime != null) ...[
-                          Text(
-                            '☀️ ${state.formattedSunrise}',
-                            style: const TextStyle(
-                              color: Color(0xFFFFD54F),
-                              fontSize: 10,
-                              fontFamily: 'monospace',
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '🌙 ${state.formattedSunset}',
-                            style: const TextStyle(
-                              color: Color(0xFF90CAF9),
-                              fontSize: 10,
-                              fontFamily: 'monospace',
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Icon(Icons.terrain_rounded, color: theme.accentGreen, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          state.formattedAltitude,
-                          style: TextStyle(
-                            color: theme.textPrimary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'monospace',
+
+                    // Row 2: Live Celestial Ephemeris (Sunrise, Sun Heading, Sunset)
+                    if (state.sunriseTime != null && state.sunsetTime != null) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.only(top: 5),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: theme.dialRing.withOpacity(0.4), width: 0.8),
                           ),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('☀️', style: TextStyle(fontSize: 10)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'DAWN ${state.formattedSunrise}',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFFD54F),
+                                    fontSize: 10,
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (state.sunAzimuth != null)
+                              Text(
+                                'SUN AZ ${state.sunAzimuth!.round()}°',
+                                style: TextStyle(
+                                  color: theme.textSecondary.withOpacity(0.7),
+                                  fontSize: 9.5,
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('🌙', style: TextStyle(fontSize: 10)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'DUSK ${state.formattedSunset}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF90CAF9),
+                                    fontSize: 10,
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -663,12 +725,12 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
             // Bottom Telemetry Bar: PITCH | ROLL | EMF (μT) | LEVEL STATUS
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
                 onTap: () => TelemetryGuideModal.show(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   decoration: BoxDecoration(
                     color: theme.surface,
                     borderRadius: BorderRadius.circular(16),
@@ -678,40 +740,47 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     ),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildTelemetryItem(
-                        theme: theme,
-                        label: 'PITCH',
-                        value: '${state.pitch >= 0 ? '+' : ''}${state.pitch.toStringAsFixed(1)}°',
-                        isLevel: state.isLevel,
+                      Expanded(
+                        child: _buildTelemetryItem(
+                          theme: theme,
+                          label: 'PITCH',
+                          value: '${state.pitch >= 0 ? '+' : ''}${state.pitch.toStringAsFixed(1)}°',
+                          isLevel: state.isLevel,
+                        ),
                       ),
-                      Container(width: 1, height: 28, color: theme.dialRing),
-                      _buildTelemetryItem(
-                        theme: theme,
-                        label: 'ROLL',
-                        value: '${state.roll >= 0 ? '+' : ''}${state.roll.toStringAsFixed(1)}°',
-                        isLevel: state.isLevel,
+                      Container(width: 1, height: 26, color: theme.dialRing),
+                      Expanded(
+                        child: _buildTelemetryItem(
+                          theme: theme,
+                          label: 'ROLL',
+                          value: '${state.roll >= 0 ? '+' : ''}${state.roll.toStringAsFixed(1)}°',
+                          isLevel: state.isLevel,
+                        ),
                       ),
-                      Container(width: 1, height: 28, color: theme.dialRing),
-                      _buildTelemetryItem(
-                        theme: theme,
-                        label: 'EMF (μT)',
-                        value: state.formattedMagneticField,
-                        isLevel: state.isLevel,
-                        customValColor: state.isHighInterference
-                            ? theme.northRed
-                            : (state.magneticFieldStrength != null && state.magneticFieldStrength! > 70.0
-                                ? theme.accentAmber
-                                : theme.textPrimary),
+                      Container(width: 1, height: 26, color: theme.dialRing),
+                      Expanded(
+                        child: _buildTelemetryItem(
+                          theme: theme,
+                          label: 'EMF (μT)',
+                          value: state.formattedMagneticField,
+                          isLevel: state.isLevel,
+                          customValColor: state.isHighInterference
+                              ? theme.northRed
+                              : (state.magneticFieldStrength != null && state.magneticFieldStrength! > 70.0
+                                  ? theme.accentAmber
+                                  : theme.textPrimary),
+                        ),
                       ),
-                      Container(width: 1, height: 28, color: theme.dialRing),
-                      _buildTelemetryItem(
-                        theme: theme,
-                        label: 'STATUS',
-                        value: state.isLevel ? 'LEVEL' : 'TILTED',
-                        isLevel: state.isLevel,
-                        isStatus: true,
+                      Container(width: 1, height: 26, color: theme.dialRing),
+                      Expanded(
+                        child: _buildTelemetryItem(
+                          theme: theme,
+                          label: 'STATUS',
+                          value: state.isLevel ? 'LEVEL' : 'TILTED',
+                          isLevel: state.isLevel,
+                          isStatus: true,
+                        ),
                       ),
                     ],
                   ),
@@ -749,19 +818,22 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
           label,
           style: TextStyle(
             color: theme.textSecondary,
-            fontSize: 10,
+            fontSize: 9.5,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.8,
           ),
         ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: TextStyle(
-            color: valColor,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'monospace',
+        const SizedBox(height: 2),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: TextStyle(
+              color: valColor,
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'monospace',
+            ),
           ),
         ),
       ],
