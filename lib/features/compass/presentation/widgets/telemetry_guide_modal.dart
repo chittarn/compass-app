@@ -186,6 +186,42 @@ class TelemetryGuideModal extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 _buildSection(
+                  icon: Icons.wb_sunny_rounded,
+                  iconColor: const Color(0xFFFFD54F),
+                  title: 'CELESTIAL TRACKER & SOLAR EPHEMERIS',
+                  content: [
+                    _buildItem(
+                      term: 'Sun ☀️ & Moon 🌙 Azimuth',
+                      explanation:
+                          'Real-time astronomical positions computed 100% offline using standard NOAA ephemeris formulas. Displays live solar and lunar heading markers directly on the dial rim.',
+                    ),
+                    _buildItem(
+                      term: 'Sunrise & Sunset Times',
+                      explanation:
+                          'Local official solar dawn and dusk computed geometrically from your GPS coordinates. Perfect for golden-hour photography, hiking safety, and dusk preparedness.',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSection(
+                  icon: Icons.pin_drop_rounded,
+                  iconColor: const Color(0xFF00E5FF),
+                  title: 'WAYPOINT BACKTRACK ("FIND MY SPOT")',
+                  content: [
+                    _buildItem(
+                      term: '1-Tap Spot Bookmark',
+                      explanation:
+                          'Bookmark where you parked your car, pitched your tent, or started your hike. Zero internet or map tiles required.',
+                    ),
+                    _buildItem(
+                      term: 'Cyan Beacon Guiding Needle',
+                      explanation:
+                          'A high-visibility cyan needle appears on the dial rim with real-time distance. Align the needle with the 12 o\'clock index to walk straight back to your saved spot.',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSection(
                   icon: Icons.vibration_rounded,
                   iconColor: AppColors.northRed,
                   title: 'TACTICAL HAPTIC FEEDBACK',

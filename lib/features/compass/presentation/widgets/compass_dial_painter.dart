@@ -7,6 +7,10 @@ class CompassDialPainter extends CustomPainter {
   final double? lockedBearing; // Target bearing for Pro users
   final double? qiblaBearing; // Qibla azimuth in degrees
   final bool isQiblaMode; // Whether Qibla navigation is active
+  final double? sunAzimuth; // Solar azimuth in degrees [0, 360)
+  final double? moonAzimuth; // Lunar azimuth in degrees [0, 360)
+  final double? waypointBearing; // Waypoint azimuth in degrees [0, 360)
+  final String? waypointTitle; // Waypoint label (e.g. "Car")
   final CompassTheme theme;
 
   CompassDialPainter({
@@ -14,6 +18,10 @@ class CompassDialPainter extends CustomPainter {
     this.lockedBearing,
     this.qiblaBearing,
     this.isQiblaMode = false,
+    this.sunAzimuth,
+    this.moonAzimuth,
+    this.waypointBearing,
+    this.waypointTitle,
     this.theme = CompassTheme.normal,
   });
 
@@ -202,6 +210,112 @@ class CompassDialPainter extends CustomPainter {
       canvas.restore();
     }
 
+    // Solar Azimuth Marker (Golden Sun Disc + Rays)
+    if (sunAzimuth != null) {
+      final sunRad = sunAzimuth! * (math.pi / 180.0);
+      final sunR = radius - 16;
+      final sunX = sunR * math.sin(sunRad);
+      final sunY = -sunR * math.cos(sunRad);
+
+      canvas.save();
+      canvas.translate(sunX, sunY);
+
+      // Warm golden glow
+      final sunGlow = Paint()
+        ..color = const Color(0xFFFFD54F).withOpacity(0.35)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 11, sunGlow);
+
+      // Sun core disc
+      final sunCore = Paint()
+        ..color = const Color(0xFFFFC107)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 5, sunCore);
+
+      // 4 solar rays
+      final rayPaint = Paint()
+        ..color = const Color(0xFFFFE082)
+        ..strokeWidth = 1.6
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(const Offset(0, -9), const Offset(0, -6.5), rayPaint);
+      canvas.drawLine(const Offset(0, 6.5), const Offset(0, 9), rayPaint);
+      canvas.drawLine(const Offset(-9, 0), const Offset(-6.5, 0), rayPaint);
+      canvas.drawLine(const Offset(6.5, 0), const Offset(9, 0), rayPaint);
+
+      canvas.restore();
+    }
+
+    // Lunar Azimuth Marker (Silvery Crescent Moon)
+    if (moonAzimuth != null) {
+      final moonRad = moonAzimuth! * (math.pi / 180.0);
+      final moonR = radius - 16;
+      final moonX = moonR * math.sin(moonRad);
+      final moonY = -moonR * math.cos(moonRad);
+
+      canvas.save();
+      canvas.translate(moonX, moonY);
+
+      // Silver moonlight glow
+      final moonGlow = Paint()
+        ..color = const Color(0xFF90CAF9).withOpacity(0.28)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 10, moonGlow);
+
+      // Crescent Moon shape
+      final moonPaint = Paint()
+        ..color = const Color(0xFFECEFF1)
+        ..style = PaintingStyle.fill;
+
+      final cPath = Path()
+        ..moveTo(0, -5.5)
+        ..arcToPoint(const Offset(0, 5.5), radius: const Radius.circular(5.5), clockwise: false)
+        ..arcToPoint(const Offset(0, -5.5), radius: const Radius.circular(7.5), clockwise: true)
+        ..close();
+      canvas.drawPath(cPath, moonPaint);
+
+      canvas.restore();
+    }
+
+    // Waypoint Beacon Marker (High-visibility Cyan Pointer for Backtracking)
+    if (waypointBearing != null) {
+      final wpRad = waypointBearing! * (math.pi / 180.0);
+      final wpR = radius - 16;
+      final wpX = wpR * math.sin(wpRad);
+      final wpY = -wpR * math.cos(wpRad);
+
+      canvas.save();
+      canvas.translate(wpX, wpY);
+      canvas.rotate(wpRad); // Point radial arrow outward
+
+      // Cyan neon aura
+      final wpGlow = Paint()
+        ..color = const Color(0xFF00E5FF).withOpacity(0.35)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 13, wpGlow);
+
+      // Cyan pin head
+      final wpPin = Paint()
+        ..color = const Color(0xFF00E5FF)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 4.5, wpPin);
+
+      // Center white pip
+      final centerDot = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, 2.0, centerDot);
+
+      // Triangular arrow pointer pointing outward to rim
+      final pointerPath = Path()
+        ..moveTo(0, -10)
+        ..lineTo(-4.5, -5.5)
+        ..lineTo(4.5, -5.5)
+        ..close();
+      canvas.drawPath(pointerPath, wpPin);
+
+      canvas.restore();
+    }
+
     canvas.restore();
 
     // Top fixed lubber line indicator (fixed at 12 o'clock outside rotated canvas)
@@ -276,6 +390,10 @@ class CompassDialPainter extends CustomPainter {
         oldDelegate.lockedBearing != lockedBearing ||
         oldDelegate.qiblaBearing != qiblaBearing ||
         oldDelegate.isQiblaMode != isQiblaMode ||
+        oldDelegate.sunAzimuth != sunAzimuth ||
+        oldDelegate.moonAzimuth != moonAzimuth ||
+        oldDelegate.waypointBearing != waypointBearing ||
+        oldDelegate.waypointTitle != waypointTitle ||
         oldDelegate.theme != theme;
   }
 }

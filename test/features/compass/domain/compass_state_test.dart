@@ -106,5 +106,28 @@ void main() {
       expect(stateWithInterference.isHighInterference, isTrue);
       expect(stateWithInterference.magneticFieldStatus, 'HIGH INTERFERENCE');
     });
+
+    test('CompassState formats celestial ephemeris (Sunrise/Sunset) properly', () {
+      final stateWithEphemeris = const CompassState(
+        heading: 0.0,
+        unwrappedHeading: 0.0,
+        headingType: HeadingType.magnetic,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: true,
+      ).copyWith(
+        sunAzimuth: 128.5,
+        moonAzimuth: 245.2,
+        sunriseTime: DateTime(2026, 6, 21, 6, 14),
+        sunsetTime: DateTime(2026, 6, 21, 20, 32),
+      );
+
+      expect(stateWithEphemeris.sunAzimuth, 128.5);
+      expect(stateWithEphemeris.moonAzimuth, 245.2);
+      expect(stateWithEphemeris.formattedSunrise, '06:14');
+      expect(stateWithEphemeris.formattedSunset, '20:32');
+    });
   });
 }

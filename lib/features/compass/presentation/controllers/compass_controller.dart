@@ -12,6 +12,7 @@ import '../../../../core/utils/angle_unwrapper.dart';
 import '../../../../core/utils/haptic_throttler.dart';
 import '../../../../core/utils/tilt_calculator.dart';
 import '../../../../core/utils/qibla_calculator.dart';
+import '../../../../core/utils/solar_calculator.dart';
 
 final compassControllerProvider =
     StateNotifierProvider<CompassController, CompassState>((ref) {
@@ -29,6 +30,7 @@ class CompassController extends StateNotifier<CompassState> {
   StreamSubscription? _accelerometerSub;
   StreamSubscription? _magnetometerSub;
   StreamSubscription? _positionSub;
+  Timer? _celestialTimer;
   DateTime _lastTimestamp = DateTime.now();
   double _lastHeading = 0.0;
   bool _lastQiblaAligned = false;
@@ -76,7 +78,27 @@ class CompassController extends StateNotifier<CompassState> {
       _magnetometerSub = magnetometerEventStream().listen(_onMagnetometerEvent);
     } catch (_) {}
 
+    _celestialTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      _recomputeCelestial();
+    });
+
     _checkAndStartGps();
+  }
+
+  void _recomputeCelestial() {
+    if (state.latitude == null || state.longitude == null) return;
+    final nowUtc = DateTime.now().toUtc();
+    final nowLocal = DateTime.now();
+    final sunAz = SolarCalculator.calculateSunAzimuth(state.latitude!, state.longitude!, nowUtc);
+    final moonAz = SolarCalculator.calculateMoonAzimuth(state.latitude!, state.longitude!, nowUtc);
+    final sunTimes = SolarCalculator.calculateSunriseSunset(state.latitude!, state.longitude!, nowLocal);
+
+    state = state.copyWith(
+      sunAzimuth: sunAz,
+      moonAzimuth: moonAz,
+      sunriseTime: sunTimes.sunrise,
+      sunsetTime: sunTimes.sunset,
+    );
   }
 
   Future<void> _checkAndStartGps() async {
@@ -112,6 +134,12 @@ class CompassController extends StateNotifier<CompassState> {
     final qBearing = QiblaCalculator.calculateBearing(pos.latitude, pos.longitude);
     final qDist = QiblaCalculator.calculateDistanceKm(pos.latitude, pos.longitude);
 
+    final nowUtc = DateTime.now().toUtc();
+    final nowLocal = DateTime.now();
+    final sunAz = SolarCalculator.calculateSunAzimuth(pos.latitude, pos.longitude, nowUtc);
+    final moonAz = SolarCalculator.calculateMoonAzimuth(pos.latitude, pos.longitude, nowUtc);
+    final sunTimes = SolarCalculator.calculateSunriseSunset(pos.latitude, pos.longitude, nowLocal);
+
     state = state.copyWith(
       latitude: pos.latitude,
       longitude: pos.longitude,
@@ -119,6 +147,10 @@ class CompassController extends StateNotifier<CompassState> {
       hasLocationPermission: true,
       qiblaBearing: qBearing,
       qiblaDistanceKm: qDist,
+      sunAzimuth: sunAz,
+      moonAzimuth: moonAz,
+      sunriseTime: sunTimes.sunrise,
+      sunsetTime: sunTimes.sunset,
     );
   }
 
@@ -269,6 +301,7 @@ class CompassController extends StateNotifier<CompassState> {
 
   @override
   void dispose() {
+    _celestialTimer?.cancel();
     _compassSub?.cancel();
     _accelerometerSub?.cancel();
     _magnetometerSub?.cancel();

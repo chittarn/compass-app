@@ -10,6 +10,8 @@ import 'widgets/telemetry_guide_modal.dart';
 import '../../pro/controllers/pro_controller.dart';
 import '../../pro/presentation/pro_upgrade_modal.dart';
 import '../../pro/presentation/widgets/navigation_ad_banner.dart';
+import '../../waypoints/controllers/waypoints_controller.dart';
+import '../../waypoints/presentation/waypoint_modal.dart';
 import '../../../core/constants/compass_constants.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -43,6 +45,8 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     final controller = ref.read(compassControllerProvider.notifier);
     final proState = ref.watch(proControllerProvider);
     final proNotifier = ref.read(proControllerProvider.notifier);
+    final wpState = ref.watch(waypointsControllerProvider);
+    final wpNotifier = ref.read(waypointsControllerProvider.notifier);
 
     final theme = proState.isNightVision ? CompassTheme.nightVision : CompassTheme.normal;
 
@@ -50,6 +54,16 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
 
     final directionLabel = CompassConstants.getDirectionLabel(state.heading);
     final isTrueNorth = state.headingType == HeadingType.trueNorth;
+
+    // Active Waypoint tracking calculation
+    final activeWp = wpState.activeWaypoint;
+    final bool hasGps = state.latitude != null && state.longitude != null;
+    double? waypointBearing;
+    String? waypointDistance;
+    if (activeWp != null && hasGps) {
+      waypointBearing = activeWp.bearingFrom(state.latitude!, state.longitude!);
+      waypointDistance = activeWp.formattedDistanceFrom(state.latitude!, state.longitude!);
+    }
 
     // Calculate Bearing Deviation if Bearing is Locked (PRO)
     double? driftAngle;
@@ -297,6 +311,53 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         ),
                       ),
                     ],
+
+                    // Waypoint Backtrack Navigation Ribbon
+                    if (activeWp != null) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00E5FF).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF00E5FF).withOpacity(0.6),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.pin_drop_rounded,
+                              color: Color(0xFF00E5FF),
+                              size: 14,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              hasGps && waypointBearing != null
+                                  ? '${activeWp.title.toUpperCase()}: $waypointDistance  |  ${waypointBearing.round().toString().padLeft(3, '0')}°'
+                                  : '${activeWp.title.toUpperCase()}: ACQUIRING GPS...',
+                              style: const TextStyle(
+                                color: Color(0xFF00E5FF),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => wpNotifier.setActive(null),
+                              child: const Icon(
+                                Icons.cancel_rounded,
+                                color: Color(0xFF00E5FF),
+                                size: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -401,6 +462,51 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     ),
                   ),
                 ),
+
+                const SizedBox(width: 10),
+
+                // Waypoint Navigation / Mark Spot Pill
+                GestureDetector(
+                  onTap: () => WaypointModal.show(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: wpState.hasActiveWaypoint
+                          ? const Color(0xFF00E5FF).withOpacity(0.18)
+                          : theme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: wpState.hasActiveWaypoint
+                            ? const Color(0xFF00E5FF)
+                            : theme.dialRing,
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.pin_drop_rounded,
+                          size: 13,
+                          color: wpState.hasActiveWaypoint
+                              ? const Color(0xFF00E5FF)
+                              : theme.textSecondary,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          wpState.hasActiveWaypoint ? 'Backtrack' : 'Mark Spot',
+                          style: TextStyle(
+                            color: wpState.hasActiveWaypoint
+                                ? const Color(0xFF00E5FF)
+                                : theme.textSecondary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
 
@@ -428,6 +534,10 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                               lockedBearing: proState.lockedBearing,
                               qiblaBearing: state.qiblaBearing,
                               isQiblaMode: state.isQiblaMode,
+                              sunAzimuth: state.sunAzimuth,
+                              moonAzimuth: state.moonAzimuth,
+                              waypointBearing: waypointBearing,
+                              waypointTitle: activeWp?.title,
                               theme: theme,
                             ),
                           ),
@@ -508,6 +618,28 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     ),
                     Row(
                       children: [
+                        if (state.sunriseTime != null && state.sunsetTime != null) ...[
+                          Text(
+                            '☀️ ${state.formattedSunrise}',
+                            style: const TextStyle(
+                              color: Color(0xFFFFD54F),
+                              fontSize: 10,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '🌙 ${state.formattedSunset}',
+                            style: const TextStyle(
+                              color: Color(0xFF90CAF9),
+                              fontSize: 10,
+                              fontFamily: 'monospace',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                         Icon(Icons.terrain_rounded, color: theme.accentGreen, size: 14),
                         const SizedBox(width: 4),
                         Text(
