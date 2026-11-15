@@ -366,7 +366,6 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                   ],
                 ),
               ),
-            ),
 
             const SizedBox(height: 8),
 
