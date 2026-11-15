@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'core/theme/app_colors.dart';
-import 'features/compass/presentation/compass_screen.dart';
+import 'features/splash/presentation/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,7 +51,7 @@ class CompassApp extends StatelessWidget {
           surface: AppColors.surface,
         ),
       ),
-      home: const CompassScreen(),
+      home: const SplashScreen(),
     );
   }
 }
