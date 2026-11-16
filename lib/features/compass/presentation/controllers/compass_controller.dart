@@ -15,6 +15,7 @@ import '../../../../core/utils/qibla_calculator.dart';
 import '../../../../core/utils/solar_calculator.dart';
 import '../../../../core/constants/compass_constants.dart';
 import '../../../../core/utils/vastu_calculator.dart';
+import '../../../../core/utils/heading_calculator.dart';
 
 final compassControllerProvider =
     StateNotifierProvider<CompassController, CompassState>((ref) {
@@ -38,6 +39,13 @@ class CompassController extends StateNotifier<CompassState> {
   double _lastHeading = 0.0;
   bool _lastQiblaAligned = false;
   bool _lastVastuAligned = false;
+  DateTime? _lastFlutterCompassEventTime;
+  double? _filteredAx;
+  double? _filteredAy;
+  double? _filteredAz;
+  double? _filteredMx;
+  double? _filteredMy;
+  double? _filteredMz;
   double? _filteredPitch;
   double? _filteredRoll;
   double? _filteredEmf;
@@ -192,12 +200,14 @@ class CompassController extends StateNotifier<CompassState> {
     final sunAz = SolarCalculator.calculateSunAzimuth(pos.latitude, pos.longitude, nowUtc);
     final moonAz = SolarCalculator.calculateMoonAzimuth(pos.latitude, pos.longitude, nowUtc);
     final sunTimes = SolarCalculator.calculateSunriseSunset(pos.latitude, pos.longitude, nowLocal);
+    final dec = HeadingCalculator.calculateDeclination(pos.latitude, pos.longitude);
 
     state = state.copyWith(
       latitude: pos.latitude,
       longitude: pos.longitude,
       altitude: pos.altitude,
       hasLocationPermission: true,
+      magneticDeclination: dec,
       qiblaBearing: qBearing,
       qiblaDistanceKm: qDist,
       sunAzimuth: sunAz,
@@ -209,17 +219,19 @@ class CompassController extends StateNotifier<CompassState> {
 
   void _onCompassEvent(CompassEvent event) {
     if (event.heading == null) return;
+    _lastFlutterCompassEventTime = DateTime.now();
+    _processHeading(event.heading!, accuracyVal: event.accuracy);
+  }
 
+  void _processHeading(double rawHeadingVal, {double? accuracyVal}) {
     final now = DateTime.now();
     final dt = now.difference(_lastTimestamp).inMilliseconds / 1000.0;
     _lastTimestamp = now;
 
-    // Use magnetic heading by default, or true heading if requested and present
-    double chosenHeading;
-    if (state.headingType == HeadingType.trueNorth && event.headingForCameraMode != null) {
-      chosenHeading = event.headingForCameraMode!;
-    } else {
-      chosenHeading = event.heading!;
+    // Use magnetic heading by default, or true heading if requested and declination known
+    double chosenHeading = rawHeadingVal;
+    if (state.headingType == HeadingType.trueNorth && state.magneticDeclination != null) {
+      chosenHeading = chosenHeading + state.magneticDeclination!;
     }
 
     final rawHeading = (chosenHeading % 360.0 + 360.0) % 360.0;
@@ -256,16 +268,29 @@ class CompassController extends StateNotifier<CompassState> {
       _lastVastuAligned = isNowAligned;
     }
 
-    final accuracy = _mapAccuracy(event.accuracy);
+    final accuracy = accuracyVal != null ? _mapAccuracy(accuracyVal) : state.accuracy;
 
     state = state.copyWith(
       heading: rawHeading,
       unwrappedHeading: unwrapped,
       accuracy: accuracy,
+      trueHeading: state.magneticDeclination != null
+          ? ((rawHeadingVal + state.magneticDeclination!) % 360.0 + 360.0) % 360.0
+          : null,
     );
   }
 
   void _onAccelerometerEvent(AccelerometerEvent event) {
+    if (_filteredAx == null) {
+      _filteredAx = event.x;
+      _filteredAy = event.y;
+      _filteredAz = event.z;
+    } else {
+      _filteredAx = (_filteredAx! * 0.82) + (event.x * 0.18);
+      _filteredAy = (_filteredAy! * 0.82) + (event.y * 0.18);
+      _filteredAz = (_filteredAz! * 0.82) + (event.z * 0.18);
+    }
+
     final tilt = TiltCalculator.fromAccelerometer(event.x, event.y, event.z);
 
     // 1. Exponential Moving Average (EMA) Low-Pass Filter
@@ -312,6 +337,16 @@ class CompassController extends StateNotifier<CompassState> {
   void _onMagnetometerEvent(MagnetometerEvent event) {
     final rawMag = math.sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
 
+    if (_filteredMx == null) {
+      _filteredMx = event.x;
+      _filteredMy = event.y;
+      _filteredMz = event.z;
+    } else {
+      _filteredMx = (_filteredMx! * 0.82) + (event.x * 0.18);
+      _filteredMy = (_filteredMy! * 0.82) + (event.y * 0.18);
+      _filteredMz = (_filteredMz! * 0.82) + (event.z * 0.18);
+    }
+
     // 1. Exponential Moving Average Low-Pass Filter
     if (_filteredEmf == null) {
       _filteredEmf = rawMag;
@@ -329,6 +364,25 @@ class CompassController extends StateNotifier<CompassState> {
     }
 
     state = state.copyWith(magneticFieldStrength: displayEmf);
+
+    // DUAL-ENGINE SENSOR FUSION FALLBACK:
+    // When FlutterCompass does not emit valid non-null headings (common on OEM ROMs),
+    // compute real-time tilt-compensated azimuth from raw accelerometer + magnetometer.
+    final now = DateTime.now();
+    final bool flutterCompassStale = _lastFlutterCompassEventTime == null ||
+        now.difference(_lastFlutterCompassEventTime!).inMilliseconds > 400;
+
+    if (flutterCompassStale && _filteredAx != null) {
+      final fusionHeading = HeadingCalculator.calculateAzimuth(
+        ax: _filteredAx!,
+        ay: _filteredAy!,
+        az: _filteredAz!,
+        mx: _filteredMx!,
+        my: _filteredMy!,
+        mz: _filteredMz!,
+      );
+      _processHeading(fusionHeading);
+    }
   }
 
   SensorAccuracyLevel _mapAccuracy(double? accuracyVal) {

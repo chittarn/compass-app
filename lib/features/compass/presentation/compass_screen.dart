@@ -706,7 +706,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     // Smooth 60/120fps Rotating Dial
                     TweenAnimationBuilder<double>(
                       tween: Tween<double>(end: state.unwrappedHeading),
-                      duration: const Duration(milliseconds: 140),
+                      duration: const Duration(milliseconds: 90),
                       curve: Curves.easeOutCubic,
                       builder: (context, animatedHeading, child) {
                         return RepaintBoundary(
