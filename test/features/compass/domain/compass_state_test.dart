@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:compass_app/features/compass/domain/compass_state.dart';
 import 'package:compass_app/features/compass/domain/heading_type.dart';
 import 'package:compass_app/core/constants/compass_constants.dart';
+import 'package:compass_app/core/utils/wmm_calculator.dart';
 
 void main() {
   group('CompassState & Constants Tests', () {
@@ -44,7 +46,7 @@ void main() {
       expect(updated.headingType, HeadingType.magnetic);
     });
 
-    test('CompassState formats GPS coordinates and altitude properly', () {
+    test('CompassState formats GPS coordinates and altitude datum properly', () {
       const stateWithGps = CompassState(
         heading: 0.0,
         unwrappedHeading: 0.0,
@@ -61,7 +63,6 @@ void main() {
 
       expect(stateWithGps.formattedCoordinates, contains('37°46\'30" N'));
       expect(stateWithGps.formattedCoordinates, contains('122°25\'10" W'));
-      expect(stateWithGps.formattedAltitude, '143 m MSL');
 
       const stateWithoutGps = CompassState(
         heading: 0.0,
@@ -75,7 +76,50 @@ void main() {
       );
 
       expect(stateWithoutGps.formattedCoordinates, contains('--°--\'--" N'));
+
+      // Test Android platform datum: WGS-84 ellipsoidal height
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      expect(stateWithGps.formattedAltitude, '143 m WGS-84');
+      expect(stateWithoutGps.formattedAltitude, '-- m WGS-84');
+
+      // Test iOS platform datum: MSL
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      expect(stateWithGps.formattedAltitude, '143 m MSL');
       expect(stateWithoutGps.formattedAltitude, '-- m MSL');
+
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    test('CompassState validates isTrueNorthAvailable and wmmReliability', () {
+      const stateMag = CompassState(
+        heading: 0.0,
+        unwrappedHeading: 0.0,
+        headingType: HeadingType.magnetic,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: true,
+        magneticDeclination: 5.0,
+      );
+      // In Magnetic mode, True North is not active
+      expect(stateMag.isTrueNorthAvailable, isFalse);
+
+      final stateTrueNoDec = stateMag.copyWith(
+        headingType: HeadingType.trueNorth,
+        clearDeclination: true,
+      );
+      // In True North mode without declination (pending GPS fix), True North is not available
+      expect(stateTrueNoDec.isTrueNorthAvailable, isFalse);
+
+      final stateTrueWithDec = stateMag.copyWith(
+        headingType: HeadingType.trueNorth,
+        magneticDeclination: 5.0,
+        wmmReliability: WmmReliabilityLevel.normal,
+      );
+      // In True North mode with valid declination, True North is available
+      expect(stateTrueWithDec.isTrueNorthAvailable, isTrue);
+      expect(stateTrueWithDec.wmmReliability, WmmReliabilityLevel.normal);
     });
 
     test('CompassState formats magnetic field and Qibla telemetry properly', () {

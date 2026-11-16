@@ -106,7 +106,7 @@ jobs:
         run: flutter analyze >> build.log 2>&1 || true
 
       - name: Run Tests
-        run: flutter test
+        run: flutter test 2>&1 | tee -a build.log
 
       - name: Build Optimized Release APKs & App Bundle (.aab)
         run: |
