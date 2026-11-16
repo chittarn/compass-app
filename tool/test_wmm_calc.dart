@@ -158,6 +158,46 @@ void main() {
   print('Non-finite coordinates throw ArgumentError: $nanThrows');
   assert(nanThrows);
 
+  // Complete WGS-84 longitude boundary tests:
+  // -180.0° and +180.0° valid
+  final decNeg180 = WmmCalculator.calculateDeclination(latitudeDeg: 0.0, longitudeDeg: -180.0, date: DateTime.utc(2025, 1, 1));
+  final decPos180 = WmmCalculator.calculateDeclination(latitudeDeg: 0.0, longitudeDeg: 180.0, date: DateTime.utc(2025, 1, 1));
+  assert(decNeg180.isFinite && decPos180.isFinite);
+  assert((decNeg180 - decPos180).abs() < 0.0001);
+
+  bool neg180_1Throws = false;
+  try {
+    WmmCalculator.calculate(latitudeDeg: 0.0, longitudeDeg: -180.1, date: DateTime.utc(2025, 1, 1));
+  } on ArgumentError {
+    neg180_1Throws = true;
+  }
+  assert(neg180_1Throws);
+
+  bool pos180_1Throws = false;
+  try {
+    WmmCalculator.calculate(latitudeDeg: 0.0, longitudeDeg: 180.1, date: DateTime.utc(2025, 1, 1));
+  } on ArgumentError {
+    pos180_1Throws = true;
+  }
+  assert(pos180_1Throws);
+
+  bool posInfThrows = false;
+  try {
+    WmmCalculator.calculate(latitudeDeg: 0.0, longitudeDeg: double.infinity, date: DateTime.utc(2025, 1, 1));
+  } on ArgumentError {
+    posInfThrows = true;
+  }
+  assert(posInfThrows);
+
+  bool negInfThrows = false;
+  try {
+    WmmCalculator.calculate(latitudeDeg: 0.0, longitudeDeg: double.negativeInfinity, date: DateTime.utc(2025, 1, 1));
+  } on ArgumentError {
+    negInfThrows = true;
+  }
+  assert(negInfThrows);
+  print('WGS-84 longitude bounds [-180°, +180°], ±180.1°, ±inf, nan validated: [PASS]');
+
   print('[PASS] WMM-2025 Boundary & input validation verified!\n');
 
   print('=== CHECKING WMM RELIABILITY WARNINGS ===');

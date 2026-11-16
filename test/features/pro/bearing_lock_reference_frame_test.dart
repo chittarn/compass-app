@@ -3,6 +3,10 @@ import 'package:compass_app/features/compass/domain/heading_type.dart';
 import 'package:compass_app/features/pro/controllers/pro_controller.dart';
 
 void main() {
+  // Required: initializes ServicesBinding so HapticFeedback.selectionClick()
+  // and SharedPreferences platform channels do not throw in tests.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('Bearing Lock & Delayed GPS Reference Frame Edge Cases', () {
     late ProController controller;
 

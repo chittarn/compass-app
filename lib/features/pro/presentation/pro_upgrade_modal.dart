@@ -342,28 +342,23 @@ class ProUpgradeModal extends ConsumerWidget {
 
                 const SizedBox(height: 20),
 
-                // Main Purchase Action Button
+                // Main Purchase Action Button (Temporary Test Mode)
                 ElevatedButton(
                   onPressed: () {
                     if (proState.isPro) {
-                      Navigator.of(context).pop();
+                      proNotifier.toggleProMode();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('🌟 Compass Pro is already active on this device!'),
-                          backgroundColor: Color(0xFF161922),
+                          content: Text('🧪 TEMPORARY TEST MODE: Switched back to Free Tier (5 waypoints limit).'),
                           duration: Duration(seconds: 2),
                         ),
                       );
                     } else {
                       proNotifier.toggleProMode();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            !proState.isPro
-                                ? '⭐ Compass Pro unlocked! All Pro features active.'
-                                : 'Compass switched back to Free Tier (5 waypoints limit).',
-                          ),
-                          duration: const Duration(seconds: 2),
+                        const SnackBar(
+                          content: Text('🧪 TEMPORARY TEST MODE: Compass Pro unlocked for device testing (Not a real purchase).'),
+                          duration: Duration(seconds: 2),
                         ),
                       );
                     }
@@ -381,19 +376,19 @@ class ProUpgradeModal extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        proState.isPro ? Icons.check_circle_rounded : Icons.lock_open_rounded,
+                        proState.isPro ? Icons.check_circle_rounded : Icons.science_outlined,
                         color: Colors.black,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         proState.isPro
-                            ? 'PRO ACTIVE (TAP TO SWITCH TO FREE)'
-                            : 'TAP TO UNLOCK PRO PREVIEW (FREE)',
+                            ? 'PRO TEST MODE ACTIVE (TAP FOR FREE)'
+                            : 'TEST PRO MODE (TEMPORARY — NOT A PURCHASE)',
                         style: const TextStyle(
-                          fontSize: 13.5,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
+                          letterSpacing: 0.6,
                           color: Colors.black,
                         ),
                       ),
@@ -412,7 +407,7 @@ class ProUpgradeModal extends ConsumerWidget {
                   ),
                 ),
 
-                // Temporary Pro Version Switcher Card
+                // Temporary Pro Version Switcher Card (Explicitly labeled for QA/Internal testing)
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -426,52 +421,66 @@ class ProUpgradeModal extends ConsumerWidget {
                       width: 1.2,
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                proState.isPro ? Icons.verified_rounded : Icons.lock_open_rounded,
-                                color: proState.isPro ? theme.accentCyan : theme.goldPro,
-                                size: 16,
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.science_outlined,
+                                    color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'TEMPORARY TEST MODE — NOT A PURCHASE',
+                                    style: TextStyle(
+                                      color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 11,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(height: 3),
                               Text(
-                                'PRO VERSION SWITCHER',
+                                proState.isPro
+                                    ? 'Current State: PRO (Unlimited Waypoints)'
+                                    : 'Current State: FREE (5 Waypoints Limit)',
                                 style: TextStyle(
-                                  color: proState.isPro ? theme.accentCyan : theme.goldPro,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 12,
-                                  letterSpacing: 0.8,
+                                  color: theme.textSecondary,
+                                  fontSize: 11,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 3),
-                          Text(
-                            proState.isPro
-                                ? 'Active: PRO (Unlimited Waypoints)'
-                                : 'Active: FREE (5 Waypoints Limit)',
-                            style: TextStyle(
-                              color: theme.textSecondary,
-                              fontSize: 11,
-                            ),
+                          Switch(
+                            value: proState.isPro,
+                            activeColor: theme.accentCyan,
+                            activeTrackColor: theme.accentCyan.withOpacity(0.4),
+                            inactiveThumbColor: theme.textSecondary,
+                            inactiveTrackColor: theme.dialRing,
+                            onChanged: (_) {
+                              proNotifier.toggleProMode();
+                            },
                           ),
                         ],
                       ),
-                      Switch(
-                        value: proState.isPro,
-                        activeColor: theme.accentCyan,
-                        activeTrackColor: theme.accentCyan.withOpacity(0.4),
-                        inactiveThumbColor: theme.textSecondary,
-                        inactiveTrackColor: theme.dialRing,
-                        onChanged: (_) {
-                          proNotifier.toggleProMode();
-                        },
+                      const SizedBox(height: 6),
+                      Text(
+                        'Internal test toggle for physical device validation. Does not process billing. Will be replaced by verified Google Play Billing before production release.',
+                        style: TextStyle(
+                          color: theme.textSecondary.withOpacity(0.7),
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ],
                   ),

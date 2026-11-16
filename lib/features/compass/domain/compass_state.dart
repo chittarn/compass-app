@@ -114,6 +114,9 @@ class CompassState {
 
   bool get isQiblaAligned {
     if (qiblaBearing == null) return false;
+    // When True North is selected but declination is not yet available,
+    // we cannot verify the heading — report unavailable rather than a false positive.
+    if (headingType == HeadingType.trueNorth && magneticDeclination == null) return false;
     final effectiveTrueHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
         ? heading
         : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;
@@ -135,6 +138,10 @@ class CompassState {
   }
 
   VastuZoneInfo get currentVastuZone {
+    // When True North is selected but declination is unavailable, the raw magnetic
+    // heading cannot be presented as a verified True North value. Return the zone
+    // based on raw heading but callers should check isTrueNorthAvailable before
+    // treating this as a definitive True North Vastu reading.
     final effectiveHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
         ? heading
         : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;
@@ -143,6 +150,8 @@ class CompassState {
 
   bool get isVastuRoomAligned {
     if (activeVastuRoom == null) return false;
+    // Guard: do not report alignment when True North is selected but unverified
+    if (headingType == HeadingType.trueNorth && magneticDeclination == null) return false;
     final effectiveHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
         ? heading
         : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;

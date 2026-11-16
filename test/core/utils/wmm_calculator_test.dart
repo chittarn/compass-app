@@ -342,6 +342,69 @@ void main() {
       );
     });
 
+    test('Longitude validation strictly enforces WGS-84 range [-180°, +180°]', () {
+      // Valid boundaries: -180.0° and +180.0° must compute cleanly
+      final decNeg180 = WmmCalculator.calculateDeclination(
+        latitudeDeg: 0.0,
+        longitudeDeg: -180.0,
+        date: DateTime.utc(2025, 1, 1),
+      );
+      expect(decNeg180.isFinite, isTrue);
+
+      final decPos180 = WmmCalculator.calculateDeclination(
+        latitudeDeg: 0.0,
+        longitudeDeg: 180.0,
+        date: DateTime.utc(2025, 1, 1),
+      );
+      expect(decPos180.isFinite, isTrue);
+      // Longitude -180° and +180° represent the antimeridian and must yield identical declination
+      expect(decNeg180, closeTo(decPos180, 0.0001));
+
+      // Invalid boundaries: -180.1° and +180.1° must throw ArgumentError
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 0.0,
+          longitudeDeg: -180.1,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 0.0,
+          longitudeDeg: 180.1,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+
+      // Non-finite longitudes: NaN, +infinity, -infinity must throw ArgumentError
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 0.0,
+          longitudeDeg: double.nan,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 0.0,
+          longitudeDeg: double.infinity,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 0.0,
+          longitudeDeg: double.negativeInfinity,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('Non-finite coordinates or altitude throw ArgumentError', () {
       expect(
         () => WmmCalculator.calculate(
@@ -355,6 +418,30 @@ void main() {
         () => WmmCalculator.calculate(
           latitudeDeg: 0.0,
           longitudeDeg: double.infinity,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 0.0,
+          longitudeDeg: double.negativeInfinity,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: double.infinity,
+          longitudeDeg: 0.0,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: double.negativeInfinity,
+          longitudeDeg: 0.0,
           date: DateTime.utc(2025, 1, 1),
         ),
         throwsArgumentError,

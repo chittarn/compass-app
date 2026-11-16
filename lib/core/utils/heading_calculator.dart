@@ -53,7 +53,13 @@ class HeadingCalculator {
   ///
   /// [latDeg]: WGS84 Geodetic latitude [-90.0, 90.0].
   /// [lonDeg]: WGS84 Geodetic longitude [-180.0, 180.0].
-  /// [altitudeMeters]: Altitude above WGS84 ellipsoid in meters (default: 0.0).
+  /// [altitudeMeters]: Altitude in meters (default: 0.0).
+  ///   - On Android: Native `Location.getAltitude()` is height above the WGS-84 ellipsoid (HAE),
+  ///     which directly satisfies the WMM geocentric radius equation.
+  ///   - On iOS: `CLLocation.altitude` is height above Mean Sea Level (MSL). A global geoid
+  ///     undulation model is omitted to avoid fabricated constant offsets. Since the tropospheric
+  ///     vertical gradient of magnetic declination is < 0.001° per 100m, declination impact
+  ///     is < 0.001°, but ellipsoidal altitude equivalence is not claimed on iOS.
   /// [date]: Observation date (default: DateTime.now()).
   static double calculateDeclination(
     double latDeg,

@@ -97,11 +97,11 @@ class WmmCalculator {
         'Latitude must be a finite number between -90.0 and 90.0 degrees.',
       );
     }
-    if (!longitudeDeg.isFinite) {
+    if (!longitudeDeg.isFinite || longitudeDeg < -180.0 || longitudeDeg > 180.0) {
       throw ArgumentError.value(
         longitudeDeg,
         'longitudeDeg',
-        'Longitude must be a finite number.',
+        'Longitude must be a finite number between -180.0 and 180.0 degrees (WGS-84 standard coordinate frame).',
       );
     }
     if (!altitudeMeters.isFinite || altitudeMeters < minAltitudeMeters || altitudeMeters > maxAltitudeMeters) {

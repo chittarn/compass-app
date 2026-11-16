@@ -497,7 +497,9 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                             Flexible(
                               child: Text(
                                 state.qiblaBearing != null
-                                    ? 'KAABA: ${state.qiblaBearing!.round().toString().padLeft(3, '0')}° | ${state.formattedQiblaDistance} ${state.isQiblaAligned ? "• ALIGNED 🕋" : ""}'
+                                    ? (state.headingType == HeadingType.trueNorth && state.magneticDeclination == null
+                                        ? 'KAABA: ${state.qiblaBearing!.round().toString().padLeft(3, '0')}° | TRUE NORTH GPS REQ'
+                                        : 'KAABA: ${state.qiblaBearing!.round().toString().padLeft(3, '0')}° | ${state.formattedQiblaDistance} ${state.isQiblaAligned ? "• ALIGNED 🕋" : ""}')
                                     : 'ACQUIRING GPS FIX...',
                                 style: const TextStyle(
                                   color: Color(0xFF00E676),
@@ -611,7 +613,9 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                               const SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  'AIM: ${state.currentVastuZone.direction} (${state.heading.round().toString().padLeft(3, '0')}°) ➔ ${state.currentVastuZone.plainLabel}',
+                                  state.headingType == HeadingType.trueNorth && state.magneticDeclination == null
+                                      ? 'VASTU: TRUE NORTH GPS REQ (AIM: UNVERIFIED)'
+                                      : 'AIM: ${state.currentVastuZone.direction} (${state.heading.round().toString().padLeft(3, '0')}°) ➔ ${state.currentVastuZone.plainLabel}',
                                   style: TextStyle(
                                     color: Color(state.currentVastuZone.colorValue),
                                     fontSize: 10.5,
@@ -659,7 +663,9 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                               const SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  'AIM: ${VastuCalculator.getGuideline(state.activeVastuRoom!).emoji} ${VastuCalculator.getGuideline(state.activeVastuRoom!).title.toUpperCase()} (${VastuCalculator.getGuideline(state.activeVastuRoom!).targetHeading.round()}°) ${state.isVastuRoomAligned ? "• ALIGNED 🕉️" : ""}',
+                                  state.headingType == HeadingType.trueNorth && state.magneticDeclination == null
+                                      ? 'TARGET: ${VastuCalculator.getGuideline(state.activeVastuRoom!).title.toUpperCase()} | TRUE NORTH GPS REQ'
+                                      : 'AIM: ${VastuCalculator.getGuideline(state.activeVastuRoom!).emoji} ${VastuCalculator.getGuideline(state.activeVastuRoom!).title.toUpperCase()} (${VastuCalculator.getGuideline(state.activeVastuRoom!).targetHeading.round()}°) ${state.isVastuRoomAligned ? "• ALIGNED 🕉️" : ""}',
                                   style: const TextStyle(
                                     color: Color(0xFFFFD700),
                                     fontSize: 10.5,

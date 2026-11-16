@@ -111,11 +111,15 @@ jobs:
           flutter pub get
           touch build.log
 
-      - name: Check Analyzer (Non-blocking)
-        run: flutter analyze >> build.log 2>&1 || true
+      - name: Check Analyzer
+        run: |
+          set -o pipefail
+          flutter analyze 2>&1 | tee -a build.log
 
       - name: Run Tests
-        run: flutter test 2>&1 | tee -a build.log
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee -a build.log
 
       - name: Build Optimized Release APKs & App Bundle (.aab)
         run: |
@@ -138,8 +142,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: success()
         with:
-          tag_name: v1.0.9
-          name: "Compass App v1.0.9 (Free & Lifetime Pro Architecture, 100% Ad-Free)"
+          tag_name: v1.0.9+28
+          name: "Compass v1.0.9+28 — Phase 5C CI Test Integrity & Safety"
           draft: false
           prerelease: false
           make_latest: true

@@ -266,27 +266,39 @@ class CompassController extends StateNotifier<CompassState> {
     );
 
     // Qibla Alignment Haptic Pulse
+    // Guard: suppress haptic feedback when True North is selected but declination
+    // is not yet available — raw magnetic heading is not a verified true heading.
     if (state.isQiblaMode && state.qiblaBearing != null) {
-      final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
-          ? rawHeading
-          : ((rawHeading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
-      final isNowAligned = QiblaCalculator.isAligned(effectiveTrueHeading, state.qiblaBearing!);
-      if (!_lastQiblaAligned && isNowAligned) {
-        HapticFeedback.heavyImpact();
+      if (state.headingType == HeadingType.trueNorth && state.magneticDeclination == null) {
+        // True North mode but GPS/WMM not ready — skip alignment check
+        _lastQiblaAligned = false;
+      } else {
+        final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
+            ? rawHeading
+            : ((rawHeading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
+        final isNowAligned = QiblaCalculator.isAligned(effectiveTrueHeading, state.qiblaBearing!);
+        if (!_lastQiblaAligned && isNowAligned) {
+          HapticFeedback.heavyImpact();
+        }
+        _lastQiblaAligned = isNowAligned;
       }
-      _lastQiblaAligned = isNowAligned;
     }
 
     // Vastu Room Target Alignment Haptic Pulse
+    // Same guard: suppress when True North is selected but unverified.
     if (state.isVastuMode && state.activeVastuRoom != null) {
-      final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
-          ? rawHeading
-          : ((rawHeading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
-      final isNowAligned = VastuCalculator.isAlignedWithRoom(effectiveTrueHeading, state.activeVastuRoom!);
-      if (!_lastVastuAligned && isNowAligned) {
-        HapticFeedback.mediumImpact();
+      if (state.headingType == HeadingType.trueNorth && state.magneticDeclination == null) {
+        _lastVastuAligned = false;
+      } else {
+        final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
+            ? rawHeading
+            : ((rawHeading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
+        final isNowAligned = VastuCalculator.isAlignedWithRoom(effectiveTrueHeading, state.activeVastuRoom!);
+        if (!_lastVastuAligned && isNowAligned) {
+          HapticFeedback.mediumImpact();
+        }
+        _lastVastuAligned = isNowAligned;
       }
-      _lastVastuAligned = isNowAligned;
     }
 
     final accuracy = accuracyVal != null ? _mapAccuracy(accuracyVal) : state.accuracy;

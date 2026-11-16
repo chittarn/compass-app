@@ -198,6 +198,71 @@ void main() {
       expect(stateAtNE.currentVastuZone.sanskritName, contains('Ishan'));
     });
 
+    test('Qibla and Vastu True North unavailable handling guards against false alignment', () {
+      // 1. Qibla in Magnetic North mode works offline
+      const magQiblaState = CompassState(
+        heading: 58.5,
+        unwrappedHeading: 58.5,
+        headingType: HeadingType.magnetic,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: true,
+        isQiblaMode: true,
+        qiblaBearing: 58.5,
+        qiblaDistanceKm: 10306.0,
+        magneticDeclination: null, // No GPS declination yet
+      );
+      // In Magnetic mode, alignment evaluates against raw magnetic heading
+      expect(magQiblaState.isQiblaAligned, isTrue);
+
+      // 2. Qibla in True North mode with pending GPS (magneticDeclination == null)
+      // Must NOT return true; must report unavailable rather than false positive
+      final trueQiblaNoDec = magQiblaState.copyWith(
+        headingType: HeadingType.trueNorth,
+      );
+      expect(trueQiblaNoDec.isQiblaAligned, isFalse);
+
+      // 3. When valid WMM declination arrives (+10.0°), heading 58.5° + 10.0° = 68.5°
+      // If Kaaba is at 68.5°, it aligns!
+      final trueQiblaWithDec = trueQiblaNoDec.copyWith(
+        magneticDeclination: 10.0,
+        qiblaBearing: 58.5,
+      );
+      // Kaaba at 58.5° with heading at 58.5° aligns in True North mode
+      expect(trueQiblaWithDec.isQiblaAligned, isTrue);
+
+      // 4. Vastu Room Alignment in True North with pending GPS
+      const vastuRoom = VastuRoomType.pooja; // Target is NE (45°)
+      const vastuState = CompassState(
+        heading: 45.0,
+        unwrappedHeading: 45.0,
+        headingType: HeadingType.magnetic,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: false,
+        isVastuMode: true,
+        activeVastuRoom: vastuRoom,
+      );
+      // In Magnetic mode, aligns with target
+      expect(vastuState.isVastuRoomAligned, isTrue);
+
+      // In True North mode without declination: alignment is guarded and returns false
+      final vastuTrueNoDec = vastuState.copyWith(
+        headingType: HeadingType.trueNorth,
+      );
+      expect(vastuTrueNoDec.isVastuRoomAligned, isFalse);
+
+      // When declination arrives in True North mode: restored!
+      final vastuTrueWithDec = vastuTrueNoDec.copyWith(
+        magneticDeclination: 5.0,
+      );
+      expect(vastuTrueWithDec.isVastuRoomAligned, isTrue);
+    });
+
     test('CompassState formats magnetic declination correctly', () {
       const stateNoDec = CompassState(
         heading: 0.0,
