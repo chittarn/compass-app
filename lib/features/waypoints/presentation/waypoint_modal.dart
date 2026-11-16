@@ -166,7 +166,7 @@ class _WaypointModalState extends ConsumerState<WaypointModal> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
-                            '1 FREE SPOT',
+                            '5 FREE SPOTS',
                             style: TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 10,
@@ -339,9 +339,6 @@ class _WaypointModalState extends ConsumerState<WaypointModal> {
                       color: AppColors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
                       letterSpacing: 1.0,
                     ),
                   ),
