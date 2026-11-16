@@ -29,6 +29,7 @@ class CompassScreen extends ConsumerStatefulWidget {
 
 class _CompassScreenState extends ConsumerState<CompassScreen> {
   bool _modalShownForUnreliable = false;
+  bool _isWaypointArrived = false;
 
   @override
   void initState() {
@@ -95,8 +96,21 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     if (activeWp != null && hasGps) {
       waypointBearing = activeWp.bearingFrom(state.latitude!, state.longitude!);
       waypointDistance = activeWp.formattedDistanceFrom(state.latitude!, state.longitude!);
-      isWaypointArrived = activeWp.isArrived(state.latitude!, state.longitude!);
-      waypointRelBearing = activeWp.relativeBearingFrom(state.latitude!, state.longitude!, state.heading);
+      _isWaypointArrived = activeWp.isArrived(
+        state.latitude!,
+        state.longitude!,
+        locationAccuracyMeters: state.locationAccuracy,
+        previouslyArrived: _isWaypointArrived,
+      );
+      isWaypointArrived = _isWaypointArrived;
+
+      // Ensure both Waypoint Bearing and Device Heading use the True North reference
+      final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
+          ? state.heading
+          : ((state.heading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
+      waypointRelBearing = activeWp.relativeBearingFrom(state.latitude!, state.longitude!, effectiveTrueHeading);
+    } else {
+      _isWaypointArrived = false;
     }
 
     // Calculate Bearing Deviation if Bearing is Locked (PRO)

@@ -48,7 +48,7 @@ class Waypoint {
 
   /// Computes relative bearing in degrees [-180, +180] relative to phone's current heading.
   /// Negative = Turn Left, Positive = Turn Right.
-  double relativeBearingFrom(double currentHeading, double fromLat, double fromLng) {
+  double relativeBearingFrom(double fromLat, double fromLng, double currentHeading) {
     final targetBearing = bearingFrom(fromLat, fromLng);
     double diff = (targetBearing - currentHeading) % 360.0;
     if (diff > 180.0) diff -= 360.0;
@@ -74,9 +74,29 @@ class Waypoint {
     return earthRadiusMeters * c;
   }
 
-  /// Whether user has reached within arrivalRadiusMeters of destination
-  bool isArrived(double fromLat, double fromLng, {double arrivalRadiusMeters = 25.0}) {
-    return distanceFromMeters(fromLat, fromLng) <= arrivalRadiusMeters;
+  /// Whether user has reached destination, considering GPS accuracy and hysteresis to prevent status flickering.
+  bool isArrived(
+    double fromLat,
+    double fromLng, {
+    double? locationAccuracyMeters,
+    double arrivalRadiusMeters = 25.0,
+    double maxPermissibleAccuracyMeters = 40.0,
+    bool previouslyArrived = false,
+    double hysteresisMeters = 10.0,
+  }) {
+    // If GPS accuracy is too poor (e.g. > 40m uncertainty), avoid false arrival claims
+    if (locationAccuracyMeters != null && locationAccuracyMeters > maxPermissibleAccuracyMeters) {
+      return false;
+    }
+
+    final dist = distanceFromMeters(fromLat, fromLng);
+
+    // Hysteresis: If already arrived, stay arrived until user moves beyond arrivalRadius + hysteresis
+    if (previouslyArrived) {
+      return dist <= (arrivalRadiusMeters + hysteresisMeters);
+    }
+
+    return dist <= arrivalRadiusMeters;
   }
 
   /// Formatted distance string (e.g. "320 m" or "4.2 km")

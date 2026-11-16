@@ -16,6 +16,7 @@ class CompassState {
   final double? latitude;
   final double? longitude;
   final double? altitude;             // Elevation in meters above sea level
+  final double? locationAccuracy;     // Horizontal GPS accuracy in meters
   final double? magneticFieldStrength; // Live magnetic flux density in microteslas (μT)
   final bool isQiblaMode;             // Whether Qibla navigation mode is active
   final double? qiblaBearing;         // Forward azimuth to Kaaba in degrees [0, 360)
@@ -41,6 +42,7 @@ class CompassState {
     this.latitude,
     this.longitude,
     this.altitude,
+    this.locationAccuracy,
     this.magneticFieldStrength,
     this.isQiblaMode = false,
     this.qiblaBearing,
@@ -154,6 +156,7 @@ class CompassState {
     double? latitude,
     double? longitude,
     double? altitude,
+    double? locationAccuracy,
     double? magneticFieldStrength,
     bool? isQiblaMode,
     double? qiblaBearing,
@@ -180,6 +183,7 @@ class CompassState {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       altitude: altitude ?? this.altitude,
+      locationAccuracy: locationAccuracy ?? this.locationAccuracy,
       magneticFieldStrength: magneticFieldStrength ?? this.magneticFieldStrength,
       isQiblaMode: isQiblaMode ?? this.isQiblaMode,
       qiblaBearing: qiblaBearing ?? this.qiblaBearing,

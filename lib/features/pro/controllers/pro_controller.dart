@@ -18,6 +18,7 @@ class ProController extends StateNotifier<ProState> {
   static const String _keyThemeMode = 'compass_theme_mode';
 
   int _lastDriftStep = 0;
+  DateTime _lastDriftHapticTime = DateTime.fromMillisecondsSinceEpoch(0);
 
   ProController() : super(const ProState()) {
     _loadPreferences();
@@ -111,26 +112,48 @@ class ProController extends StateNotifier<ProState> {
     if (!state.isPro) return;
     HapticFeedback.selectionClick();
     _lastDriftStep = 0;
+    _lastDriftHapticTime = DateTime.fromMillisecondsSinceEpoch(0);
     state = state.copyWith(lockedBearing: currentHeading);
   }
 
   void clearLockedBearing() {
     HapticFeedback.selectionClick();
     _lastDriftStep = 0;
+    _lastDriftHapticTime = DateTime.fromMillisecondsSinceEpoch(0);
     state = state.copyWith(clearBearing: true);
   }
 
-  /// Evaluates bearing drift angle and triggers directional haptics when crossing drift thresholds
-  void evaluateDriftHaptics(double driftAngle) {
+  /// Evaluates bearing drift angle and triggers directional haptics when crossing drift thresholds.
+  /// Throttled to prevent rapid vibration spam on jittery sensors.
+  void evaluateDriftHaptics(double driftAngle, {DateTime? now}) {
     if (!state.isPro || state.lockedBearing == null) return;
+
+    final currentTime = now ?? DateTime.now();
     final int currentStep = (driftAngle.abs() / 10.0).floor();
-    if (currentStep > 0 && currentStep != _lastDriftStep) {
-      if (currentStep > _lastDriftStep) {
-        // Drifting further off-course: warning haptic
-        HapticFeedback.lightImpact();
-      } else {
-        // Correcting back towards course: subtle tick
-        HapticFeedback.selectionClick();
+
+    // If back on-course (< 10° drift) after being off-course:
+    if (currentStep == 0) {
+      if (_lastDriftStep > 0) {
+        if (currentTime.difference(_lastDriftHapticTime).inMilliseconds >= 400) {
+          HapticFeedback.selectionClick();
+          _lastDriftHapticTime = currentTime;
+        }
+        _lastDriftStep = 0;
+      }
+      return;
+    }
+
+    // Off-course threshold transition (e.g. 10°, 20°, 30°)
+    if (currentStep != _lastDriftStep) {
+      if (currentTime.difference(_lastDriftHapticTime).inMilliseconds >= 400) {
+        if (currentStep > _lastDriftStep) {
+          // Drifting further off-course: warning haptic
+          HapticFeedback.lightImpact();
+        } else {
+          // Correcting back towards course: subtle tick
+          HapticFeedback.selectionClick();
+        }
+        _lastDriftHapticTime = currentTime;
       }
       _lastDriftStep = currentStep;
     }

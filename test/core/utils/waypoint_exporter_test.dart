@@ -27,25 +27,99 @@ void main() {
       ),
     ];
 
-    test('exports to standard GPX 1.1 format with XML escaping', () {
-      final gpx = WaypointExporter.toGpx(sampleWaypoints);
+    group('GPX 1.1 XML Hardening & Validation', () {
+      test('exports to standard GPX 1.1 format with strict XML escaping', () {
+        final gpx = WaypointExporter.toGpx(sampleWaypoints);
 
-      expect(gpx, contains('<?xml version="1.0" encoding="UTF-8"?>'));
-      expect(gpx, contains('<gpx version="1.1"'));
-      expect(gpx, contains('<wpt lat="27.9880560" lon="86.9252780">'));
-      expect(gpx, contains('<name>Base Camp &amp; Tent</name>'));
-      expect(gpx, contains('&lt;danger zone&gt;'));
-      expect(gpx, contains('<ele>5364.0</ele>'));
-      expect(gpx, contains('<sym>travel</sym>'));
-      expect(gpx, contains('<type>Travel</type>'));
+        expect(gpx, contains('<?xml version="1.0" encoding="UTF-8"?>'));
+        expect(gpx, contains('<gpx version="1.1"'));
+        expect(gpx, contains('<wpt lat="27.9880560" lon="86.9252780">'));
+        expect(gpx, contains('<name>Base Camp &amp; Tent</name>'));
+        expect(gpx, contains('&lt;danger zone&gt;'));
+        expect(gpx, contains('<ele>5364.0</ele>'));
+        expect(gpx, contains('<sym>travel</sym>'));
+        expect(gpx, contains('<type>Travel</type>'));
+      });
+
+      test('validates GPX XML tag pairing and balanced structure', () {
+        final gpx = WaypointExporter.toGpx(sampleWaypoints);
+
+        // Check root tags
+        expect(gpx.indexOf('<gpx'), isNonNegative);
+        expect(gpx.indexOf('</gpx>'), isNonNegative);
+
+        // Check metadata tags
+        expect(gpx.indexOf('<metadata>'), isNonNegative);
+        expect(gpx.indexOf('</metadata>'), isNonNegative);
+
+        // Check wpt element pairing count
+        final openWptCount = '<wpt'.allMatches(gpx).length;
+        final closeWptCount = '</wpt>'.allMatches(gpx).length;
+        expect(openWptCount, sampleWaypoints.length);
+        expect(closeWptCount, sampleWaypoints.length);
+
+        // Check name tag pairing
+        final openNameCount = '<name>'.allMatches(gpx).length;
+        final closeNameCount = '</name>'.allMatches(gpx).length;
+        expect(openNameCount, closeNameCount);
+
+        // Ensure no unescaped dangerous XML entities exist inside text
+        expect(gpx, isNot(contains('<danger zone>')));
+        expect(gpx, isNot(contains('Camp & Tent')));
+      });
     });
 
-    test('exports to standard CSV format with quotation escaping', () {
-      final csv = WaypointExporter.toCsv(sampleWaypoints);
+    group('CSV Formatting & Formula Injection Hardening (CWE-1236)', () {
+      test('neutralizes formula injection characters (=, +, -, @, tab, cr)', () {
+        final injectionWaypoints = [
+          Waypoint(
+            id: 'inj_1',
+            title: '=cmd|\'/C calc\'!A0',
+            latitude: 10.0,
+            longitude: 20.0,
+            createdAt: DateTime.now(),
+            category: WaypointCategory.custom,
+            notes: '+1234567890 Phone Number',
+          ),
+          Waypoint(
+            id: 'inj_2',
+            title: '@SUM(A1:A10)',
+            latitude: 11.0,
+            longitude: 21.0,
+            createdAt: DateTime.now(),
+            category: WaypointCategory.work,
+            notes: '-Sensitive Discount Code',
+          ),
+        ];
 
-      expect(csv, startsWith('Name,Category,Latitude,Longitude,Elevation_m,Notes,Created_At_UTC'));
-      expect(csv, contains('"Base Camp & Tent",Travel,27.9880560,86.9252780,5364.0,"South Col Route departure point <danger zone>"'));
-      expect(csv, contains('"Home Office ""HQ""",Home,37.7749290,-122.4194160,15.0,"Garage door entry, PIN #4921"'));
+        final csv = WaypointExporter.toCsv(injectionWaypoints);
+
+        // Formula triggers must be prefixed with single quote
+        expect(csv, contains('\'=cmd|'));
+        expect(csv, contains('\'+1234567890'));
+        expect(csv, contains('\'@SUM'));
+        expect(csv, contains('\'-Sensitive'));
+      });
+
+      test('properly escapes quotes, commas, and line breaks per RFC 4180', () {
+        final specialWaypoints = [
+          Waypoint(
+            id: 'spec_1',
+            title: 'Store "A & B", Ltd.',
+            latitude: 10.0,
+            longitude: 20.0,
+            createdAt: DateTime.utc(2026, 11, 16),
+            category: WaypointCategory.work,
+            notes: 'Line 1\nLine 2 with "quotes", and commas',
+          ),
+        ];
+
+        final csv = WaypointExporter.toCsv(specialWaypoints);
+
+        // Quoted string with internal quotes doubled
+        expect(csv, contains('"Store ""A & B"", Ltd."'));
+        expect(csv, contains('""quotes"", and commas'));
+      });
     });
   });
 }

@@ -32,24 +32,43 @@ class WaypointExporter {
     return buffer.toString();
   }
 
-  /// Converts waypoints to standard CSV format
+  /// Converts waypoints to standard CSV format with formula-injection hardening
   static String toCsv(List<Waypoint> waypoints) {
     final buffer = StringBuffer();
     buffer.writeln('Name,Category,Latitude,Longitude,Elevation_m,Notes,Created_At_UTC');
 
     for (final wp in waypoints) {
-      final name = '"${wp.title.replaceAll('"', '""')}"';
-      final category = wp.category.label;
+      final name = sanitizeCsvField(wp.title);
+      final category = sanitizeCsvField(wp.category.label);
       final lat = wp.latitude.toStringAsFixed(7);
       final lng = wp.longitude.toStringAsFixed(7);
       final elevation = wp.altitude != null ? wp.altitude!.toStringAsFixed(1) : '';
-      final notes = '"${(wp.notes ?? '').replaceAll('"', '""')}"';
+      final notes = sanitizeCsvField(wp.notes ?? '');
       final time = wp.createdAt.toUtc().toIso8601String();
 
       buffer.writeln('$name,$category,$lat,$lng,$elevation,$notes,$time');
     }
 
     return buffer.toString();
+  }
+
+  /// Neutralizes spreadsheet formula injection (OWASP CWE-1236) and escapes quotes per RFC 4180
+  static String sanitizeCsvField(String input) {
+    var sanitized = input;
+    // Mitigate spreadsheet formula injection
+    if (sanitized.isNotEmpty) {
+      final firstChar = sanitized[0];
+      if (firstChar == '=' ||
+          firstChar == '+' ||
+          firstChar == '-' ||
+          firstChar == '@' ||
+          firstChar == '\t' ||
+          firstChar == '\r') {
+        sanitized = "'$sanitized";
+      }
+    }
+    // Escape quotes per RFC 4180
+    return '"${sanitized.replaceAll('"', '""')}"';
   }
 
   static String _escapeXml(String input) {

@@ -207,6 +207,7 @@ class CompassController extends StateNotifier<CompassState> {
       latitude: pos.latitude,
       longitude: pos.longitude,
       altitude: pos.altitude,
+      locationAccuracy: pos.accuracy,
       hasLocationPermission: true,
       magneticDeclination: dec,
       qiblaBearing: qBearing,
