@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'wmm_calculator.dart';
 
 class HeadingCalculator {
   /// Computes a 3D tilt-compensated magnetic azimuth in degrees [0, 360) using Android's
@@ -32,7 +33,6 @@ class HeadingCalculator {
 
     final invA = 1.0 / normA;
     final normAx = ax * invA;
-    final normAy = ay * invA;
     final normAz = az * invA;
 
     // 3. North vector M = A x H
@@ -45,25 +45,27 @@ class HeadingCalculator {
     return (azimuthDeg % 360.0 + 360.0) % 360.0;
   }
 
-  /// Calculates the magnetic declination in degrees for a given latitude and longitude.
-  /// Positive = East, Negative = West.
-  static double calculateDeclination(double latDeg, double lonDeg) {
-    // Geomagnetic North Pole approximation (~80.5° N, 72.6° W)
-    const double poleLat = 80.5 * math.pi / 180.0;
-    const double poleLon = -72.6 * math.pi / 180.0;
-
-    final lat = latDeg * math.pi / 180.0;
-    final lon = lonDeg * math.pi / 180.0;
-
-    final dLon = poleLon - lon;
-    final y = math.sin(dLon) * math.cos(poleLat);
-    final x = math.cos(lat) * math.sin(poleLat) -
-        math.sin(lat) * math.cos(poleLat) * math.cos(dLon);
-
-    final bearingToPole = math.atan2(y, x) * 180.0 / math.pi;
-    double dec = bearingToPole;
-    if (dec > 180) dec -= 360;
-    if (dec < -180) dec += 360;
-    return dec;
+  /// Calculates magnetic declination in degrees for a given latitude, longitude,
+  /// altitude and observation date using the official NOAA/BGS World Magnetic Model (WMM-2025).
+  ///
+  /// Positive (+) = East declination (Magnetic North is East of True North).
+  /// Negative (-) = West declination (Magnetic North is West of True North).
+  ///
+  /// [latDeg]: WGS84 Geodetic latitude [-90.0, 90.0].
+  /// [lonDeg]: WGS84 Geodetic longitude [-180.0, 180.0].
+  /// [altitudeMeters]: Altitude above WGS84 ellipsoid in meters (default: 0.0).
+  /// [date]: Observation date (default: DateTime.now()).
+  static double calculateDeclination(
+    double latDeg,
+    double lonDeg, {
+    double altitudeMeters = 0.0,
+    DateTime? date,
+  }) {
+    return WmmCalculator.calculateDeclination(
+      latitudeDeg: latDeg,
+      longitudeDeg: lonDeg,
+      altitudeMeters: altitudeMeters,
+      date: date,
+    );
   }
 }

@@ -631,7 +631,13 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                   // Heading Mode Toggle (Magnetic vs True North)
                   GestureDetector(
                     onTap: () async {
+                      final wasTrue = isTrueNorth;
+                      final dec = state.magneticDeclination ?? 0.0;
                       final success = await controller.toggleHeadingType();
+                      if (success && proState.lockedBearing != null && dec != 0.0) {
+                        final delta = wasTrue ? -dec : dec;
+                        proNotifier.adjustLockedBearing(delta);
+                      }
                       if (!success && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -1061,6 +1067,18 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (state.magneticDeclination != null) ...[
+                              Text(
+                                'DEC ${state.formattedDeclination}',
+                                style: TextStyle(
+                                  color: theme.accentCyan,
+                                  fontSize: 10.0,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
                             Icon(Icons.terrain_rounded, color: theme.accentGreen, size: 13),
                             const SizedBox(width: 4),
                             Text(

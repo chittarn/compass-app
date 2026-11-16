@@ -123,6 +123,14 @@ class ProController extends StateNotifier<ProState> {
     state = state.copyWith(clearBearing: true);
   }
 
+  /// Adjusts the locked bearing by [deltaDegrees] when switching between Magnetic and True North
+  /// so that the locked physical course remains identical in the real world.
+  void adjustLockedBearing(double deltaDegrees) {
+    if (!state.isPro || state.lockedBearing == null) return;
+    final adjusted = (state.lockedBearing! + deltaDegrees) % 360.0;
+    state = state.copyWith(lockedBearing: (adjusted + 360.0) % 360.0);
+  }
+
   /// Evaluates bearing drift angle and triggers directional haptics when crossing drift thresholds.
   /// Throttled to prevent rapid vibration spam on jittery sensors.
   void evaluateDriftHaptics(double driftAngle, {DateTime? now}) {

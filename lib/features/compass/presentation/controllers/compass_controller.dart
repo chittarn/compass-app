@@ -201,7 +201,12 @@ class CompassController extends StateNotifier<CompassState> {
     final sunAz = SolarCalculator.calculateSunAzimuth(pos.latitude, pos.longitude, nowUtc);
     final moonAz = SolarCalculator.calculateMoonAzimuth(pos.latitude, pos.longitude, nowUtc);
     final sunTimes = SolarCalculator.calculateSunriseSunset(pos.latitude, pos.longitude, nowLocal);
-    final dec = HeadingCalculator.calculateDeclination(pos.latitude, pos.longitude);
+    final dec = HeadingCalculator.calculateDeclination(
+      pos.latitude,
+      pos.longitude,
+      altitudeMeters: pos.altitude,
+      date: nowLocal,
+    );
 
     state = state.copyWith(
       latitude: pos.latitude,
@@ -272,7 +277,10 @@ class CompassController extends StateNotifier<CompassState> {
 
     // Vastu Room Target Alignment Haptic Pulse
     if (state.isVastuMode && state.activeVastuRoom != null) {
-      final isNowAligned = VastuCalculator.isAlignedWithRoom(rawHeading, state.activeVastuRoom!);
+      final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
+          ? rawHeading
+          : ((rawHeading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
+      final isNowAligned = VastuCalculator.isAlignedWithRoom(effectiveTrueHeading, state.activeVastuRoom!);
       if (!_lastVastuAligned && isNowAligned) {
         HapticFeedback.mediumImpact();
       }

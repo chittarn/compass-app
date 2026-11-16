@@ -122,11 +122,19 @@ class CompassState {
     return '$hour:$min';
   }
 
-  VastuZoneInfo get currentVastuZone => VastuCalculator.getZone(heading);
+  VastuZoneInfo get currentVastuZone {
+    final effectiveHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
+        ? heading
+        : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;
+    return VastuCalculator.getZone(effectiveHeading);
+  }
 
   bool get isVastuRoomAligned {
     if (activeVastuRoom == null) return false;
-    return VastuCalculator.isAlignedWithRoom(heading, activeVastuRoom!);
+    final effectiveHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
+        ? heading
+        : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;
+    return VastuCalculator.isAlignedWithRoom(effectiveHeading, activeVastuRoom!);
   }
 
   static String _toDms(double val, {required bool isLat}) {
