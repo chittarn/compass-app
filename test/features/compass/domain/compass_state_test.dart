@@ -235,7 +235,7 @@ void main() {
       expect(trueQiblaWithDec.isQiblaAligned, isTrue);
 
       // 4. Vastu Room Alignment in True North with pending GPS
-      const vastuRoom = VastuRoomType.pooja; // Target is NE (45°)
+      const vastuRoom = VastuRoomType.poojaRoom; // Target is NE (45°)
       const vastuState = CompassState(
         heading: 45.0,
         unwrappedHeading: 45.0,
