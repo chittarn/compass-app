@@ -129,8 +129,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: success()
         with:
-          tag_name: v1.0.8
-          name: "Compass App v1.0.8 (Live Celestial Ephemeris & Waypoint Backtrack Navigation)"
+          tag_name: v1.0.9
+          name: "Compass App v1.0.9 (Free & Lifetime Pro Architecture, 100% Ad-Free)"
           draft: false
           prerelease: false
           make_latest: true
