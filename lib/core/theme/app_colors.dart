@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
 
+enum AppThemeMode {
+  tacticalDark('Classic Dark', 'Default tactical cyan and dark slate', Color(0xFF00E5FF)),
+  tacticalAmber('Tactical Amber', 'Military aviation high-contrast amber', Color(0xFFFFB300)),
+  arcticCyan('Arctic Cyan', 'Ice blue high-contrast polar palette', Color(0xFF80DEEA)),
+  nightVision('OLED Red Vision', 'Pure scotopic red on true black for darkness', Color(0xFFFF1E1E));
+
+  final String label;
+  final String description;
+  final Color primaryColor;
+  const AppThemeMode(this.label, this.description, this.primaryColor);
+}
+
 class AppColors {
   // Backgrounds & Surface
   static const Color background = Color(0xFF0F1115);
@@ -88,6 +100,46 @@ class CompassTheme {
     bubbleLevel: Color(0xFF00E676),
     bubbleTargetRing: Color(0x3300E5FF),
     goldPro: Color(0xFFFFB300),
+  );
+
+  static const tacticalAmber = CompassTheme(
+    background: Color(0xFF100E08),
+    surface: Color(0xFF1A160D),
+    surfaceElevated: Color(0xFF282114),
+    cardBackground: Color(0xFF282114),
+    northRed: Color(0xFFFF3D00),
+    accentCyan: Color(0xFFFFB300),
+    accentGreen: Color(0xFFFFD54F),
+    accentAmber: Color(0xFFFF9100),
+    dialRing: Color(0xFF382E19),
+    dialTick: Color(0xFF806B3E),
+    dialTickMajor: Color(0xFFFFE082),
+    textPrimary: Color(0xFFFFF8E1),
+    textSecondary: Color(0xFFBCAAA4),
+    bubbleDefault: Color(0xFFFFB300),
+    bubbleLevel: Color(0xFFFFD54F),
+    bubbleTargetRing: Color(0x33FFB300),
+    goldPro: Color(0xFFFFB300),
+  );
+
+  static const arcticCyan = CompassTheme(
+    background: Color(0xFF081016),
+    surface: Color(0xFF0F1C26),
+    surfaceElevated: Color(0xFF162A38),
+    cardBackground: Color(0xFF162A38),
+    northRed: Color(0xFFFF5252),
+    accentCyan: Color(0xFF80DEEA),
+    accentGreen: Color(0xFF64FFDA),
+    accentAmber: Color(0xFFFFB74D),
+    dialRing: Color(0xFF1D3545),
+    dialTick: Color(0xFF4C758F),
+    dialTickMajor: Color(0xFFB2EBF2),
+    textPrimary: Color(0xFFE0F7FA),
+    textSecondary: Color(0xFF80DEEA),
+    bubbleDefault: Color(0xFF80DEEA),
+    bubbleLevel: Color(0xFF64FFDA),
+    bubbleTargetRing: Color(0x3380DEEA),
+    goldPro: Color(0xFFFFD54F),
   );
 
   static const nightVision = CompassTheme(

@@ -1,5 +1,16 @@
 import 'dart:math' as math;
 
+enum WaypointCategory {
+  custom('Custom', '📍'),
+  home('Home', '🏠'),
+  work('Work', '💼'),
+  travel('Travel', '✈️');
+
+  final String label;
+  final String emoji;
+  const WaypointCategory(this.label, this.emoji);
+}
+
 class Waypoint {
   final String id;
   final String title;
@@ -7,6 +18,8 @@ class Waypoint {
   final double longitude;
   final double? altitude;
   final DateTime createdAt;
+  final WaypointCategory category;
+  final String? notes;
 
   const Waypoint({
     required this.id,
@@ -15,6 +28,8 @@ class Waypoint {
     required this.longitude,
     this.altitude,
     required this.createdAt,
+    this.category = WaypointCategory.custom,
+    this.notes,
   });
 
   /// Computes forward bearing in degrees [0, 360) from current location to this waypoint
@@ -29,6 +44,16 @@ class Waypoint {
 
     final theta = math.atan2(y, x);
     return (theta * (180.0 / math.pi) + 360.0) % 360.0;
+  }
+
+  /// Computes relative bearing in degrees [-180, +180] relative to phone's current heading.
+  /// Negative = Turn Left, Positive = Turn Right.
+  double relativeBearingFrom(double currentHeading, double fromLat, double fromLng) {
+    final targetBearing = bearingFrom(fromLat, fromLng);
+    double diff = (targetBearing - currentHeading) % 360.0;
+    if (diff > 180.0) diff -= 360.0;
+    if (diff < -180.0) diff += 360.0;
+    return diff;
   }
 
   /// Computes Haversine geodesic distance in meters from current location to this waypoint
@@ -49,6 +74,11 @@ class Waypoint {
     return earthRadiusMeters * c;
   }
 
+  /// Whether user has reached within arrivalRadiusMeters of destination
+  bool isArrived(double fromLat, double fromLng, {double arrivalRadiusMeters = 25.0}) {
+    return distanceFromMeters(fromLat, fromLng) <= arrivalRadiusMeters;
+  }
+
   /// Formatted distance string (e.g. "320 m" or "4.2 km")
   String formattedDistanceFrom(double fromLat, double fromLng) {
     final distM = distanceFromMeters(fromLat, fromLng);
@@ -59,6 +89,27 @@ class Waypoint {
     }
   }
 
+  Waypoint copyWith({
+    String? title,
+    double? latitude,
+    double? longitude,
+    double? altitude,
+    WaypointCategory? category,
+    String? notes,
+    bool clearNotes = false,
+  }) {
+    return Waypoint(
+      id: id,
+      title: title ?? this.title,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      altitude: altitude ?? this.altitude,
+      createdAt: createdAt,
+      category: category ?? this.category,
+      notes: clearNotes ? null : (notes ?? this.notes),
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -66,6 +117,8 @@ class Waypoint {
         'longitude': longitude,
         'altitude': altitude,
         'createdAt': createdAt.toIso8601String(),
+        'category': category.name,
+        'notes': notes,
       };
 
   factory Waypoint.fromJson(Map<String, dynamic> json) => Waypoint(
@@ -77,5 +130,12 @@ class Waypoint {
             ? (json['altitude'] as num).toDouble()
             : null,
         createdAt: DateTime.parse(json['createdAt'] as String),
+        category: json['category'] != null
+            ? WaypointCategory.values.firstWhere(
+                (c) => c.name == json['category'],
+                orElse: () => WaypointCategory.custom,
+              )
+            : WaypointCategory.custom,
+        notes: json['notes'] as String?,
       );
 }

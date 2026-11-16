@@ -14,6 +14,7 @@ import 'widgets/vastu_guide_modal.dart';
 import '../../../core/utils/vastu_calculator.dart';
 import '../../pro/controllers/pro_controller.dart';
 import '../../pro/presentation/pro_upgrade_modal.dart';
+import '../../pro/presentation/theme_picker_modal.dart';
 import '../../waypoints/controllers/waypoints_controller.dart';
 import '../../waypoints/presentation/waypoint_modal.dart';
 import '../../../core/constants/compass_constants.dart';
@@ -77,7 +78,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     final wpState = ref.watch(waypointsControllerProvider);
     final wpNotifier = ref.read(waypointsControllerProvider.notifier);
 
-    final theme = proState.isNightVision ? CompassTheme.nightVision : CompassTheme.normal;
+    final theme = proState.effectiveTheme;
 
     _checkCalibrationAlert(state.accuracy);
 
@@ -89,9 +90,13 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     final bool hasGps = state.latitude != null && state.longitude != null;
     double? waypointBearing;
     String? waypointDistance;
+    double? waypointRelBearing;
+    bool isWaypointArrived = false;
     if (activeWp != null && hasGps) {
       waypointBearing = activeWp.bearingFrom(state.latitude!, state.longitude!);
       waypointDistance = activeWp.formattedDistanceFrom(state.latitude!, state.longitude!);
+      isWaypointArrived = activeWp.isArrived(state.latitude!, state.longitude!);
+      waypointRelBearing = activeWp.relativeBearingFrom(state.latitude!, state.longitude!, state.heading);
     }
 
     // Calculate Bearing Deviation if Bearing is Locked (PRO)
@@ -102,9 +107,14 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
       if (diff > 180) diff -= 360;
       if (diff < -180) diff += 360;
       driftAngle = diff;
-      driftLabel = diff >= 0
-          ? '+${diff.round()}° RIGHT'
-          : '${diff.round()}° LEFT';
+      if (diff.abs() <= 3.0) {
+        driftLabel = '🎯 ON COURSE';
+      } else if (diff > 3.0) {
+        driftLabel = '↶ STEER LEFT ${diff.round()}°';
+      } else {
+        driftLabel = '↷ STEER RIGHT ${diff.abs().round()}°';
+      }
+      ref.read(proControllerProvider.notifier).evaluateDriftHaptics(driftAngle);
     }
 
     return Scaffold(
@@ -148,6 +158,20 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Tactical Theme Selector Trigger
+                        IconButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            Icons.palette_outlined,
+                            color: theme.accentCyan,
+                            size: 18,
+                          ),
+                          tooltip: 'Tactical Themes',
+                          onPressed: () => ThemePickerModal.show(context),
+                        ),
+                        const SizedBox(width: 2),
+
                         // Red OLED Night Vision Toggle (Free shows lock badge, Pro toggles)
                         IconButton(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -314,26 +338,46 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
-                            color: theme.goldPro.withOpacity(0.15),
+                            color: (driftAngle != null && driftAngle.abs() <= 3.0)
+                                ? const Color(0xFF00E676).withOpacity(0.18)
+                                : theme.goldPro.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: theme.goldPro.withOpacity(0.4)),
+                            border: Border.all(
+                              color: (driftAngle != null && driftAngle.abs() <= 3.0)
+                                  ? const Color(0xFF00E676)
+                                  : theme.goldPro.withOpacity(0.4),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.my_location_rounded, color: theme.goldPro, size: 14),
+                              Icon(
+                                Icons.my_location_rounded,
+                                color: (driftAngle != null && driftAngle.abs() <= 3.0)
+                                    ? const Color(0xFF00E676)
+                                    : theme.goldPro,
+                                size: 14,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 'TARGET: ${proState.lockedBearing!.round().toString().padLeft(3, '0')}°  |  $driftLabel',
                                 style: TextStyle(
-                                  color: theme.goldPro,
+                                  color: (driftAngle != null && driftAngle.abs() <= 3.0)
+                                      ? const Color(0xFF00E676)
+                                      : theme.goldPro,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'monospace',
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Icon(Icons.cancel_rounded, color: theme.goldPro, size: 14),
+                              Icon(
+                                Icons.cancel_rounded,
+                                color: (driftAngle != null && driftAngle.abs() <= 3.0)
+                                    ? const Color(0xFF00E676)
+                                    : theme.goldPro,
+                                size: 14,
+                              ),
                             ],
                           ),
                         ),
@@ -390,48 +434,71 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     if (activeWp != null) ...[
                       const SizedBox(height: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         constraints: const BoxConstraints(maxWidth: 340),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF00E5FF).withOpacity(0.12),
+                          color: isWaypointArrived
+                              ? const Color(0xFF00E676).withOpacity(0.18)
+                              : const Color(0xFF00E5FF).withOpacity(0.12),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFF00E5FF).withOpacity(0.6),
+                            color: isWaypointArrived
+                                ? const Color(0xFF00E676)
+                                : const Color(0xFF00E5FF).withOpacity(0.6),
                             width: 1.2,
                           ),
                         ),
-                        child: Row(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.pin_drop_rounded,
-                              color: Color(0xFF00E5FF),
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                hasGps && waypointBearing != null
-                                    ? '${activeWp.title.toUpperCase()}: $waypointDistance | ${waypointBearing.round().toString().padLeft(3, '0')}°'
-                                    : '${activeWp.title.toUpperCase()}: ACQUIRING GPS...',
-                                style: const TextStyle(
-                                  color: Color(0xFF00E5FF),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'monospace',
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  activeWp.category.emoji,
+                                  style: const TextStyle(fontSize: 13),
                                 ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    isWaypointArrived
+                                        ? '${activeWp.title.toUpperCase()} • ARRIVED! (< 25m)'
+                                        : (hasGps && waypointBearing != null
+                                            ? '${activeWp.title.toUpperCase()}: $waypointDistance | ${waypointBearing.round().toString().padLeft(3, '0')}° ${waypointRelBearing != null ? (waypointRelBearing.abs() <= 5.0 ? "🎯" : (waypointRelBearing > 5.0 ? "↷" : "↶")) : ""}'
+                                            : '${activeWp.title.toUpperCase()}: ACQUIRING GPS...'),
+                                    style: TextStyle(
+                                      color: isWaypointArrived ? const Color(0xFF00E676) : const Color(0xFF00E5FF),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'monospace',
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () => wpNotifier.setActive(null),
+                                  child: Icon(
+                                    Icons.cancel_rounded,
+                                    color: isWaypointArrived ? const Color(0xFF00E676) : const Color(0xFF00E5FF),
+                                    size: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (activeWp.notes != null && activeWp.notes!.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                activeWp.notes!,
+                                style: TextStyle(
+                                  color: (isWaypointArrived ? const Color(0xFF00E676) : const Color(0xFF00E5FF)).withOpacity(0.8),
+                                  fontSize: 9.5,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () => wpNotifier.setActive(null),
-                              child: const Icon(
-                                Icons.cancel_rounded,
-                                color: Color(0xFF00E5FF),
-                                size: 14,
-                              ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

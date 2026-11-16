@@ -63,6 +63,8 @@ class WaypointsController extends StateNotifier<WaypointsState> {
     required double latitude,
     required double longitude,
     double? altitude,
+    WaypointCategory category = WaypointCategory.custom,
+    String? notes,
     bool isPro = false,
   }) async {
     if (!isPro && state.waypoints.length >= freeWaypointLimit) {
@@ -77,6 +79,8 @@ class WaypointsController extends StateNotifier<WaypointsState> {
       longitude: longitude,
       altitude: altitude,
       createdAt: DateTime.now(),
+      category: category,
+      notes: notes?.trim().isEmpty == true ? null : notes?.trim(),
     );
 
     final updated = [...state.waypoints, newWaypoint];
@@ -87,6 +91,26 @@ class WaypointsController extends StateNotifier<WaypointsState> {
     );
     await _persist();
     return newWaypoint;
+  }
+
+  Future<void> updateWaypoint({
+    required String id,
+    String? title,
+    WaypointCategory? category,
+    String? notes,
+  }) async {
+    final updated = state.waypoints.map((w) {
+      if (w.id == id) {
+        return w.copyWith(
+          title: title,
+          category: category,
+          notes: notes,
+        );
+      }
+      return w;
+    }).toList();
+    state = state.copyWith(waypoints: updated);
+    await _persist();
   }
 
   Future<void> setActive(String? id) async {

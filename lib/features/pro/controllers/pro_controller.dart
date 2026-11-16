@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/theme/app_colors.dart';
 import '../domain/pro_state.dart';
 
 final proControllerProvider =
@@ -14,6 +15,9 @@ final proControllerProvider =
 class ProController extends StateNotifier<ProState> {
   static const String _keyIsPro = 'compass_is_pro';
   static const String _keyNightVision = 'compass_night_vision';
+  static const String _keyThemeMode = 'compass_theme_mode';
+
+  int _lastDriftStep = 0;
 
   ProController() : super(const ProState()) {
     _loadPreferences();
@@ -24,9 +28,15 @@ class ProController extends StateNotifier<ProState> {
       final prefs = await SharedPreferences.getInstance();
       final isPro = prefs.getBool(_keyIsPro) ?? false;
       final isNightVision = prefs.getBool(_keyNightVision) ?? false;
+      final themeIndex = prefs.getInt(_keyThemeMode) ?? 0;
+      final themeMode = (themeIndex >= 0 && themeIndex < AppThemeMode.values.length)
+          ? AppThemeMode.values[themeIndex]
+          : AppThemeMode.tacticalDark;
+
       state = state.copyWith(
         isPro: isPro,
         isNightVision: isPro ? isNightVision : false,
+        themeMode: isPro ? themeMode : AppThemeMode.tacticalDark,
       );
     } catch (_) {
       // In testing environments where SharedPreferences platform channel is uninitialized
@@ -38,6 +48,7 @@ class ProController extends StateNotifier<ProState> {
     state = state.copyWith(
       isPro: isEntitled,
       isNightVision: isEntitled ? state.isNightVision : false,
+      themeMode: isEntitled ? state.themeMode : AppThemeMode.tacticalDark,
     );
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -67,22 +78,62 @@ class ProController extends StateNotifier<ProState> {
     if (!state.isPro) return;
     HapticFeedback.heavyImpact();
     final newNight = !state.isNightVision;
-    state = state.copyWith(isNightVision: newNight);
+    state = state.copyWith(
+      isNightVision: newNight,
+      themeMode: newNight ? AppThemeMode.nightVision : AppThemeMode.tacticalDark,
+    );
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_keyNightVision, newNight);
+      await prefs.setInt(_keyThemeMode, state.themeMode.index);
     } catch (_) {}
+  }
+
+  Future<bool> setTheme(AppThemeMode mode) async {
+    if (!state.isPro && mode != AppThemeMode.tacticalDark) {
+      return false;
+    }
+    HapticFeedback.selectionClick();
+    final isNight = mode == AppThemeMode.nightVision;
+    state = state.copyWith(
+      themeMode: mode,
+      isNightVision: isNight,
+    );
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_keyThemeMode, mode.index);
+      await prefs.setBool(_keyNightVision, isNight);
+    } catch (_) {}
+    return true;
   }
 
   void lockBearing(double currentHeading) {
     if (!state.isPro) return;
     HapticFeedback.selectionClick();
+    _lastDriftStep = 0;
     state = state.copyWith(lockedBearing: currentHeading);
   }
 
   void clearLockedBearing() {
     HapticFeedback.selectionClick();
+    _lastDriftStep = 0;
     state = state.copyWith(clearBearing: true);
+  }
+
+  /// Evaluates bearing drift angle and triggers directional haptics when crossing drift thresholds
+  void evaluateDriftHaptics(double driftAngle) {
+    if (!state.isPro || state.lockedBearing == null) return;
+    final int currentStep = (driftAngle.abs() / 10.0).floor();
+    if (currentStep > 0 && currentStep != _lastDriftStep) {
+      if (currentStep > _lastDriftStep) {
+        // Drifting further off-course: warning haptic
+        HapticFeedback.lightImpact();
+      } else {
+        // Correcting back towards course: subtle tick
+        HapticFeedback.selectionClick();
+      }
+      _lastDriftStep = currentStep;
+    }
   }
 
   void setWaypoint(double lat, double lng, String label) {

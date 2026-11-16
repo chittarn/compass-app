@@ -20,7 +20,7 @@ class ProUpgradeModal extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final proState = ref.watch(proControllerProvider);
     final proNotifier = ref.read(proControllerProvider.notifier);
-    final theme = proState.isNightVision ? CompassTheme.nightVision : CompassTheme.normal;
+    final theme = proState.effectiveTheme;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.90,
@@ -196,14 +196,34 @@ class ProUpgradeModal extends ConsumerWidget {
 
                 const SizedBox(height: 18),
 
-                Text(
-                  'PREMIUM FEATURES',
-                  style: TextStyle(
-                    color: theme.textSecondary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'AVAILABLE PRO FEATURES',
+                      style: TextStyle(
+                        color: theme.accentGreen,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: theme.accentGreen.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'READY',
+                        style: TextStyle(
+                          color: theme.accentGreen,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
 
@@ -213,6 +233,8 @@ class ProUpgradeModal extends ConsumerWidget {
                   iconColor: theme.northRed,
                   title: 'Red OLED Night Vision',
                   desc: 'Military scotopic vision preservation. Pure deep-red spectrum on true black prevents night blindness during stargazing and night operations.',
+                  badge: 'AVAILABLE',
+                  badgeColor: theme.accentGreen,
                 ),
                 const SizedBox(height: 10),
                 _buildFeatureCard(
@@ -221,14 +243,18 @@ class ProUpgradeModal extends ConsumerWidget {
                   iconColor: theme.goldPro,
                   title: 'Bearing Lock & Drift Navigation',
                   desc: 'Lock any target heading with 1 tap. Dynamic off-course deviation readout with directional haptic guidance.',
+                  badge: 'AVAILABLE',
+                  badgeColor: theme.accentGreen,
                 ),
                 const SizedBox(height: 10),
                 _buildFeatureCard(
                   theme: theme,
                   icon: Icons.pin_drop_rounded,
                   iconColor: theme.accentCyan,
-                  title: 'Unlimited Saved Locations',
-                  desc: 'Save and manage unlimited custom waypoints (free tier includes 5). Real-time distance and backtrack return needle.',
+                  title: 'Unlimited Saved Locations & Categories',
+                  desc: 'Save and manage unlimited custom waypoints (Home, Work, Travel, Custom with notes). Real-time distance, bearing, and backtrack return needle.',
+                  badge: 'AVAILABLE',
+                  badgeColor: theme.accentGreen,
                 ),
                 const SizedBox(height: 10),
                 _buildFeatureCard(
@@ -236,39 +262,82 @@ class ProUpgradeModal extends ConsumerWidget {
                   icon: Icons.file_download_outlined,
                   iconColor: theme.accentGreen,
                   title: 'GPX & CSV Waypoint Export',
-                  desc: 'Export your saved waypoints and trails into standard GPX and CSV files for Google Earth, handheld GPS units, and GIS tools.',
+                  desc: 'Export your saved waypoints directly to standard GPX 1.1 and CSV files for Google Earth, GIS software, and handheld GPS units.',
+                  badge: 'AVAILABLE',
+                  badgeColor: theme.accentGreen,
                 ),
                 const SizedBox(height: 10),
                 _buildFeatureCard(
                   theme: theme,
                   icon: Icons.grid_view_rounded,
                   iconColor: const Color(0xFFFFD700),
-                  title: 'Advanced 16 & 32-Zone Vastu Energy Grid',
-                  desc: 'Precision Vedic energy mapping across all 16 cardinal zones and 32 Devata energy fields with Brahmasthan boundary overlays.',
-                ),
-                const SizedBox(height: 10),
-                _buildFeatureCard(
-                  theme: theme,
-                  icon: Icons.maps_home_work_outlined,
-                  iconColor: theme.accentAmber,
-                  title: 'Detailed Vastu Remedials & Multi-Profiles',
-                  desc: 'In-depth room placement directives, elemental remedies, and saved profiles for multiple residential and commercial properties.',
-                ),
-                const SizedBox(height: 10),
-                _buildFeatureCard(
-                  theme: theme,
-                  icon: Icons.wb_sunny_rounded,
-                  iconColor: const Color(0xFFFFD54F),
-                  title: 'Advanced Celestial Ephemeris',
-                  desc: 'High-precision solar & lunar elevation angles, exact solar noon, golden hour times, and lunar phase illumination.',
+                  title: '32-Zone Vastu Purusha Mandala & Commercial Directives',
+                  desc: 'Precision Vedic energy mapping across all 32 Devata Padas with doorway entrance ratings and dedicated commercial office guidelines.',
+                  badge: 'AVAILABLE',
+                  badgeColor: theme.accentGreen,
                 ),
                 const SizedBox(height: 10),
                 _buildFeatureCard(
                   theme: theme,
                   icon: Icons.palette_outlined,
                   iconColor: theme.accentCyan,
-                  title: 'Premium Tactical Themes',
-                  desc: 'Custom UI colorways including Tactical Amber, Arctic Cyan, and Ultra-Dark OLED Night Vision.',
+                  title: 'Tactical UI Themes',
+                  desc: 'Custom UI colorways including Tactical Amber, Arctic Cyan, and Ultra-Dark OLED Red Vision.',
+                  badge: 'AVAILABLE',
+                  badgeColor: theme.accentGreen,
+                ),
+
+                const SizedBox(height: 18),
+
+                Row(
+                  children: [
+                    Text(
+                      'PLANNED ROADMAP ENHANCEMENTS',
+                      style: TextStyle(
+                        color: theme.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: theme.textSecondary.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'ROADMAP',
+                        style: TextStyle(
+                          color: theme.textSecondary,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.wb_sunny_rounded,
+                  iconColor: const Color(0xFFFFD54F),
+                  title: 'Advanced Celestial Ephemeris',
+                  desc: 'High-precision solar & lunar elevation angles, exact solar noon, golden hour times, and lunar phase illumination.',
+                  badge: 'COMING SOON',
+                  badgeColor: theme.accentAmber,
+                ),
+                const SizedBox(height: 10),
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.cloud_sync_outlined,
+                  iconColor: theme.accentCyan,
+                  title: 'Cloud Waypoint Sync & Multi-Device Backup',
+                  desc: 'Optional end-to-end encrypted backup and synchronization of your saved spots across multiple devices.',
+                  badge: 'COMING SOON',
+                  badgeColor: theme.accentAmber,
                 ),
 
                 const SizedBox(height: 20),
@@ -410,6 +479,8 @@ class ProUpgradeModal extends ConsumerWidget {
     required Color iconColor,
     required String title,
     required String desc,
+    String? badge,
+    Color? badgeColor,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -434,13 +505,43 @@ class ProUpgradeModal extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: theme.textPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          color: theme.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (badge != null) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: (badgeColor ?? theme.accentCyan).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: (badgeColor ?? theme.accentCyan).withOpacity(0.5),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          badge,
+                          style: TextStyle(
+                            color: badgeColor ?? theme.accentCyan,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 3),
                 Text(
