@@ -74,6 +74,12 @@ class CompassState {
     return '${magneticFieldStrength!.toStringAsFixed(1)} μT';
   }
 
+  String get formattedDeclination {
+    if (magneticDeclination == null) return '--°';
+    final dir = magneticDeclination! >= 0 ? 'E' : 'W';
+    return '${magneticDeclination!.abs().toStringAsFixed(1)}° $dir';
+  }
+
   String get magneticFieldStatus {
     if (magneticFieldStrength == null) return 'NORMAL';
     if (magneticFieldStrength! > 110.0) return 'HIGH INTERFERENCE';

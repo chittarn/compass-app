@@ -266,6 +266,23 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     ],
                   ),
 
+                    // True North Telemetry Sub-title Indicator
+                    if (isTrueNorth) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        state.magneticDeclination != null
+                            ? 'TRUE NORTH  •  DEC ${state.formattedDeclination}'
+                            : 'TRUE NORTH  •  ACQUIRING GPS FIX...',
+                        style: TextStyle(
+                          color: theme.accentCyan,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.1,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+
                     // Target Bearing Lock HUD Chip (PRO)
                     if (proState.lockedBearing != null) ...[
                       const SizedBox(height: 4),
@@ -537,7 +554,11 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            isTrueNorth ? 'True North' : 'Magnetic North',
+                            isTrueNorth
+                                ? (state.magneticDeclination != null
+                                    ? 'True North (${state.formattedDeclination})'
+                                    : 'True North')
+                                : 'Magnetic North',
                             style: TextStyle(
                               color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
                               fontSize: 11.5,

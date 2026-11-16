@@ -61,7 +61,7 @@ class HeadingCalculator {
         math.sin(lat) * math.cos(poleLat) * math.cos(dLon);
 
     final bearingToPole = math.atan2(y, x) * 180.0 / math.pi;
-    double dec = -bearingToPole;
+    double dec = bearingToPole;
     if (dec > 180) dec -= 360;
     if (dec < -180) dec += 360;
     return dec;

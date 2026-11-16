@@ -37,6 +37,7 @@ class CompassController extends StateNotifier<CompassState> {
   Timer? _celestialTimer;
   DateTime _lastTimestamp = DateTime.now();
   double _lastHeading = 0.0;
+  double? _lastRawHeading;
   bool _lastQiblaAligned = false;
   bool _lastVastuAligned = false;
   DateTime? _lastFlutterCompassEventTime;
@@ -215,6 +216,11 @@ class CompassController extends StateNotifier<CompassState> {
       sunriseTime: sunTimes.sunrise,
       sunsetTime: sunTimes.sunset,
     );
+
+    // If currently in True North mode, update heading with the newly calculated declination
+    if (state.headingType == HeadingType.trueNorth && _lastRawHeading != null) {
+      _processHeading(_lastRawHeading!);
+    }
   }
 
   void _onCompassEvent(CompassEvent event) {
@@ -224,6 +230,7 @@ class CompassController extends StateNotifier<CompassState> {
   }
 
   void _processHeading(double rawHeadingVal, {double? accuracyVal}) {
+    _lastRawHeading = rawHeadingVal;
     final now = DateTime.now();
     final dt = now.difference(_lastTimestamp).inMilliseconds / 1000.0;
     _lastTimestamp = now;
@@ -370,7 +377,7 @@ class CompassController extends StateNotifier<CompassState> {
     // compute real-time tilt-compensated azimuth from raw accelerometer + magnetometer.
     final now = DateTime.now();
     final bool flutterCompassStale = _lastFlutterCompassEventTime == null ||
-        now.difference(_lastFlutterCompassEventTime!).inMilliseconds > 400;
+        now.difference(_lastFlutterCompassEventTime!).inMilliseconds > 1200;
 
     if (flutterCompassStale && _filteredAx != null) {
       final fusionHeading = HeadingCalculator.calculateAzimuth(
@@ -421,7 +428,30 @@ class CompassController extends StateNotifier<CompassState> {
         headingType: HeadingType.trueNorth,
         hasLocationPermission: true,
       );
+
+      // 1. Immediately retrieve cached last known position for instant declination
+      try {
+        final lastPos = await Geolocator.getLastKnownPosition();
+        if (lastPos != null) {
+          _updatePosition(lastPos);
+        }
+      } catch (_) {}
+
+      // 2. Start GPS stream for real-time positional updates
       _startGpsStream();
+
+      // 3. Immediately re-process heading so dialer updates right away without waiting
+      if (_lastRawHeading != null) {
+        _processHeading(_lastRawHeading!);
+      }
+
+      // 4. In background, request fresh GPS fix
+      Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 6),
+      ).then((pos) {
+        _updatePosition(pos);
+      }).catchError((_) {});
 
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -435,6 +465,11 @@ class CompassController extends StateNotifier<CompassState> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt(_keyHeadingType, HeadingType.magnetic.index);
       } catch (_) {}
+
+      // Immediately re-process heading so dialer smoothly animates back to Magnetic North
+      if (_lastRawHeading != null) {
+        _processHeading(_lastRawHeading!);
+      }
 
       return true;
     }

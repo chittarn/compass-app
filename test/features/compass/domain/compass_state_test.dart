@@ -146,5 +146,25 @@ void main() {
       expect(stateAtNE.currentVastuZone.direction, 'NE');
       expect(stateAtNE.currentVastuZone.sanskritName, contains('Ishan'));
     });
+
+    test('CompassState formats magnetic declination correctly', () {
+      const stateNoDec = CompassState(
+        heading: 0.0,
+        unwrappedHeading: 0.0,
+        headingType: HeadingType.magnetic,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: false,
+      );
+      expect(stateNoDec.formattedDeclination, '--°');
+
+      final stateEast = stateNoDec.copyWith(magneticDeclination: 12.3);
+      expect(stateEast.formattedDeclination, '12.3° E');
+
+      final stateWest = stateNoDec.copyWith(magneticDeclination: -3.6);
+      expect(stateWest.formattedDeclination, '3.6° W');
+    });
   });
 }
