@@ -1076,7 +1076,6 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                 ),
               ),
             ),
-          ),
 
             // Bottom Telemetry Bar: PITCH | ROLL | EMF (μT) | LEVEL STATUS
             Padding(

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/vastu_calculator.dart';
 import '../controllers/compass_controller.dart';
-import '../../pro/presentation/pro_upgrade_modal.dart';
+import '../../../pro/presentation/pro_upgrade_modal.dart';
 
 class VastuGuideModal extends ConsumerStatefulWidget {
   const VastuGuideModal({super.key});
