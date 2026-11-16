@@ -105,9 +105,16 @@ void main() {
       // In Magnetic mode, True North is not active
       expect(stateMag.isTrueNorthAvailable, isFalse);
 
-      final stateTrueNoDec = stateMag.copyWith(
+      const stateTrueNoDec = CompassState(
+        heading: 0.0,
+        unwrappedHeading: 0.0,
         headingType: HeadingType.trueNorth,
-        clearDeclination: true,
+        accuracy: SensorAccuracyLevel.high,
+        pitch: 0.0,
+        roll: 0.0,
+        isLevel: true,
+        hasLocationPermission: true,
+        magneticDeclination: null,
       );
       // In True North mode without declination (pending GPS fix), True North is not available
       expect(stateTrueNoDec.isTrueNorthAvailable, isFalse);
