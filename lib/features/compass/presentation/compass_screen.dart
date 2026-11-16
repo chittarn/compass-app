@@ -14,7 +14,6 @@ import 'widgets/vastu_guide_modal.dart';
 import '../../../core/utils/vastu_calculator.dart';
 import '../../pro/controllers/pro_controller.dart';
 import '../../pro/presentation/pro_upgrade_modal.dart';
-import '../../pro/presentation/widgets/navigation_ad_banner.dart';
 import '../../waypoints/controllers/waypoints_controller.dart';
 import '../../waypoints/presentation/waypoint_modal.dart';
 import '../../../core/constants/compass_constants.dart';
@@ -149,21 +148,37 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Red OLED Night Vision Toggle (Pro only)
-                        if (proState.isPro) ...[
-                          IconButton(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            constraints: const BoxConstraints(),
-                            icon: Icon(
-                              proState.isNightVision ? Icons.lightbulb_rounded : Icons.nightlight_round,
-                              color: proState.isNightVision ? theme.northRed : theme.textSecondary,
-                              size: 18,
-                            ),
-                            tooltip: 'Red OLED Night Vision',
-                            onPressed: () => proNotifier.toggleNightVision(),
+                        // Red OLED Night Vision Toggle (Free shows lock badge, Pro toggles)
+                        IconButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          constraints: const BoxConstraints(),
+                          icon: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              Icon(
+                                proState.isNightVision ? Icons.lightbulb_rounded : Icons.nightlight_round,
+                                color: proState.isNightVision
+                                    ? theme.northRed
+                                    : (proState.isPro ? theme.textSecondary : theme.goldPro.withOpacity(0.85)),
+                                size: 18,
+                              ),
+                              if (!proState.isPro)
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 10, top: 10),
+                                  child: Icon(Icons.lock_rounded, size: 9, color: AppColors.goldPro),
+                                ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
-                        ],
+                          tooltip: proState.isPro ? 'Red OLED Night Vision' : 'Red OLED Night Vision [PRO]',
+                          onPressed: () {
+                            if (proState.isPro) {
+                              proNotifier.toggleNightVision();
+                            } else {
+                              ProUpgradeModal.show(context);
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 4),
 
                         // PRO / UPGRADE Badge
                         InkWell(
@@ -286,30 +301,41 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     // Target Bearing Lock HUD Chip (PRO)
                     if (proState.lockedBearing != null) ...[
                       const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: theme.goldPro.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: theme.goldPro.withOpacity(0.4)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.my_location_rounded, color: theme.goldPro, size: 14),
-                            const SizedBox(width: 6),
-                            Text(
-                              'TARGET: ${proState.lockedBearing!.round().toString().padLeft(3, '0')}°  |  $driftLabel',
-                              style: TextStyle(
-                                color: theme.goldPro,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'monospace',
-                              ),
+                      GestureDetector(
+                        onTap: () {
+                          proNotifier.clearLockedBearing();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Target bearing unlocked.'),
+                              duration: Duration(seconds: 1),
                             ),
-                            const SizedBox(width: 8),
-                            Icon(Icons.cancel_rounded, color: theme.goldPro, size: 14),
-                          ],
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: theme.goldPro.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: theme.goldPro.withOpacity(0.4)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.my_location_rounded, color: theme.goldPro, size: 14),
+                              const SizedBox(width: 6),
+                              Text(
+                                'TARGET: ${proState.lockedBearing!.round().toString().padLeft(3, '0')}°  |  $driftLabel',
+                                style: TextStyle(
+                                  color: theme.goldPro,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(Icons.cancel_rounded, color: theme.goldPro, size: 14),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -710,6 +736,76 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 8),
+
+                  // Bearing Lock Toggle Pill (PRO)
+                  GestureDetector(
+                    onTap: () {
+                      if (proState.isPro) {
+                        if (proState.lockedBearing != null) {
+                          proNotifier.clearLockedBearing();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Target bearing unlocked.'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        } else {
+                          proNotifier.lockBearing(state.heading);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('🎯 Target bearing locked to ${state.heading.round()}°.'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      } else {
+                        ProUpgradeModal.show(context);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: proState.lockedBearing != null
+                            ? theme.goldPro.withOpacity(0.18)
+                            : theme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: proState.lockedBearing != null
+                              ? theme.goldPro
+                              : theme.dialRing,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            proState.lockedBearing != null
+                                ? Icons.my_location_rounded
+                                : (proState.isPro ? Icons.my_location_rounded : Icons.lock_outline_rounded),
+                            size: 13,
+                            color: proState.lockedBearing != null
+                                ? theme.goldPro
+                                : (proState.isPro ? theme.textSecondary : theme.goldPro),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            proState.lockedBearing != null
+                                ? 'Locked ${proState.lockedBearing!.round()}°'
+                                : (proState.isPro ? 'Lock Bearing' : 'Bearing Lock [PRO]'),
+                            style: TextStyle(
+                              color: proState.lockedBearing != null
+                                  ? theme.goldPro
+                                  : (proState.isPro ? theme.textSecondary : theme.goldPro),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -721,37 +817,78 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
               child: SizedBox(
                 width: 320,
                 height: 320,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Smooth 60/120fps Rotating Dial
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(end: state.unwrappedHeading),
-                      duration: const Duration(milliseconds: 90),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, animatedHeading, child) {
-                        return RepaintBoundary(
-                          child: CustomPaint(
-                            size: const Size(320, 320),
-                            painter: CompassDialPainter(
-                              heading: animatedHeading,
-                              lockedBearing: proState.lockedBearing,
-                              qiblaBearing: state.qiblaBearing,
-                              isQiblaMode: state.isQiblaMode,
-                              sunAzimuth: state.sunAzimuth,
-                              moonAzimuth: state.moonAzimuth,
-                              waypointBearing: waypointBearing,
-                              waypointTitle: activeWp?.title,
-                              isVastuMode: state.isVastuMode,
-                              vastuTargetBearing: state.activeVastuRoom != null
-                                  ? VastuCalculator.getGuideline(state.activeVastuRoom!).targetHeading
-                                  : null,
-                              theme: theme,
-                            ),
+                child: GestureDetector(
+                  onTap: () {
+                    if (proState.isPro) {
+                      if (proState.lockedBearing != null) {
+                        proNotifier.clearLockedBearing();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Target bearing unlocked.'),
+                            duration: Duration(seconds: 1),
                           ),
                         );
-                      },
-                    ),
+                      } else {
+                        proNotifier.lockBearing(state.heading);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('🎯 Target bearing locked to ${state.heading.round()}°.'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } else {
+                      ProUpgradeModal.show(context);
+                    }
+                  },
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Smooth 60/120fps Rotating Dial
+                      TweenAnimationBuilder<double>(
+                        tween: Tween<double>(end: state.unwrappedHeading),
+                        duration: const Duration(milliseconds: 90),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, animatedHeading, child) {
+                          final dec = (state.headingType == HeadingType.magnetic && state.magneticDeclination != null)
+                              ? state.magneticDeclination!
+                              : 0.0;
+                          final dialQiblaBearing = state.qiblaBearing != null
+                              ? ((state.qiblaBearing! - dec) % 360.0 + 360.0) % 360.0
+                              : null;
+                          final dialSunAzimuth = state.sunAzimuth != null
+                              ? ((state.sunAzimuth! - dec) % 360.0 + 360.0) % 360.0
+                              : null;
+                          final dialMoonAzimuth = state.moonAzimuth != null
+                              ? ((state.moonAzimuth! - dec) % 360.0 + 360.0) % 360.0
+                              : null;
+                          final dialWaypointBearing = waypointBearing != null
+                              ? ((waypointBearing - dec) % 360.0 + 360.0) % 360.0
+                              : null;
+                          final dialVastuTargetBearing = state.activeVastuRoom != null
+                              ? ((VastuCalculator.getGuideline(state.activeVastuRoom!).targetHeading - dec) % 360.0 + 360.0) % 360.0
+                              : null;
+
+                          return RepaintBoundary(
+                            child: CustomPaint(
+                              size: const Size(320, 320),
+                              painter: CompassDialPainter(
+                                heading: animatedHeading,
+                                lockedBearing: proState.lockedBearing,
+                                qiblaBearing: dialQiblaBearing,
+                                isQiblaMode: state.isQiblaMode,
+                                sunAzimuth: dialSunAzimuth,
+                                moonAzimuth: dialMoonAzimuth,
+                                waypointBearing: dialWaypointBearing,
+                                waypointTitle: activeWp?.title,
+                                isVastuMode: state.isVastuMode,
+                                vastuTargetBearing: dialVastuTargetBearing,
+                                theme: theme,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
 
                     // Top Pointer Index Mark (Static Red Line pointing to current heading)
                     Positioned(
@@ -796,6 +933,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                 ),
               ),
             ),
+          ),
 
             const Spacer(flex: 1),
 
@@ -938,6 +1076,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                 ),
               ),
             ),
+          ),
 
             // Bottom Telemetry Bar: PITCH | ROLL | EMF (μT) | LEVEL STATUS
             Padding(
@@ -1004,10 +1143,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
               ),
             ),
 
-            // Bottom Navigation Ad Banner (Free Tier only, vanishes in Pro!)
-            const NavigationAdBanner(),
-
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
           ],
         ),
       ),

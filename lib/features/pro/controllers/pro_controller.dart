@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,6 +9,8 @@ final proControllerProvider =
   return ProController();
 });
 
+/// ProController manages the user's lifetime Pro entitlement status and Pro-tier tools.
+/// Prepared for Google Play Billing in-app purchase integration.
 class ProController extends StateNotifier<ProState> {
   static const String _keyIsPro = 'compass_is_pro';
   static const String _keyNightVision = 'compass_night_vision';
@@ -30,22 +33,34 @@ class ProController extends StateNotifier<ProState> {
     }
   }
 
-  Future<void> togglePro() async {
-    HapticFeedback.mediumImpact();
-    final newPro = !state.isPro;
-    state = state.copyWith(isPro: newPro);
+  /// Sets the user's Pro entitlement (to be called by Google Play Billing on verified purchase / restore)
+  Future<void> setEntitled(bool isEntitled) async {
+    state = state.copyWith(
+      isPro: isEntitled,
+      isNightVision: isEntitled ? state.isNightVision : false,
+    );
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_keyIsPro, newPro);
+      await prefs.setBool(_keyIsPro, isEntitled);
     } catch (_) {}
   }
 
+  /// Legacy helper for testing or billing callbacks
   Future<void> setPro(bool value) async {
-    state = state.copyWith(isPro: value);
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_keyIsPro, value);
-    } catch (_) {}
+    await setEntitled(value);
+  }
+
+  /// Development-only Pro toggle. Strictly disabled in release builds.
+  Future<void> debugTogglePro() async {
+    if (!kDebugMode) return;
+    HapticFeedback.mediumImpact();
+    final newPro = !state.isPro;
+    await setEntitled(newPro);
+  }
+
+  /// Wrapper around debugTogglePro to preserve backwards compatibility in debug mode
+  Future<void> togglePro() async {
+    await debugTogglePro();
   }
 
   Future<void> toggleNightVision() async {

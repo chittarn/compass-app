@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/pro_controller.dart';
@@ -22,7 +23,7 @@ class ProUpgradeModal extends ConsumerWidget {
     final theme = proState.isNightVision ? CompassTheme.nightVision : CompassTheme.normal;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.88,
+      height: MediaQuery.of(context).size.height * 0.90,
       decoration: BoxDecoration(
         color: theme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -50,7 +51,7 @@ class ProUpgradeModal extends ConsumerWidget {
 
           // Header
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -87,10 +88,10 @@ class ProUpgradeModal extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          'TACTICAL NAVIGATION SUITE',
+                          'TACTICAL NAVIGATION & VASTU SUITE',
                           style: TextStyle(
                             color: theme.textSecondary,
-                            fontSize: 11,
+                            fontSize: 10.5,
                             letterSpacing: 0.8,
                           ),
                         ),
@@ -107,138 +108,228 @@ class ProUpgradeModal extends ConsumerWidget {
           ),
           Divider(color: theme.background, height: 1),
 
-          // Body
+          // Body with Pro Feature Cards
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               children: [
-                // Pro Features Cards
-                _buildFeatureCard(
-                  theme: theme,
-                  icon: Icons.block_rounded,
-                  iconColor: theme.accentGreen,
-                  title: '100% Ad-Free Experience',
-                  desc: 'Removes all banners and sponsored equipment slots. Zero tracking, zero latency, maximum screen space.',
-                ),
-                const SizedBox(height: 12),
-                _buildFeatureCard(
-                  theme: theme,
-                  icon: Icons.my_location_rounded,
-                  iconColor: theme.goldPro,
-                  title: 'Bearing Lock & Drift Alarms',
-                  desc: 'Tap dial to pin target heading. Displays dynamic off-course deviation angle with directional haptic guidance.',
-                ),
-                const SizedBox(height: 12),
-                _buildFeatureCard(
-                  theme: theme,
-                  icon: Icons.nightlight_round,
-                  iconColor: theme.northRed,
-                  title: 'Monochrome Red Night Vision',
-                  desc: 'Military scotopic vision protection. Deep red spectrum on pitch-black background prevents night blindness.',
-                ),
-                const SizedBox(height: 12),
-                _buildFeatureCard(
-                  theme: theme,
-                  icon: Icons.pin_drop_rounded,
-                  iconColor: theme.accentCyan,
-                  title: 'Waypoint Saver (Return to Car/Camp)',
-                  desc: 'Pin your coordinates with 1 tap. Compass needle points directly back to your marked point with live range.',
-                ),
-
-                const SizedBox(height: 24),
-
-                // Interactive Developer / User Switch
+                // Lifetime Pricing Card
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: theme.cardBackground,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: proState.isPro
-                          ? theme.accentCyan.withOpacity(0.3)
-                          : theme.textSecondary.withOpacity(0.15),
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.goldPro.withOpacity(0.18),
+                        theme.accentAmber.withOpacity(0.08),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: theme.goldPro.withOpacity(0.4)),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            proState.isPro ? 'Pro Status: UNLOCKED' : 'Pro Status: FREE TIER',
-                            style: TextStyle(
-                              color: proState.isPro ? theme.accentCyan : theme.textPrimary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'LIFETIME ACCESS',
+                                style: TextStyle(
+                                  color: theme.goldPro,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'One-time payment • No subscriptions',
+                                style: TextStyle(
+                                  color: theme.textSecondary,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            proState.isPro
-                                ? 'All 4 Pro navigation features unlocked'
-                                : 'Banner ad active • Pro features locked',
-                            style: TextStyle(
-                              color: theme.textSecondary,
-                              fontSize: 11,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: theme.goldPro,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              '\$1.99',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      Switch(
-                        value: proState.isPro,
-                        activeColor: theme.accentCyan,
-                        activeTrackColor: theme.accentCyan.withOpacity(0.4),
-                        inactiveThumbColor: theme.textSecondary,
-                        inactiveTrackColor: theme.surface,
-                        onChanged: (val) {
-                          proNotifier.setPro(val);
-                        },
+                      const SizedBox(height: 10),
+                      Divider(color: theme.goldPro.withOpacity(0.2), height: 1),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.check_circle_rounded, color: theme.goldPro, size: 14),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Pay once, keep forever. Family Library eligible on Google Play.',
+                              style: TextStyle(
+                                color: theme.textSecondary.withOpacity(0.9),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
+
+                Text(
+                  'PREMIUM FEATURES',
+                  style: TextStyle(
+                    color: theme.textSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.nightlight_round,
+                  iconColor: theme.northRed,
+                  title: 'Red OLED Night Vision',
+                  desc: 'Military scotopic vision preservation. Pure deep-red spectrum on true black prevents night blindness during stargazing and night operations.',
+                ),
+                const SizedBox(height: 10),
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.my_location_rounded,
+                  iconColor: theme.goldPro,
+                  title: 'Bearing Lock & Drift Navigation',
+                  desc: 'Lock any target heading with 1 tap. Dynamic off-course deviation readout with directional haptic guidance.',
+                ),
+                const SizedBox(height: 10),
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.pin_drop_rounded,
+                  iconColor: theme.accentCyan,
+                  title: 'Unlimited Saved Locations',
+                  desc: 'Save and manage unlimited custom waypoints (free tier includes 5). Real-time distance and backtrack return needle.',
+                ),
+                const SizedBox(height: 10),
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.file_download_outlined,
+                  iconColor: theme.accentGreen,
+                  title: 'GPX & CSV Waypoint Export',
+                  desc: 'Export your saved waypoints and trails into standard GPX and CSV files for Google Earth, handheld GPS units, and GIS tools.',
+                ),
+                const SizedBox(height: 10),
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.grid_view_rounded,
+                  iconColor: const Color(0xFFFFD700),
+                  title: 'Advanced 16 & 32-Zone Vastu Energy Grid',
+                  desc: 'Precision Vedic energy mapping across all 16 cardinal zones and 32 Devata energy fields with Brahmasthan boundary overlays.',
+                ),
+                const SizedBox(height: 10),
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.maps_home_work_outlined,
+                  iconColor: theme.accentAmber,
+                  title: 'Detailed Vastu Remedials & Multi-Profiles',
+                  desc: 'In-depth room placement directives, elemental remedies, and saved profiles for multiple residential and commercial properties.',
+                ),
+                const SizedBox(height: 10),
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.wb_sunny_rounded,
+                  iconColor: const Color(0xFFFFD54F),
+                  title: 'Advanced Celestial Ephemeris',
+                  desc: 'High-precision solar & lunar elevation angles, exact solar noon, golden hour times, and lunar phase illumination.',
+                ),
+                const SizedBox(height: 10),
+                _buildFeatureCard(
+                  theme: theme,
+                  icon: Icons.palette_outlined,
+                  iconColor: theme.accentCyan,
+                  title: 'Premium Tactical Themes',
+                  desc: 'Custom UI colorways including Tactical Amber, Arctic Cyan, and Ultra-Dark OLED Night Vision.',
+                ),
+
+                const SizedBox(height: 20),
 
                 // Main Purchase Action Button
                 ElevatedButton(
                   onPressed: () {
-                    proNotifier.togglePro();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          proState.isPro
-                              ? 'Reset back to Free Tier with banner ads.'
-                              : '🎉 Welcome to Compass Pro! All features unlocked.',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                    if (proState.isPro) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🌟 Compass Pro is already active on this device!'),
+                          backgroundColor: Color(0xFF161922),
+                          duration: Duration(seconds: 2),
                         ),
-                        backgroundColor: proState.isPro ? theme.surfaceElevated : theme.accentGreen,
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                    Navigator.of(context).pop();
+                      );
+                    } else {
+                      // Billing is prepared, but not active yet
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🛒 Google Play In-App Purchase is being prepared for the upcoming release!'),
+                          backgroundColor: Color(0xFF161922),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: proState.isPro ? theme.surfaceElevated : theme.goldPro,
-                    foregroundColor: proState.isPro ? theme.textPrimary : Colors.black,
+                    backgroundColor: proState.isPro ? theme.accentGreen : theme.goldPro,
+                    foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    proState.isPro ? 'TOGGLE TO FREE TIER' : 'UNLOCK PRO (ONE-TIME \$1.99)',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.0,
-                      color: proState.isPro ? theme.textPrimary : Colors.black,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        proState.isPro ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                        color: Colors.black,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        proState.isPro
+                            ? 'COMPASS PRO ACTIVE'
+                            : 'UPGRADE TO PRO — \$1.99 (COMING SOON)',
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
+
+                const SizedBox(height: 10),
                 Center(
                   child: Text(
                     'Lifetime License • Family Sharing Supported • No Subscriptions',
@@ -248,6 +339,62 @@ class ProUpgradeModal extends ConsumerWidget {
                     ),
                   ),
                 ),
+
+                // Development-Only Testing Mechanism (Strictly excluded in Release builds)
+                if (kDebugMode) ...[
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '[DEV ONLY] Entitlement Simulator',
+                              style: TextStyle(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                            Text(
+                              proState.isPro ? 'State: Pro Active' : 'State: Free Tier',
+                              style: TextStyle(
+                                color: theme.textSecondary,
+                                fontSize: 10.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.amber.withOpacity(0.2),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          onPressed: () {
+                            proNotifier.debugTogglePro();
+                          },
+                          child: Text(
+                            proState.isPro ? 'Revoke Pro' : 'Grant Pro',
+                            style: const TextStyle(
+                              color: Colors.amber,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 16),
               ],
             ),

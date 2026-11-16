@@ -259,7 +259,10 @@ class CompassController extends StateNotifier<CompassState> {
 
     // Qibla Alignment Haptic Pulse
     if (state.isQiblaMode && state.qiblaBearing != null) {
-      final isNowAligned = QiblaCalculator.isAligned(rawHeading, state.qiblaBearing!);
+      final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
+          ? rawHeading
+          : ((rawHeading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
+      final isNowAligned = QiblaCalculator.isAligned(effectiveTrueHeading, state.qiblaBearing!);
       if (!_lastQiblaAligned && isNowAligned) {
         HapticFeedback.heavyImpact();
       }

@@ -100,7 +100,10 @@ class CompassState {
 
   bool get isQiblaAligned {
     if (qiblaBearing == null) return false;
-    return QiblaCalculator.isAligned(heading, qiblaBearing!);
+    final effectiveTrueHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
+        ? heading
+        : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;
+    return QiblaCalculator.isAligned(effectiveTrueHeading, qiblaBearing!);
   }
 
   String get formattedSunrise {

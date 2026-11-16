@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/vastu_calculator.dart';
 import '../controllers/compass_controller.dart';
+import '../../pro/presentation/pro_upgrade_modal.dart';
 
 class VastuGuideModal extends ConsumerStatefulWidget {
   const VastuGuideModal({super.key});
@@ -272,9 +273,90 @@ class _VastuGuideModalState extends ConsumerState<VastuGuideModal> {
           // Room List (Zero-Overflow Guaranteed with Wrap and Flex)
           Expanded(
             child: ListView.separated(
-              itemCount: VastuCalculator.roomGuidelines.length,
+              itemCount: VastuCalculator.roomGuidelines.length + 1,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
+                if (index == VastuCalculator.roomGuidelines.length) {
+                  return Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFFFFD700).withOpacity(0.14),
+                          const Color(0xFFFF9100).withOpacity(0.06),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFFD700), size: 20),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                '16/32-Zone Vastu & Multi-Profiles',
+                                style: TextStyle(
+                                  color: Color(0xFFFFD700),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFD700).withOpacity(0.25),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'PRO',
+                                style: TextStyle(
+                                  color: Color(0xFFFFD700),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Upgrade to Pro for advanced 16-zone Devata energy grids, commercial & residential multi-property profiles, and elemental remedial suggestions.',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 11.5,
+                            height: 1.35,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFFFD700),
+                              side: const BorderSide(color: Color(0xFFFFD700)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ProUpgradeModal.show(context);
+                            },
+                            child: const Text(
+                              'VIEW PRO VASTU FEATURES',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 final guide = VastuCalculator.roomGuidelines[index];
                 final isSelected = _selectedRoom == guide.type || state.activeVastuRoom == guide.type;
 

@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'core/theme/app_colors.dart';
 import 'features/splash/presentation/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Google Mobile Ads SDK (safe fallback in test/desktop environments)
-  try {
-    await MobileAds.instance.initialize();
-  } catch (_) {}
 
   // Lock orientation to portrait for typical compass ergonomics
   await SystemChrome.setPreferredOrientations([

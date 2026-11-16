@@ -12,9 +12,15 @@ final waypointsControllerProvider =
 class WaypointsController extends StateNotifier<WaypointsState> {
   static const String _keyWaypoints = 'compass_saved_waypoints';
   static const String _keyActive = 'compass_active_waypoint';
+  static const int freeWaypointLimit = 5;
 
   WaypointsController() : super(const WaypointsState()) {
     _loadFromPrefs();
+  }
+
+  bool canAddWaypoint(bool isPro) {
+    if (isPro) return true;
+    return state.waypoints.length < freeWaypointLimit;
   }
 
   Future<void> _loadFromPrefs() async {
@@ -52,13 +58,17 @@ class WaypointsController extends StateNotifier<WaypointsState> {
     } catch (_) {}
   }
 
-  Future<Waypoint> saveCurrentSpot({
+  Future<Waypoint?> saveCurrentSpot({
     required String title,
     required double latitude,
     required double longitude,
     double? altitude,
     bool isPro = false,
   }) async {
+    if (!isPro && state.waypoints.length >= freeWaypointLimit) {
+      return null;
+    }
+
     final newId = DateTime.now().millisecondsSinceEpoch.toString();
     final newWaypoint = Waypoint(
       id: newId,
@@ -69,14 +79,7 @@ class WaypointsController extends StateNotifier<WaypointsState> {
       createdAt: DateTime.now(),
     );
 
-    List<Waypoint> updated;
-    if (isPro) {
-      // Pro: Append to list
-      updated = [...state.waypoints, newWaypoint];
-    } else {
-      // Free Tier: 1 active saved spot (replaces previous spot)
-      updated = [newWaypoint];
-    }
+    final updated = [...state.waypoints, newWaypoint];
 
     state = state.copyWith(
       waypoints: updated,

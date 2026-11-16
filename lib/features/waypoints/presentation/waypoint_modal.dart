@@ -262,19 +262,60 @@ class _WaypointModalState extends ConsumerState<WaypointModal> {
                     onPressed: !hasGps
                         ? null
                         : () async {
+                            if (!proState.isPro &&
+                                wpState.waypoints.length >= WaypointsController.freeWaypointLimit) {
+                              showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  backgroundColor: AppColors.surface,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  title: const Row(
+                                    children: [
+                                      Icon(Icons.workspace_premium_rounded, color: AppColors.goldPro, size: 22),
+                                      SizedBox(width: 8),
+                                      Text('Waypoint Limit Reached',
+                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                  content: const Text(
+                                    'Free tier includes up to 5 saved spots. Upgrade to Pro for unlimited waypoints, or delete an existing spot to save a new one.',
+                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.goldPro,
+                                        foregroundColor: Colors.black,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(ctx);
+                                        ProUpgradeModal.show(context);
+                                      },
+                                      child: const Text('UPGRADE TO PRO', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              return;
+                            }
                             final title = _titleController.text.trim();
-                            await wpNotifier.saveCurrentSpot(
-                              title: title.isEmpty ? 'Marked Spot' : title,
+                            final spotTitle = title.isEmpty ? 'Marked Spot' : title;
+                            final saved = await wpNotifier.saveCurrentSpot(
+                              title: spotTitle,
                               latitude: compassState.latitude!,
                               longitude: compassState.longitude!,
                               altitude: compassState.altitude,
                               isPro: proState.isPro,
                             );
-                            if (context.mounted) {
+                            if (context.mounted && saved != null) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('📍 Spot "$title" saved! Cyan needle points back.'),
+                                  content: Text('📍 Spot "$spotTitle" saved! Cyan needle points back.'),
                                   backgroundColor: const Color(0xFF161922),
                                   duration: const Duration(seconds: 3),
                                 ),
@@ -292,12 +333,15 @@ class _WaypointModalState extends ConsumerState<WaypointModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'SAVED SPOTS',
-                    style: TextStyle(
+                  Text(
+                    'SAVED SPOTS (${wpState.waypoints.length}${proState.isPro ? ' • UNLIMITED' : '/5'})',
+                    style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -389,6 +433,53 @@ class _WaypointModalState extends ConsumerState<WaypointModal> {
             ],
 
             const SizedBox(height: 12),
+
+            // GPX / CSV Export Feature (PRO)
+            InkWell(
+              onTap: () => ProUpgradeModal.show(context),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.goldPro.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.file_download_outlined, color: AppColors.goldPro, size: 18),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'Export Waypoints (GPX / CSV)',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldPro.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'PRO',
+                        style: TextStyle(
+                          color: AppColors.goldPro,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
 
             // Pro Multi-Waypoint Upsell if free
             if (!proState.isPro)
