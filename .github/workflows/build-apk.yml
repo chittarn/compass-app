@@ -142,8 +142,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: success()
         with:
-          tag_name: v1.0.9+28
-          name: "Compass v1.0.9+28 — Phase 5C CI Test Integrity & Safety"
+          tag_name: v1.0.9+29
+          name: "Compass v1.0.9+29 — Phase 6A Mobile UI/UX Corrections"
           draft: false
           prerelease: false
           make_latest: true
