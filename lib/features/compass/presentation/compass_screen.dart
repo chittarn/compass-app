@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'controllers/compass_controller.dart';
+import '../domain/compass_state.dart';
 import '../domain/heading_type.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +13,7 @@ import 'widgets/calibration_modal.dart';
 import 'widgets/telemetry_guide_modal.dart';
 import 'widgets/vastu_guide_modal.dart';
 import '../../../core/utils/vastu_calculator.dart';
+import '../../../core/utils/wmm_calculator.dart';
 import '../../pro/controllers/pro_controller.dart';
 import '../../pro/presentation/pro_upgrade_modal.dart';
 import '../../pro/presentation/theme_picker_modal.dart';
