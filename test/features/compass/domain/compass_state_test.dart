@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:compass_app/features/compass/domain/compass_state.dart';
 import 'package:compass_app/features/compass/domain/heading_type.dart';
 import 'package:compass_app/core/constants/compass_constants.dart';
+import 'package:compass_app/core/utils/vastu_calculator.dart';
 import 'package:compass_app/core/utils/wmm_calculator.dart';
 
 void main() {

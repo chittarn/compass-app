@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 enum VastuElement {
   water, // जल
   air,   // वायु

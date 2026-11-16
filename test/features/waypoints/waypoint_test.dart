@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:compass_app/features/waypoints/domain/waypoint.dart';
-import 'package:compass_app/features/waypoints/domain/waypoints_state.dart';
 
 void main() {
   group('Waypoint & Backtracking Tests', () {

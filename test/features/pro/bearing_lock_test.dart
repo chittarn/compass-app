@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:compass_app/features/pro/controllers/pro_controller.dart';
-import 'package:compass_app/features/pro/domain/pro_state.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

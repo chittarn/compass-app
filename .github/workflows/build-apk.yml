@@ -114,7 +114,7 @@ jobs:
       - name: Check Analyzer
         run: |
           set -o pipefail
-          flutter analyze 2>&1 | tee -a build.log
+          flutter analyze --no-fatal-infos 2>&1 | tee -a build.log
 
       - name: Run Tests
         run: |

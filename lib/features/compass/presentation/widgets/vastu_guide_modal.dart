@@ -26,7 +26,6 @@ class _VastuGuideModalState extends ConsumerState<VastuGuideModal> {
   VastuGridMode _activeMode = VastuGridMode.eightZone;
   VastuProfileType _activeProfile = VastuProfileType.residential;
   VastuRoomType? _selectedRoom = VastuRoomType.poojaRoom;
-  CommercialRoomType? _selectedCommercial = CommercialRoomType.managingDirector;
 
   @override
   void initState() {
