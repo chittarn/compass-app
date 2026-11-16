@@ -4,6 +4,23 @@
 
 import 'dart:math' as math;
 
+/// Geomagnetic compass reliability based on NOAA WMM-2025 specifications.
+/// Near magnetic dip poles, the horizontal field intensity (H) weakens drastically.
+enum WmmReliabilityLevel {
+  /// Standard reliable compass performance (H > 6,000 nT).
+  normal('Normal', 'Standard horizontal field strength for navigation.'),
+
+  /// Caution zone (2,000 nT <= H <= 6,000 nT). Increased compass error and sensor susceptibility.
+  caution('Caution', 'Low horizontal field (2,000–6,000 nT). Compass subject to magnetic instability.'),
+
+  /// Compass Blackout Zone (H < 2,000 nT). Compass needles lose restoring force and become erratic.
+  blackout('Blackout', 'Extreme blackout zone (<2,000 nT). Magnetic compasses unusable.');
+
+  final String label;
+  final String description;
+  const WmmReliabilityLevel(this.label, this.description);
+}
+
 /// Complete geomagnetic field components output by WMM-2025
 class WmmResult {
   /// Magnetic Declination in degrees (-180.0 to 180.0).
@@ -29,6 +46,9 @@ class WmmResult {
   /// Downward magnetic field component in nanoTesla (nT).
   final double zDownNt;
 
+  /// Compass reliability assessment based on horizontal magnetic field intensity (H).
+  final WmmReliabilityLevel reliabilityLevel;
+
   const WmmResult({
     required this.declinationDeg,
     required this.inclinationDeg,
@@ -37,11 +57,12 @@ class WmmResult {
     required this.xNorthNt,
     required this.yEastNt,
     required this.zDownNt,
+    required this.reliabilityLevel,
   });
 
   @override
   String toString() =>
-      'WmmResult(Dec: ${declinationDeg.toStringAsFixed(2)}°, Inc: ${inclinationDeg.toStringAsFixed(2)}°, F: ${totalIntensityNt.toStringAsFixed(1)} nT)';
+      'WmmResult(Dec: ${declinationDeg.toStringAsFixed(2)}°, Inc: ${inclinationDeg.toStringAsFixed(2)}°, H: ${horizontalIntensityNt.toStringAsFixed(1)} nT, F: ${totalIntensityNt.toStringAsFixed(1)} nT, Reliability: ${reliabilityLevel.label})';
 }
 
 /// High-precision, fully offline implementation of NOAA/BGS World Magnetic Model (WMM-2025).
@@ -54,6 +75,50 @@ class WmmResult {
 class WmmCalculator {
   static const double epoch = 2025.0;
   static const int maxDegree = 12;
+
+  /// Model validity boundaries per NOAA/BGS WMM-2025 specifications.
+  static const double minValidYear = 2025.0;
+  static const double maxValidYear = 2030.0;
+  static const double minAltitudeMeters = -1000.0;
+  static const double maxAltitudeMeters = 850000.0; // 850 km
+
+  /// Explicit validation of WMM calculation inputs.
+  /// Throws [ArgumentError] if date, coordinates or altitude violate model limits.
+  static void validateInputs({
+    required double latitudeDeg,
+    required double longitudeDeg,
+    required double altitudeMeters,
+    required double decimalYear,
+  }) {
+    if (!latitudeDeg.isFinite || latitudeDeg < -90.0 || latitudeDeg > 90.0) {
+      throw ArgumentError.value(
+        latitudeDeg,
+        'latitudeDeg',
+        'Latitude must be a finite number between -90.0 and 90.0 degrees.',
+      );
+    }
+    if (!longitudeDeg.isFinite) {
+      throw ArgumentError.value(
+        longitudeDeg,
+        'longitudeDeg',
+        'Longitude must be a finite number.',
+      );
+    }
+    if (!altitudeMeters.isFinite || altitudeMeters < minAltitudeMeters || altitudeMeters > maxAltitudeMeters) {
+      throw ArgumentError.value(
+        altitudeMeters,
+        'altitudeMeters',
+        'Altitude must be a finite number between $minAltitudeMeters and $maxAltitudeMeters meters.',
+      );
+    }
+    if (!decimalYear.isFinite || decimalYear < minValidYear || decimalYear > maxValidYear) {
+      throw ArgumentError.value(
+        decimalYear,
+        'date/decimalYear',
+        'WMM-2025 model is strictly valid for dates between $minValidYear and $maxValidYear (received $decimalYear).',
+      );
+    }
+  }
 
   // WGS-84 Ellipsoid Constants
   static const double _wgs84A = 6378.137; // Semi-major axis in km
@@ -196,8 +261,15 @@ class WmmCalculator {
     required double altitudeMeters,
     required double decimalYear,
   }) {
-    // Clamp inputs to valid bounds
-    final latClamped = latitudeDeg.clamp(-90.0, 90.0);
+    // Explicit validation per NOAA WMM-2025 specifications
+    validateInputs(
+      latitudeDeg: latitudeDeg,
+      longitudeDeg: longitudeDeg,
+      altitudeMeters: altitudeMeters,
+      decimalYear: decimalYear,
+    );
+
+    final latClamped = latitudeDeg;
     // Normalize longitude to [-180, 180]
     double lonNorm = (longitudeDeg + 180.0) % 360.0;
     if (lonNorm < 0) lonNorm += 360.0;
@@ -333,6 +405,15 @@ class WmmCalculator {
       decDeg += 360.0;
     }
 
+    final WmmReliabilityLevel reliability;
+    if (h < 2000.0) {
+      reliability = WmmReliabilityLevel.blackout;
+    } else if (h <= 6000.0) {
+      reliability = WmmReliabilityLevel.caution;
+    } else {
+      reliability = WmmReliabilityLevel.normal;
+    }
+
     return WmmResult(
       declinationDeg: decDeg,
       inclinationDeg: incDeg,
@@ -341,6 +422,7 @@ class WmmCalculator {
       xNorthNt: x,
       yEastNt: y,
       zDownNt: z,
+      reliabilityLevel: reliability,
     );
   }
 }

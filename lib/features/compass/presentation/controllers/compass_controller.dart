@@ -201,12 +201,13 @@ class CompassController extends StateNotifier<CompassState> {
     final sunAz = SolarCalculator.calculateSunAzimuth(pos.latitude, pos.longitude, nowUtc);
     final moonAz = SolarCalculator.calculateMoonAzimuth(pos.latitude, pos.longitude, nowUtc);
     final sunTimes = SolarCalculator.calculateSunriseSunset(pos.latitude, pos.longitude, nowLocal);
-    final dec = HeadingCalculator.calculateDeclination(
+    final wmmResult = HeadingCalculator.calculateWmm(
       pos.latitude,
       pos.longitude,
       altitudeMeters: pos.altitude,
       date: nowLocal,
     );
+    final dec = wmmResult.declinationDeg;
 
     state = state.copyWith(
       latitude: pos.latitude,
@@ -215,6 +216,7 @@ class CompassController extends StateNotifier<CompassState> {
       locationAccuracy: pos.accuracy,
       hasLocationPermission: true,
       magneticDeclination: dec,
+      wmmReliability: wmmResult.reliabilityLevel,
       qiblaBearing: qBearing,
       qiblaDistanceKm: qDist,
       sunAzimuth: sunAz,

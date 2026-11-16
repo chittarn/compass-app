@@ -355,12 +355,15 @@ class ProUpgradeModal extends ConsumerWidget {
                         ),
                       );
                     } else {
-                      // Billing is prepared, but not active yet
+                      proNotifier.toggleProMode();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('🛒 Google Play In-App Purchase is being prepared for the upcoming release!'),
-                          backgroundColor: Color(0xFF161922),
-                          duration: Duration(seconds: 3),
+                        SnackBar(
+                          content: Text(
+                            !proState.isPro
+                                ? '⭐ Compass Pro unlocked! All Pro features active.'
+                                : 'Compass switched back to Free Tier (5 waypoints limit).',
+                          ),
+                          duration: const Duration(seconds: 2),
                         ),
                       );
                     }
@@ -378,15 +381,15 @@ class ProUpgradeModal extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        proState.isPro ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                        proState.isPro ? Icons.check_circle_rounded : Icons.lock_open_rounded,
                         color: Colors.black,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         proState.isPro
-                            ? 'COMPASS PRO ACTIVE'
-                            : 'UPGRADE TO PRO — \$1.99 (COMING SOON)',
+                            ? 'PRO ACTIVE (TAP TO SWITCH TO FREE)'
+                            : 'TAP TO UNLOCK PRO PREVIEW (FREE)',
                         style: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w900,
@@ -409,60 +412,70 @@ class ProUpgradeModal extends ConsumerWidget {
                   ),
                 ),
 
-                // Development-Only Testing Mechanism (Strictly excluded in Release builds)
-                if (kDebugMode) ...[
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                // Temporary Pro Version Switcher Card
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: proState.isPro
+                        ? theme.accentCyan.withOpacity(0.12)
+                        : theme.goldPro.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                      width: 1.2,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '[DEV ONLY] Entitlement Simulator',
-                              style: TextStyle(
-                                color: Colors.amber,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                proState.isPro ? Icons.verified_rounded : Icons.lock_open_rounded,
+                                color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                size: 16,
                               ),
-                            ),
-                            Text(
-                              proState.isPro ? 'State: Pro Active' : 'State: Free Tier',
-                              style: TextStyle(
-                                color: theme.textSecondary,
-                                fontSize: 10.5,
+                              const SizedBox(width: 6),
+                              Text(
+                                'PRO VERSION SWITCHER',
+                                style: TextStyle(
+                                  color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 12,
+                                  letterSpacing: 0.8,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            backgroundColor: Colors.amber.withOpacity(0.2),
-                            visualDensity: VisualDensity.compact,
+                            ],
                           ),
-                          onPressed: () {
-                            proNotifier.debugTogglePro();
-                          },
-                          child: Text(
-                            proState.isPro ? 'Revoke Pro' : 'Grant Pro',
-                            style: const TextStyle(
-                              color: Colors.amber,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(height: 3),
+                          Text(
+                            proState.isPro
+                                ? 'Active: PRO (Unlimited Waypoints)'
+                                : 'Active: FREE (5 Waypoints Limit)',
+                            style: TextStyle(
+                              color: theme.textSecondary,
                               fontSize: 11,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                      Switch(
+                        value: proState.isPro,
+                        activeColor: theme.accentCyan,
+                        activeTrackColor: theme.accentCyan.withOpacity(0.4),
+                        inactiveThumbColor: theme.textSecondary,
+                        inactiveTrackColor: theme.dialRing,
+                        onChanged: (_) {
+                          proNotifier.toggleProMode();
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
 
                 const SizedBox(height: 16),
               ],

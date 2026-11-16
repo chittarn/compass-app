@@ -230,22 +230,161 @@ void main() {
       expect(dec, closeTo(3.52, 0.2));
       expect(dec, greaterThan(0.0));
     });
+
+    test('Bhubaneswar, Odisha, India: Official NOAA WMM-2025 Reference Test', () {
+      // Bhubaneswar Coordinates: 20.2961° N, 85.8245° E, Elevation: 45.0m WGS-84
+      // Epoch 2025.0: Expected Dec: -0.43° W (-0.4279°), Inc: 30.40°, H: 38,980.5 nT, F: 45,196.0 nT
+      final res2025 = WmmCalculator.calculate(
+        latitudeDeg: 20.2961,
+        longitudeDeg: 85.8245,
+        altitudeMeters: 45.0,
+        date: DateTime.utc(2025, 1, 1),
+      );
+      expect(res2025.declinationDeg, closeTo(-0.43, 0.05));
+      expect(res2025.inclinationDeg, closeTo(30.40, 0.1));
+      expect(res2025.totalIntensityNt, closeTo(45196.0, 10.0));
+      expect(res2025.horizontalIntensityNt, closeTo(38980.5, 10.0));
+      expect(res2025.reliabilityLevel, equals(WmmReliabilityLevel.normal));
+
+      // Epoch 2026.0 (Secular variation drift rate validation):
+      // Expected Dec: -0.40° W (-0.4032°), Inc: 30.43°, H: 38,998.6 nT, F: 45,230.0 nT
+      final res2026 = WmmCalculator.calculate(
+        latitudeDeg: 20.2961,
+        longitudeDeg: 85.8245,
+        altitudeMeters: 45.0,
+        date: DateTime.utc(2026, 1, 1),
+      );
+      expect(res2026.declinationDeg, closeTo(-0.40, 0.05));
+      expect(res2026.inclinationDeg, closeTo(30.43, 0.1));
+      expect(res2026.totalIntensityNt, closeTo(45230.0, 10.0));
+      expect(res2026.horizontalIntensityNt, closeTo(38998.6, 10.0));
+      expect(res2026.reliabilityLevel, equals(WmmReliabilityLevel.normal));
+    });
+  });
+
+  group('WMM-2025 Reliability Warnings & Field Strength Thresholds', () {
+    test('Normal reliability: Horizontal intensity H > 6000 nT', () {
+      final res = WmmCalculator.calculate(
+        latitudeDeg: 28.6139,
+        longitudeDeg: 77.2090,
+        altitudeMeters: 216.0,
+        date: DateTime.utc(2025, 1, 1),
+      );
+      expect(res.horizontalIntensityNt, greaterThan(6000.0));
+      expect(res.reliabilityLevel, equals(WmmReliabilityLevel.normal));
+    });
+
+    test('Caution zone: Horizontal intensity 2000 nT <= H <= 6000 nT', () {
+      // High magnetic latitude near Canadian Arctic: 80°N, -96°W
+      final res = WmmCalculator.calculate(
+        latitudeDeg: 80.0,
+        longitudeDeg: -96.0,
+        altitudeMeters: 48000.0,
+        date: DateTime.utc(2025, 1, 1),
+      );
+      expect(res.horizontalIntensityNt, greaterThanOrEqualTo(2000.0));
+      expect(res.horizontalIntensityNt, lessThanOrEqualTo(6000.0));
+      expect(res.reliabilityLevel, equals(WmmReliabilityLevel.caution));
+    });
+
+    test('Blackout zone: Horizontal intensity H < 2000 nT near magnetic dip pole', () {
+      // 89°N, -121°W has H ≈ 1500 nT
+      final res = WmmCalculator.calculate(
+        latitudeDeg: 89.0,
+        longitudeDeg: -121.0,
+        altitudeMeters: 28000.0,
+        date: DateTime.utc(2025, 1, 1),
+      );
+      expect(res.horizontalIntensityNt, lessThan(2000.0));
+      expect(res.reliabilityLevel, equals(WmmReliabilityLevel.blackout));
+    });
   });
 
   group('Boundary & Graceful Handling Tests', () {
-    test('Exact North Pole (+90.0°) does not throw or produce NaN', () {
+    test('Dates before 2025.0 throw ArgumentError', () {
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 40.7128,
+          longitudeDeg: -74.0060,
+          date: DateTime.utc(2024, 12, 31),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('Dates after 2030.0 throw ArgumentError', () {
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 40.7128,
+          longitudeDeg: -74.0060,
+          date: DateTime.utc(2030, 2, 1),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('Invalid latitude (> 90° or < -90°) throws ArgumentError', () {
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 95.0,
+          longitudeDeg: 0.0,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: -90.5,
+          longitudeDeg: 0.0,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('Non-finite coordinates or altitude throw ArgumentError', () {
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: double.nan,
+          longitudeDeg: 0.0,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 0.0,
+          longitudeDeg: double.infinity,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => WmmCalculator.calculate(
+          latitudeDeg: 0.0,
+          longitudeDeg: 0.0,
+          altitudeMeters: double.nan,
+          date: DateTime.utc(2025, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('Exact North Pole (+90.0°) computes cleanly within valid bounds', () {
       final dec = WmmCalculator.calculateDeclination(
         latitudeDeg: 90.0,
         longitudeDeg: 0.0,
+        date: DateTime.utc(2025, 1, 1),
       );
       expect(dec.isNaN, isFalse);
       expect(dec.isInfinite, isFalse);
     });
 
-    test('Exact South Pole (-90.0°) does not throw or produce NaN', () {
+    test('Exact South Pole (-90.0°) computes cleanly within valid bounds', () {
       final dec = WmmCalculator.calculateDeclination(
         latitudeDeg: -90.0,
         longitudeDeg: 0.0,
+        date: DateTime.utc(2025, 1, 1),
       );
       expect(dec.isNaN, isFalse);
       expect(dec.isInfinite, isFalse);
@@ -255,6 +394,7 @@ void main() {
       final dec = WmmCalculator.calculateDeclination(
         latitudeDeg: 0.0,
         longitudeDeg: 0.0,
+        date: DateTime.utc(2025, 1, 1),
       );
       expect(dec.isNaN, isFalse);
     });

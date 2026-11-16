@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../compass/domain/heading_type.dart';
 import '../domain/pro_state.dart';
 
 final proControllerProvider =
@@ -62,6 +63,13 @@ class ProController extends StateNotifier<ProState> {
     await setEntitled(value);
   }
 
+  /// Temporary Pro switcher for on-device testing in both debug and release builds.
+  Future<void> toggleProMode() async {
+    HapticFeedback.mediumImpact();
+    final newPro = !state.isPro;
+    await setEntitled(newPro);
+  }
+
   /// Development-only Pro toggle. Strictly disabled in release builds.
   Future<void> debugTogglePro() async {
     if (!kDebugMode) return;
@@ -72,7 +80,7 @@ class ProController extends StateNotifier<ProState> {
 
   /// Wrapper around debugTogglePro to preserve backwards compatibility in debug mode
   Future<void> togglePro() async {
-    await debugTogglePro();
+    await toggleProMode();
   }
 
   Future<void> toggleNightVision() async {
@@ -108,12 +116,27 @@ class ProController extends StateNotifier<ProState> {
     return true;
   }
 
-  void lockBearing(double currentHeading) {
+  void lockBearing(
+    double currentHeading, {
+    HeadingType headingType = HeadingType.magnetic,
+    double? declination,
+  }) {
     if (!state.isPro) return;
     HapticFeedback.selectionClick();
     _lastDriftStep = 0;
     _lastDriftHapticTime = DateTime.fromMillisecondsSinceEpoch(0);
-    state = state.copyWith(lockedBearing: currentHeading);
+
+    // Compute and store underlying invariant physical magnetic heading
+    double magBearing = currentHeading;
+    if (headingType == HeadingType.trueNorth && declination != null) {
+      magBearing = (currentHeading - declination) % 360.0;
+      if (magBearing < 0) magBearing += 360.0;
+    }
+
+    state = state.copyWith(
+      lockedMagneticBearing: magBearing,
+      lockedBearing: currentHeading,
+    );
   }
 
   void clearLockedBearing() {
@@ -121,6 +144,24 @@ class ProController extends StateNotifier<ProState> {
     _lastDriftStep = 0;
     _lastDriftHapticTime = DateTime.fromMillisecondsSinceEpoch(0);
     state = state.copyWith(clearBearing: true);
+  }
+
+  /// Updates the displayed locked bearing when switching between Magnetic and True North
+  /// or when GPS acquires / updates declination.
+  /// Prevents missing, duplicated or repeated bearing adjustments.
+  void updateReferenceFrame({
+    required HeadingType headingType,
+    double? declination,
+  }) {
+    if (!state.isPro || state.lockedMagneticBearing == null) return;
+    double effective;
+    if (headingType == HeadingType.trueNorth && declination != null) {
+      effective = (state.lockedMagneticBearing! + declination) % 360.0;
+      if (effective < 0) effective += 360.0;
+    } else {
+      effective = state.lockedMagneticBearing!;
+    }
+    state = state.copyWith(lockedBearing: effective);
   }
 
   /// Adjusts the locked bearing by [deltaDegrees] when switching between Magnetic and True North

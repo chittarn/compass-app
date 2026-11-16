@@ -68,4 +68,19 @@ class HeadingCalculator {
       date: date,
     );
   }
+
+  /// Computes the complete 7-component WMM-2025 result including reliability level
+  static WmmResult calculateWmm(
+    double latDeg,
+    double lonDeg, {
+    double altitudeMeters = 0.0,
+    DateTime? date,
+  }) {
+    return WmmCalculator.calculate(
+      latitudeDeg: latDeg,
+      longitudeDeg: lonDeg,
+      altitudeMeters: altitudeMeters,
+      date: date,
+    );
+  }
 }

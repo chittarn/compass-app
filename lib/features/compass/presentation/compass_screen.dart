@@ -79,6 +79,17 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     final wpState = ref.watch(waypointsControllerProvider);
     final wpNotifier = ref.read(waypointsControllerProvider.notifier);
 
+    // Keep Bearing Lock reference frame synchronized when heading mode or declination changes
+    ref.listen<CompassState>(compassControllerProvider, (previous, current) {
+      if (previous?.headingType != current.headingType ||
+          previous?.magneticDeclination != current.magneticDeclination) {
+        ref.read(proControllerProvider.notifier).updateReferenceFrame(
+          headingType: current.headingType,
+          declination: current.magneticDeclination,
+        );
+      }
+    });
+
     final theme = proState.effectiveTheme;
 
     _checkCalibrationAlert(state.accuracy);
@@ -104,11 +115,15 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
       );
       isWaypointArrived = _isWaypointArrived;
 
-      // Ensure both Waypoint Bearing and Device Heading use the True North reference
-      final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
-          ? state.heading
-          : ((state.heading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
-      waypointRelBearing = activeWp.relativeBearingFrom(state.latitude!, state.longitude!, effectiveTrueHeading);
+      // Ensure both Waypoint Bearing and Device Heading use verified True North reference
+      final effectiveTrueHeading = state.headingType == HeadingType.trueNorth
+          ? (state.magneticDeclination != null ? state.heading : null)
+          : (state.magneticDeclination != null
+              ? ((state.heading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0
+              : null);
+      if (effectiveTrueHeading != null) {
+        waypointRelBearing = activeWp.relativeBearingFrom(state.latitude!, state.longitude!, effectiveTrueHeading);
+      }
     } else {
       _isWaypointArrived = false;
     }
@@ -117,18 +132,22 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
     double? driftAngle;
     String driftLabel = '';
     if (proState.lockedBearing != null) {
-      double diff = (state.heading - proState.lockedBearing!) % 360;
-      if (diff > 180) diff -= 360;
-      if (diff < -180) diff += 360;
-      driftAngle = diff;
-      if (diff.abs() <= 3.0) {
-        driftLabel = '🎯 ON COURSE';
-      } else if (diff > 3.0) {
-        driftLabel = '↶ STEER LEFT ${diff.round()}°';
+      if (isTrueNorth && state.magneticDeclination == null) {
+        driftLabel = 'GPS FIX PENDING';
       } else {
-        driftLabel = '↷ STEER RIGHT ${diff.abs().round()}°';
+        double diff = (state.heading - proState.lockedBearing!) % 360;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+        driftAngle = diff;
+        if (diff.abs() <= 3.0) {
+          driftLabel = '🎯 ON COURSE';
+        } else if (diff > 3.0) {
+          driftLabel = '↶ STEER LEFT ${diff.round()}°';
+        } else {
+          driftLabel = '↷ STEER RIGHT ${diff.abs().round()}°';
+        }
+        ref.read(proControllerProvider.notifier).evaluateDriftHaptics(driftAngle);
       }
-      ref.read(proControllerProvider.notifier).evaluateDriftHaptics(driftAngle);
     }
 
     return Scaffold(
@@ -288,53 +307,101 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text(
-                        state.heading.round().toString().padLeft(3, '0'),
-                        style: TextStyle(
-                          color: theme.textPrimary,
-                          fontSize: 60,
-                          fontWeight: FontWeight.w300,
-                          fontFamily: 'monospace',
-                          letterSpacing: -1.0,
+                      if (isTrueNorth && state.magneticDeclination == null) ...[
+                        Text(
+                          '---',
+                          style: TextStyle(
+                            color: theme.accentCyan.withOpacity(0.4),
+                            fontSize: 60,
+                            fontWeight: FontWeight.w300,
+                            fontFamily: 'monospace',
+                            letterSpacing: -1.0,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '°',
-                        style: TextStyle(
-                          color: theme.northRed,
-                          fontSize: 38,
-                          fontWeight: FontWeight.w400,
+                        Text(
+                          '°',
+                          style: TextStyle(
+                            color: theme.northRed.withOpacity(0.4),
+                            fontSize: 38,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        directionLabel,
-                        style: TextStyle(
-                          color: theme.textSecondary,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+                        const SizedBox(width: 8),
+                        Text(
+                          'GPS REQ',
+                          style: TextStyle(
+                            color: theme.accentAmber,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.0,
+                          ),
                         ),
-                      ),
+                      ] else ...[
+                        Text(
+                          state.heading.round().toString().padLeft(3, '0'),
+                          style: TextStyle(
+                            color: theme.textPrimary,
+                            fontSize: 60,
+                            fontWeight: FontWeight.w300,
+                            fontFamily: 'monospace',
+                            letterSpacing: -1.0,
+                          ),
+                        ),
+                        Text(
+                          '°',
+                          style: TextStyle(
+                            color: theme.northRed,
+                            fontSize: 38,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          directionLabel,
+                          style: TextStyle(
+                            color: theme.textSecondary,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
 
-                    // True North Telemetry Sub-title Indicator
-                    if (isTrueNorth) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        state.magneticDeclination != null
-                            ? 'TRUE NORTH  •  DEC ${state.formattedDeclination}'
-                            : 'TRUE NORTH  •  ACQUIRING GPS FIX...',
-                        style: TextStyle(
-                          color: theme.accentCyan,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.1,
-                          fontFamily: 'monospace',
-                        ),
+                  // True North Telemetry Sub-title Indicator
+                  if (isTrueNorth) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      state.magneticDeclination != null
+                          ? 'TRUE NORTH  •  DEC ${state.formattedDeclination}'
+                          : 'TRUE NORTH UNAVAILABLE  •  ACQUIRING GPS FIX...',
+                      style: TextStyle(
+                        color: state.magneticDeclination != null ? theme.accentCyan : theme.accentAmber,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.1,
+                        fontFamily: 'monospace',
                       ),
-                    ],
+                    ),
+                  ],
+
+                  // WMM Horizontal Field Reliability Warning
+                  if (state.wmmReliability != WmmReliabilityLevel.normal && state.magneticDeclination != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      state.wmmReliability == WmmReliabilityLevel.blackout
+                          ? '⚠️ BLACKOUT ZONE: HORIZONTAL FIELD TOO WEAK (<2000 nT)'
+                          : '⚠️ CAUTION: LOW HORIZONTAL FIELD (<6000 nT)',
+                      style: TextStyle(
+                        color: state.wmmReliability == WmmReliabilityLevel.blackout ? theme.northRed : theme.accentAmber,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
 
                     // Target Bearing Lock HUD Chip (PRO)
                     if (proState.lockedBearing != null) ...[
@@ -631,13 +698,7 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                   // Heading Mode Toggle (Magnetic vs True North)
                   GestureDetector(
                     onTap: () async {
-                      final wasTrue = isTrueNorth;
-                      final dec = state.magneticDeclination ?? 0.0;
                       final success = await controller.toggleHeadingType();
-                      if (success && proState.lockedBearing != null && dec != 0.0) {
-                        final delta = wasTrue ? -dec : dec;
-                        proNotifier.adjustLockedBearing(delta);
-                      }
                       if (!success && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -653,7 +714,9 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         color: theme.surface,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isTrueNorth ? theme.accentCyan : theme.dialRing,
+                          color: isTrueNorth
+                              ? (state.magneticDeclination != null ? theme.accentCyan : theme.accentAmber)
+                              : theme.dialRing,
                           width: 1.2,
                         ),
                       ),
@@ -661,19 +724,25 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isTrueNorth ? Icons.navigation : Icons.explore,
+                            isTrueNorth
+                                ? (state.magneticDeclination != null ? Icons.navigation : Icons.gps_not_fixed)
+                                : Icons.explore,
                             size: 13,
-                            color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
+                            color: isTrueNorth
+                                ? (state.magneticDeclination != null ? theme.accentCyan : theme.accentAmber)
+                                : theme.textSecondary,
                           ),
                           const SizedBox(width: 5),
                           Text(
                             isTrueNorth
                                 ? (state.magneticDeclination != null
                                     ? 'True North (${state.formattedDeclination})'
-                                    : 'True North')
+                                    : 'True North (Acquiring GPS...)')
                                 : 'Magnetic North',
                             style: TextStyle(
-                              color: isTrueNorth ? theme.accentCyan : theme.textSecondary,
+                              color: isTrueNorth
+                                  ? (state.magneticDeclination != null ? theme.accentCyan : theme.accentAmber)
+                                  : theme.textSecondary,
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
                             ),
@@ -838,7 +907,11 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                             ),
                           );
                         } else {
-                          proNotifier.lockBearing(state.heading);
+                          proNotifier.lockBearing(
+                            state.heading,
+                            headingType: state.headingType,
+                            declination: state.magneticDeclination,
+                          );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('🎯 Target bearing locked to ${state.heading.round()}°.'),
@@ -916,7 +989,11 @@ class _CompassScreenState extends ConsumerState<CompassScreen> {
                           ),
                         );
                       } else {
-                        proNotifier.lockBearing(state.heading);
+                        proNotifier.lockBearing(
+                          state.heading,
+                          headingType: state.headingType,
+                          declination: state.magneticDeclination,
+                        );
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('🎯 Target bearing locked to ${state.heading.round()}°.'),

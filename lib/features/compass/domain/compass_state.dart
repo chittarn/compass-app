@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'heading_type.dart';
 import '../../../core/utils/qibla_calculator.dart';
 import '../../../core/utils/vastu_calculator.dart';
+import '../../../core/utils/wmm_calculator.dart';
 
 class CompassState {
   final double heading;              // 0..360 for display readout
@@ -13,9 +15,10 @@ class CompassState {
   final bool hasLocationPermission;
   final double? trueHeading;          // True north heading if GPS available
   final double? magneticDeclination;  // Difference between True and Magnetic
+  final WmmReliabilityLevel wmmReliability; // Compass horizontal field reliability
   final double? latitude;
   final double? longitude;
-  final double? altitude;             // Elevation in meters above sea level
+  final double? altitude;             // Elevation in meters
   final double? locationAccuracy;     // Horizontal GPS accuracy in meters
   final double? magneticFieldStrength; // Live magnetic flux density in microteslas (μT)
   final bool isQiblaMode;             // Whether Qibla navigation mode is active
@@ -39,6 +42,7 @@ class CompassState {
     required this.hasLocationPermission,
     this.trueHeading,
     this.magneticDeclination,
+    this.wmmReliability = WmmReliabilityLevel.normal,
     this.latitude,
     this.longitude,
     this.altitude,
@@ -55,6 +59,10 @@ class CompassState {
     this.activeVastuRoom,
   });
 
+  /// True North is verified and available only when in True North mode AND
+  /// a valid magnetic declination has been calculated by WMM from GPS.
+  bool get isTrueNorthAvailable => headingType == HeadingType.trueNorth && magneticDeclination != null;
+
   String get formattedCoordinates {
     if (latitude == null || longitude == null) {
       return '--°--\'--" N  --°--\'--" E';
@@ -62,11 +70,15 @@ class CompassState {
     return '${_toDms(latitude!, isLat: true)}   ${_toDms(longitude!, isLat: false)}';
   }
 
+  /// Formatted altitude with explicit datum:
+  /// - Android: Height above WGS-84 reference ellipsoid (HAE).
+  /// - iOS: Height above Mean Sea Level (MSL).
   String get formattedAltitude {
     if (altitude == null) {
-      return '-- m MSL';
+      return defaultTargetPlatform == TargetPlatform.android ? '-- m WGS-84' : '-- m MSL';
     }
-    return '${altitude!.round()} m MSL';
+    final datum = defaultTargetPlatform == TargetPlatform.android ? 'm WGS-84' : 'm MSL';
+    return '${altitude!.round()} $datum';
   }
 
   String get formattedMagneticField {
@@ -161,6 +173,7 @@ class CompassState {
     bool? hasLocationPermission,
     double? trueHeading,
     double? magneticDeclination,
+    WmmReliabilityLevel? wmmReliability,
     double? latitude,
     double? longitude,
     double? altitude,
@@ -188,6 +201,7 @@ class CompassState {
       hasLocationPermission: hasLocationPermission ?? this.hasLocationPermission,
       trueHeading: trueHeading ?? this.trueHeading,
       magneticDeclination: magneticDeclination ?? this.magneticDeclination,
+      wmmReliability: wmmReliability ?? this.wmmReliability,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       altitude: altitude ?? this.altitude,

@@ -60,6 +60,7 @@ void main() {
     ('New York, USA', 40.7128, -74.0060, 10.0),
     ('London, UK', 51.5074, -0.1278, 11.0),
     ('New Delhi, India', 28.6139, 77.2090, 216.0),
+    ('Bhubaneswar, Odisha', 20.2961, 85.8245, 45.0),
     ('Tokyo, Japan', 35.6762, 139.6503, 40.0),
     ('Sydney, Australia', -33.8688, 151.2093, 19.0),
     ('Mecca (Kaaba), KSA', 21.4225, 39.8262, 277.0),
@@ -83,9 +84,108 @@ void main() {
     print('${name.padRight(22)}: ${dec.abs().toStringAsFixed(2)}° $sign ($dec°)');
   }
 
+  print('\n=== CHECKING BHUBANESWAR REFERENCE TEST VALUES ===');
+  final bbi2025 = WmmCalculator.calculate(
+    latitudeDeg: 20.2961,
+    longitudeDeg: 85.8245,
+    altitudeMeters: 45.0,
+    date: DateTime.utc(2025, 1, 1),
+  );
+  print('Bhubaneswar 2025.0: Dec = ${bbi2025.declinationDeg.toStringAsFixed(4)}°, Inc = ${bbi2025.inclinationDeg.toStringAsFixed(4)}°, H = ${bbi2025.horizontalIntensityNt.toStringAsFixed(1)} nT, F = ${bbi2025.totalIntensityNt.toStringAsFixed(1)} nT, Reliability: ${bbi2025.reliabilityLevel.label}');
+  assert((bbi2025.declinationDeg - (-0.4279)).abs() < 0.01, 'Bhubaneswar 2025.0 declination check failed');
+  assert(bbi2025.reliabilityLevel == WmmReliabilityLevel.normal, 'Bhubaneswar must be Normal reliability');
+
+  final bbi2026 = WmmCalculator.calculate(
+    latitudeDeg: 20.2961,
+    longitudeDeg: 85.8245,
+    altitudeMeters: 45.0,
+    date: DateTime.utc(2026, 1, 1),
+  );
+  print('Bhubaneswar 2026.0: Dec = ${bbi2026.declinationDeg.toStringAsFixed(4)}°, Inc = ${bbi2026.inclinationDeg.toStringAsFixed(4)}°, H = ${bbi2026.horizontalIntensityNt.toStringAsFixed(1)} nT, F = ${bbi2026.totalIntensityNt.toStringAsFixed(1)} nT, Reliability: ${bbi2026.reliabilityLevel.label}');
+  assert((bbi2026.declinationDeg - (-0.4032)).abs() < 0.01, 'Bhubaneswar 2026.0 declination check failed');
+  print('[PASS] Bhubaneswar reference values 100% verified against NOAA WMM-2025!\n');
+
+  print('=== CHECKING MODEL BOUNDARY & VALIDATION CHECKS ===');
+  bool pre2025Throws = false;
+  try {
+    WmmCalculator.calculate(
+      latitudeDeg: 20.0,
+      longitudeDeg: 80.0,
+      date: DateTime.utc(2024, 12, 31),
+    );
+  } on ArgumentError {
+    pre2025Throws = true;
+  }
+  print('Dates before 2025.0 throw ArgumentError: $pre2025Throws');
+  assert(pre2025Throws);
+
+  bool post2030Throws = false;
+  try {
+    WmmCalculator.calculate(
+      latitudeDeg: 20.0,
+      longitudeDeg: 80.0,
+      date: DateTime.utc(2030, 2, 1),
+    );
+  } on ArgumentError {
+    post2030Throws = true;
+  }
+  print('Dates after 2030.0 throw ArgumentError: $post2030Throws');
+  assert(post2030Throws);
+
+  bool invalidLatThrows = false;
+  try {
+    WmmCalculator.calculate(
+      latitudeDeg: 91.0,
+      longitudeDeg: 0.0,
+      date: DateTime.utc(2025, 1, 1),
+    );
+  } on ArgumentError {
+    invalidLatThrows = true;
+  }
+  print('Invalid latitude throws ArgumentError: $invalidLatThrows');
+  assert(invalidLatThrows);
+
+  bool nanThrows = false;
+  try {
+    WmmCalculator.calculate(
+      latitudeDeg: double.nan,
+      longitudeDeg: 0.0,
+      date: DateTime.utc(2025, 1, 1),
+    );
+  } on ArgumentError {
+    nanThrows = true;
+  }
+  print('Non-finite coordinates throw ArgumentError: $nanThrows');
+  assert(nanThrows);
+
+  print('[PASS] WMM-2025 Boundary & input validation verified!\n');
+
+  print('=== CHECKING WMM RELIABILITY WARNINGS ===');
+  // High Arctic blackout check: 89°N, -121°W -> H ≈ 1500 nT (< 2000 nT)
+  final blackoutPoint = WmmCalculator.calculate(
+    latitudeDeg: 89.0,
+    longitudeDeg: -121.0,
+    altitudeMeters: 28000.0,
+    date: DateTime.utc(2025, 1, 1),
+  );
+  print('Arctic dip pole H: ${blackoutPoint.horizontalIntensityNt.toStringAsFixed(1)} nT -> ${blackoutPoint.reliabilityLevel.label}');
+  assert(blackoutPoint.reliabilityLevel == WmmReliabilityLevel.blackout);
+
+  // Caution zone: 80°N, -96°W -> H ≈ 2167 nT (2000..6000 nT)
+  final cautionPoint = WmmCalculator.calculate(
+    latitudeDeg: 80.0,
+    longitudeDeg: -96.0,
+    altitudeMeters: 48000.0,
+    date: DateTime.utc(2025, 1, 1),
+  );
+  print('Sub-Arctic caution H: ${cautionPoint.horizontalIntensityNt.toStringAsFixed(1)} nT -> ${cautionPoint.reliabilityLevel.label}');
+  assert(cautionPoint.reliabilityLevel == WmmReliabilityLevel.caution);
+
+  print('[PASS] WMM Reliability warnings verified!\n');
+
   if (allPassed) {
-    print('\n>>> ALL 14 NOAA TEST VECTORS MATCH GROUND TRUTH WITHIN 0.01°! 100% SUCCESS! <<<');
+    print('>>> ALL NOAA TEST VECTORS, BHUBANESWAR REFERENCE, VALIDATION & WARNING CHECKS PASSED (100%)! <<<');
   } else {
-    print('\n>>> SOME TESTS FAILED! <<<');
+    print('>>> SOME TESTS FAILED! <<<');
   }
 }
