@@ -8,8 +8,8 @@ class FakePurchaseDetails extends PurchaseDetails {
   FakePurchaseDetails({
     required super.productID,
     required super.status,
-    super.error,
-    super.pendingCompletePurchase = true,
+    IAPError? error,
+    bool pendingComplete = true,
   }) : super(
          verificationData: PurchaseVerificationData(
            localVerificationData: 'test_token',
@@ -17,7 +17,10 @@ class FakePurchaseDetails extends PurchaseDetails {
            source: 'google_play',
          ),
          transactionDate: '2026-11-18',
-       );
+       ) {
+    this.error = error;
+    pendingCompletePurchase = pendingComplete;
+  }
 }
 
 class FakeInAppPurchase extends Fake implements InAppPurchase {

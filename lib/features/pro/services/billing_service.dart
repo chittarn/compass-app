@@ -150,7 +150,6 @@ class BillingService {
       switch (purchase.status) {
         case PurchaseStatus.pending:
           _onPendingChanged?.call(true);
-          break;
 
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
@@ -168,7 +167,6 @@ class BillingService {
               }
             }
           }
-          break;
 
         case PurchaseStatus.error:
           _onPendingChanged?.call(false);
@@ -178,11 +176,9 @@ class BillingService {
               await _iap.completePurchase(purchase);
             } catch (_) {}
           }
-          break;
 
         case PurchaseStatus.canceled:
           _onPendingChanged?.call(false);
-          break;
       }
     }
   }

@@ -13,7 +13,7 @@ void main() {
     });
 
     test('Share message contains app name, description, and store link', () {
-      final msg = CompassConstants.shareMessage;
+      const msg = CompassConstants.shareMessage;
       expect(msg, contains('Compass'));
       expect(msg, contains('offline-first'));
       expect(msg, contains('True North'));
@@ -30,7 +30,7 @@ void main() {
     test(
       'Share message contains zero user location or personal identifiers',
       () {
-        final msg = CompassConstants.shareMessage;
+        const msg = CompassConstants.shareMessage;
         // Guarantee privacy: no latitude, longitude, altitude, bearing, or device ID in share text
         expect(msg, isNot(contains('lat')));
         expect(msg, isNot(contains('lng')));
