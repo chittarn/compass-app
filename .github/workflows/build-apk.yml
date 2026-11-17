@@ -128,6 +128,15 @@ jobs:
           flutter build apk --release --split-per-abi >> build.log 2>&1
           flutter build appbundle --release >> build.log 2>&1
 
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compass-release-builds
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/bundle/release/*.aab
+          if-no-files-found: warn
+
       - name: Publish Build Logs to GitHub Branch if Failed
         if: failure()
         run: |
