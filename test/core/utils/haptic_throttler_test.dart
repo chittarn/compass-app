@@ -30,38 +30,41 @@ void main() {
       expect(lightCalls, 0);
     });
 
-    test('Triggers medium haptic on Cardinal headings (90°, 180°, 270°)', () async {
-      int heavyCalls = 0;
-      int mediumCalls = 0;
-      int lightCalls = 0;
+    test(
+      'Triggers medium haptic on Cardinal headings (90°, 180°, 270°)',
+      () async {
+        int heavyCalls = 0;
+        int mediumCalls = 0;
+        int lightCalls = 0;
 
-      final throttler = HapticThrottler(
-        minInterval: const Duration(milliseconds: 50),
-        maxAngularVelocity: 120.0,
-        onHeavy: () async => heavyCalls++,
-        onMedium: () async => mediumCalls++,
-        onLight: () async => lightCalls++,
-      );
+        final throttler = HapticThrottler(
+          minInterval: const Duration(milliseconds: 50),
+          maxAngularVelocity: 120.0,
+          onHeavy: () async => heavyCalls++,
+          onMedium: () async => mediumCalls++,
+          onLight: () async => lightCalls++,
+        );
 
-      // 90° (East)
-      await throttler.evaluateHeading(
-        headingDegrees: 90.0,
-        angularVelocityDegPerSec: 15.0,
-        currentTime: DateTime(2026, 1, 1, 12, 0, 0, 0),
-      );
+        // 90° (East)
+        await throttler.evaluateHeading(
+          headingDegrees: 90.0,
+          angularVelocityDegPerSec: 15.0,
+          currentTime: DateTime(2026, 1, 1, 12, 0, 0, 0),
+        );
 
-      expect(mediumCalls, 1);
-      expect(heavyCalls, 0);
+        expect(mediumCalls, 1);
+        expect(heavyCalls, 0);
 
-      // 180° (South) after cooldown
-      await throttler.evaluateHeading(
-        headingDegrees: 180.0,
-        angularVelocityDegPerSec: 15.0,
-        currentTime: DateTime(2026, 1, 1, 12, 0, 0, 100),
-      );
+        // 180° (South) after cooldown
+        await throttler.evaluateHeading(
+          headingDegrees: 180.0,
+          angularVelocityDegPerSec: 15.0,
+          currentTime: DateTime(2026, 1, 1, 12, 0, 0, 100),
+        );
 
-      expect(mediumCalls, 2);
-    });
+        expect(mediumCalls, 2);
+      },
+    );
 
     test('Suppresses haptics when angular velocity exceeds threshold (spinning fast)', () async {
       int heavyCalls = 0;

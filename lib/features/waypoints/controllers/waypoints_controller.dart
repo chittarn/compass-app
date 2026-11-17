@@ -1,13 +1,15 @@
 import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../domain/waypoint.dart';
 import '../domain/waypoints_state.dart';
 
 final waypointsControllerProvider =
     StateNotifierProvider<WaypointsController, WaypointsState>((ref) {
-  return WaypointsController();
-});
+      return WaypointsController();
+    });
 
 class WaypointsController extends StateNotifier<WaypointsState> {
   static const String _keyWaypoints = 'compass_saved_waypoints';
@@ -37,17 +39,16 @@ class WaypointsController extends StateNotifier<WaypointsState> {
             .toList();
       }
 
-      state = state.copyWith(
-        waypoints: loaded,
-        activeWaypointId: activeId,
-      );
+      state = state.copyWith(waypoints: loaded, activeWaypointId: activeId);
     } catch (_) {}
   }
 
   Future<void> _persist() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final encoded = jsonEncode(state.waypoints.map((w) => w.toJson()).toList());
+      final encoded = jsonEncode(
+        state.waypoints.map((w) => w.toJson()).toList(),
+      );
       await prefs.setString(_keyWaypoints, encoded);
 
       if (state.activeWaypointId != null) {
@@ -85,10 +86,7 @@ class WaypointsController extends StateNotifier<WaypointsState> {
 
     final updated = [...state.waypoints, newWaypoint];
 
-    state = state.copyWith(
-      waypoints: updated,
-      activeWaypointId: newId,
-    );
+    state = state.copyWith(waypoints: updated, activeWaypointId: newId);
     await _persist();
     return newWaypoint;
   }
@@ -101,11 +99,7 @@ class WaypointsController extends StateNotifier<WaypointsState> {
   }) async {
     final updated = state.waypoints.map((w) {
       if (w.id == id) {
-        return w.copyWith(
-          title: title,
-          category: category,
-          notes: notes,
-        );
+        return w.copyWith(title: title, category: category, notes: notes);
       }
       return w;
     }).toList();

@@ -1,7 +1,7 @@
 enum VastuElement {
   water, // जल
-  air,   // वायु
-  fire,  // अग्नि
+  air, // वायु
+  fire, // अग्नि
   earth, // पृथ्वी
   space, // आकाश
 }
@@ -9,7 +9,10 @@ enum VastuElement {
 enum VastuGridMode {
   eightZone('8 Directions', 'Classical Ashta Dikpala (45° sectors)'),
   sixteenZone('16 Energy Zones', 'Shodasha Mandala (22.5° precision zones)'),
-  thirtyTwoZone('32 Devata Padas', 'Vastu Purusha Mandala (11.25° entrance energy fields)');
+  thirtyTwoZone(
+    '32 Devata Padas',
+    'Vastu Purusha Mandala (11.25° entrance energy fields)',
+  );
 
   final String label;
   final String description;
@@ -17,8 +20,14 @@ enum VastuGridMode {
 }
 
 enum VastuProfileType {
-  residential('Residential (Home)', 'Living rooms, pooja, bedrooms & domestic areas'),
-  commercial('Commercial (Business)', 'Executive cabins, cash flow, accounts & operations');
+  residential(
+    'Residential (Home)',
+    'Living rooms, pooja, bedrooms & domestic areas',
+  ),
+  commercial(
+    'Commercial (Business)',
+    'Executive cabins, cash flow, accounts & operations',
+  );
 
   final String label;
   final String description;
@@ -51,61 +60,61 @@ class VastuProfile {
   );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'type': type.name,
-        'isCustom': isCustom,
-      };
+    'id': id,
+    'name': name,
+    'type': type.name,
+    'isCustom': isCustom,
+  };
 
   factory VastuProfile.fromJson(Map<String, dynamic> json) => VastuProfile(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        type: json['type'] == 'commercial'
-            ? VastuProfileType.commercial
-            : VastuProfileType.residential,
-        isCustom: json['isCustom'] as bool? ?? false,
-      );
+    id: json['id'] as String,
+    name: json['name'] as String,
+    type: json['type'] == 'commercial'
+        ? VastuProfileType.commercial
+        : VastuProfileType.residential,
+    isCustom: json['isCustom'] as bool? ?? false,
+  );
 }
 
 enum VastuRoomType {
-  poojaRoom,     // Mandir / Meditation
-  kitchen,       // Cooking Stove
+  poojaRoom, // Mandir / Meditation
+  kitchen, // Cooking Stove
   masterBedroom, // Owner's Suite
-  cashSafe,      // Locker / Treasury
-  sleepingHead,  // Optimal Head Direction while Sleeping
-  mainDoor,      // Primary Entrance
-  livingRoom,    // Drawing Room / Hall
-  childrenRoom,  // Study / Kids Bedroom
-  guestRoom,     // Guest Bedroom
-  toilets,       // Waste & Restroom
+  cashSafe, // Locker / Treasury
+  sleepingHead, // Optimal Head Direction while Sleeping
+  mainDoor, // Primary Entrance
+  livingRoom, // Drawing Room / Hall
+  childrenRoom, // Study / Kids Bedroom
+  guestRoom, // Guest Bedroom
+  toilets, // Waste & Restroom
 }
 
 enum CommercialRoomType {
   managingDirector, // Owner / MD Cabin
-  cashierAccounts,  // Billing / Cash Counter
-  salesMarketing,   // Client Acquisition & Networking
+  cashierAccounts, // Billing / Cash Counter
+  salesMarketing, // Client Acquisition & Networking
   staffWorkstation, // Operations & Administrative Desks
   receptionWaiting, // Front Desk & Client Lounge
   serversMachinery, // Heavy Equipment & IT Server Racks
-  conferenceRoom,   // Boardroom & Strategy Meetings
+  conferenceRoom, // Boardroom & Strategy Meetings
   inventoryStorage, // Raw Materials & Stock Storage
 }
 
 class VastuZoneInfo {
-  final String direction;        // e.g. "NE"
-  final String englishName;       // e.g. "North-East"
-  final String sanskritName;      // e.g. "Ishan (ईशान)"
-  final String rulingDeity;       // e.g. "Lord Shiva"
-  final VastuElement element;     // e.g. VastuElement.water
-  final String elementLabel;      // e.g. "WATER (जल)"
-  final String plainLabel;       // e.g. "POOJA ROOM & WATER"
-  final String emoji;            // e.g. "🛕"
-  final double centerDegrees;     // e.g. 45.0
-  final double startDegrees;      // e.g. 22.5
-  final double endDegrees;        // e.g. 67.5
-  final List<String> bestFor;     // Optimal placements
-  final List<String> avoid;       // Strictly avoid
-  final int colorValue;           // ARGB color representation
+  final String direction; // e.g. "NE"
+  final String englishName; // e.g. "North-East"
+  final String sanskritName; // e.g. "Ishan (ईशान)"
+  final String rulingDeity; // e.g. "Lord Shiva"
+  final VastuElement element; // e.g. VastuElement.water
+  final String elementLabel; // e.g. "WATER (जल)"
+  final String plainLabel; // e.g. "POOJA ROOM & WATER"
+  final String emoji; // e.g. "🛕"
+  final double centerDegrees; // e.g. 45.0
+  final double startDegrees; // e.g. 22.5
+  final double endDegrees; // e.g. 67.5
+  final List<String> bestFor; // Optimal placements
+  final List<String> avoid; // Strictly avoid
+  final int colorValue; // ARGB color representation
 
   const VastuZoneInfo({
     required this.direction,
@@ -126,11 +135,11 @@ class VastuZoneInfo {
 }
 
 class Vastu16ZoneInfo {
-  final String code;             // e.g. "NNE"
-  final String name;             // e.g. "North-North-East"
+  final String code; // e.g. "NNE"
+  final String name; // e.g. "North-North-East"
   final String sanskritName;
   final VastuElement element;
-  final String attribute;        // e.g. "Health & Healing"
+  final String attribute; // e.g. "Health & Healing"
   final double centerDegrees;
   final double startDegrees;
   final double endDegrees;
@@ -154,9 +163,21 @@ class Vastu16ZoneInfo {
 }
 
 enum EntranceSuitability {
-  auspicious('Highly Auspicious', 'Brings wealth, prosperity and harmony', 0xFF00E676),
-  neutral('Moderate / Neutral', 'Acceptable with balanced interior remedies', 0xFFFFD54F),
-  inauspicious('Inauspicious / Avoid', 'May generate conflicts, expenditure or obstacles', 0xFFFF3B30);
+  auspicious(
+    'Highly Auspicious',
+    'Brings wealth, prosperity and harmony',
+    0xFF00E676,
+  ),
+  neutral(
+    'Moderate / Neutral',
+    'Acceptable with balanced interior remedies',
+    0xFFFFD54F,
+  ),
+  inauspicious(
+    'Inauspicious / Avoid',
+    'May generate conflicts, expenditure or obstacles',
+    0xFFFF3B30,
+  );
 
   final String label;
   final String consequence;
@@ -165,9 +186,9 @@ enum EntranceSuitability {
 }
 
 class Vastu32ZoneInfo {
-  final String padaCode;        // e.g. "E3"
-  final String deityName;       // e.g. "Jayanta"
-  final String quadrant;        // e.g. "East"
+  final String padaCode; // e.g. "E3"
+  final String deityName; // e.g. "Jayanta"
+  final String quadrant; // e.g. "East"
   final double centerDegrees;
   final double startDegrees;
   final double endDegrees;
@@ -235,10 +256,11 @@ class CommercialGuideline {
 }
 
 class VastuGridCell {
-  final String directionCode; // "NW", "N", "NE", "W", "CENTER", "E", "SW", "S", "SE"
-  final String label;         // e.g. "NE 045°"
-  final String roomName;      // e.g. "Pooja Room"
-  final String emoji;         // e.g. "🛕"
+  final String
+  directionCode; // "NW", "N", "NE", "W", "CENTER", "E", "SW", "S", "SE"
+  final String label; // e.g. "NE 045°"
+  final String roomName; // e.g. "Pooja Room"
+  final String emoji; // e.g. "🛕"
   final VastuRoomType? roomType;
   final double? targetHeading;
   final int colorValue;
@@ -598,7 +620,8 @@ class VastuCalculator {
       centerDegrees: 180.0,
       startDegrees: 168.75,
       endDegrees: 191.25,
-      recommendedUsage: 'Sleeping with head to South, rest area, awards display',
+      recommendedUsage:
+          'Sleeping with head to South, rest area, awards display',
       avoidUsage: 'Underground water sumps, kitchen sink',
       colorValue: 0xFFFF3B30,
     ),
@@ -1038,8 +1061,10 @@ class VastuCalculator {
       emoji: '👑',
       idealDirection: 'South-West (SW)',
       targetHeading: 225.0,
-      plainPurpose: 'Authority, leadership stability and firm executive decisions',
-      businessImpact: 'Prevents business turnover, ensures command over staff and clients',
+      plainPurpose:
+          'Authority, leadership stability and firm executive decisions',
+      businessImpact:
+          'Prevents business turnover, ensures command over staff and clients',
       bestPractices: [
         'MD should face North or East while seated at the desk',
         'Solid brick wall behind the MD chair; never a window or glass pane',
@@ -1052,8 +1077,10 @@ class VastuCalculator {
       emoji: '💰',
       idealDirection: 'North (N) or North-East (NE)',
       targetHeading: 0.0,
-      plainPurpose: 'Accelerates receivables, cash liquidity and audited profits',
-      businessImpact: 'Ensures steady working capital flow and financial solvency',
+      plainPurpose:
+          'Accelerates receivables, cash liquidity and audited profits',
+      businessImpact:
+          'Ensures steady working capital flow and financial solvency',
       bestPractices: [
         'Cash locker should open towards North (Kubera direction)',
         'Accounts books and computers should be in North or East sector',
@@ -1066,7 +1093,8 @@ class VastuCalculator {
       emoji: '🚀',
       idealDirection: 'East (E) or North-West (NW)',
       targetHeading: 90.0,
-      plainPurpose: 'Social networking, rapid outreach and dynamic deal closures',
+      plainPurpose:
+          'Social networking, rapid outreach and dynamic deal closures',
       businessImpact: 'Maximizes customer inquiries and active sales turnover',
       bestPractices: [
         'Sales personnel should face East or North during calls',
@@ -1080,7 +1108,8 @@ class VastuCalculator {
       idealDirection: 'West (W) or North-West (NW)',
       targetHeading: 270.0,
       plainPurpose: 'Focus, productive execution and disciplined workflows',
-      businessImpact: 'Reduces operational errors, enhances task turnaround times',
+      businessImpact:
+          'Reduces operational errors, enhances task turnaround times',
       bestPractices: [
         'Staff should face North or East during work',
         'Avoid beams directly overhead working desks',
@@ -1105,8 +1134,10 @@ class VastuCalculator {
       emoji: '⚡',
       idealDirection: 'South-East (SE)',
       targetHeading: 135.0,
-      plainPurpose: 'Fire element housing electrical power, servers and engines',
-      businessImpact: 'Minimizes electrical short-circuits, server downtime and fires',
+      plainPurpose:
+          'Fire element housing electrical power, servers and engines',
+      businessImpact:
+          'Minimizes electrical short-circuits, server downtime and fires',
       bestPractices: [
         'Main circuit breaker, transformers and servers strictly in SE',
         'Ensure proper fire extinguishers and exhaust ventilation',
@@ -1118,7 +1149,8 @@ class VastuCalculator {
       emoji: '📊',
       idealDirection: 'North-West (NW) or West (W)',
       targetHeading: 315.0,
-      plainPurpose: 'Negotiations, contract finalization and collaborative strategy',
+      plainPurpose:
+          'Negotiations, contract finalization and collaborative strategy',
       businessImpact: 'Assists in fruitful compromise and successful partnership agreements',
       bestPractices: [
         'Chairperson seats at SW end of the conference table facing East',
@@ -1301,8 +1333,10 @@ class VastuCalculator {
       idealDirection: 'North (Kubera)',
       targetHeading: 0.0,
       plainPurpose: 'Liquid wealth preservation, savings & prosperity',
-      description: 'North is ruled by Lord Kubera, the celestial guardian of wealth.',
-      reason: 'Opening locker doors towards the North invites financial expansion.',
+      description:
+          'North is ruled by Lord Kubera, the celestial guardian of wealth.',
+      reason:
+          'Opening locker doors towards the North invites financial expansion.',
       dos: [
         'Place locker on South wall so its door swings open towards North',
         'Keep a green plant or Kubera Yantra near financial books',
@@ -1321,7 +1355,8 @@ class VastuCalculator {
       idealDirection: 'South (Primary) or East (Secondary)',
       targetHeading: 180.0,
       plainPurpose: 'Deep REM sleep, cardiovascular balance & stress relief',
-      description: 'The human body has its own biomagnetic poles (Head is North).',
+      description:
+          'The human body has its own biomagnetic poles (Head is North).',
       reason: 'Sleeping with head to South aligns with Earth’s magnetic field.',
       dos: [
         'Sleep with head towards South for longevity and deep sleep',
@@ -1362,7 +1397,8 @@ class VastuCalculator {
       targetHeading: 90.0,
       plainPurpose: 'Family bonding, welcoming guests & harmony',
       description: 'The living room reflects the warmth and social energy of the family.',
-      reason: 'East orientation ensures abundant natural ventilation and light.',
+      reason:
+          'East orientation ensures abundant natural ventilation and light.',
       dos: [
         'Host should sit facing East or North while entertaining guests',
         'Heavy sofa sets should be positioned against South or West walls',
@@ -1381,8 +1417,10 @@ class VastuCalculator {
       idealDirection: 'West (270°) or West-South-West (247.5°)',
       targetHeading: 270.0,
       plainPurpose: 'Academic retention, creative focus & peaceful rest',
-      description: 'The West sector governed by Varuna encourages disciplined learning.',
-      reason: 'Even afternoon light aids study focus without high hyperactivity.',
+      description:
+          'The West sector governed by Varuna encourages disciplined learning.',
+      reason:
+          'Even afternoon light aids study focus without high hyperactivity.',
       dos: [
         'Study desk positioned so child faces East or North while reading',
         'Bookcase located on the North or East wall of the room',
@@ -1401,7 +1439,8 @@ class VastuCalculator {
       idealDirection: 'North-West (Vayu)',
       targetHeading: 315.0,
       plainPurpose: 'Comfortable temporary stay without imposing long stays',
-      description: 'North-West embodies wind energy (Vayu), promoting mobility.',
+      description:
+          'North-West embodies wind energy (Vayu), promoting mobility.',
       reason: 'Guests enjoy their stay but depart harmoniously without overstaying.',
       dos: [
         'Bed positioned with head towards South or East',
@@ -1420,7 +1459,8 @@ class VastuCalculator {
       emoji: '🚽',
       idealDirection: 'South-South-West (202.5°) or West-North-West (292.5°)',
       targetHeading: 202.5,
-      plainPurpose: 'Proper bodily waste disposal without draining positive energy',
+      plainPurpose:
+          'Proper bodily waste disposal without draining positive energy',
       description: 'The SSW and WNW zones naturally govern disposal and detox.',
       reason: 'Prevents contamination of sacred and prosperity sectors.',
       dos: [
@@ -1461,7 +1501,8 @@ class VastuCalculator {
       return sixteenZones[0]; // North
     }
     for (int i = 1; i < sixteenZones.length; i++) {
-      if (norm >= sixteenZones[i].startDegrees && norm < sixteenZones[i].endDegrees) {
+      if (norm >= sixteenZones[i].startDegrees &&
+          norm < sixteenZones[i].endDegrees) {
         return sixteenZones[i];
       }
     }
@@ -1506,7 +1547,11 @@ class VastuCalculator {
   }
 
   /// Checks if current heading is aligned with target room heading within tolerance
-  static bool isAlignedWithRoom(double heading, VastuRoomType room, {double tolerance = 15.0}) {
+  static bool isAlignedWithRoom(
+    double heading,
+    VastuRoomType room, {
+    double tolerance = 15.0,
+  }) {
     final guideline = getGuideline(room);
     double diff = (heading - guideline.targetHeading).abs() % 360.0;
     if (diff > 180.0) diff = 360.0 - diff;

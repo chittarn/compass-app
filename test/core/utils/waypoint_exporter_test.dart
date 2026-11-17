@@ -70,36 +70,39 @@ void main() {
     });
 
     group('CSV Formatting & Formula Injection Hardening (CWE-1236)', () {
-      test('neutralizes formula injection characters (=, +, -, @, tab, cr)', () {
-        final injectionWaypoints = [
-          Waypoint(
-            id: 'inj_1',
-            title: '=cmd|\'/C calc\'!A0',
-            latitude: 10.0,
-            longitude: 20.0,
-            createdAt: DateTime.now(),
-            category: WaypointCategory.custom,
-            notes: '+1234567890 Phone Number',
-          ),
-          Waypoint(
-            id: 'inj_2',
-            title: '@SUM(A1:A10)',
-            latitude: 11.0,
-            longitude: 21.0,
-            createdAt: DateTime.now(),
-            category: WaypointCategory.work,
-            notes: '-Sensitive Discount Code',
-          ),
-        ];
+      test(
+        'neutralizes formula injection characters (=, +, -, @, tab, cr)',
+        () {
+          final injectionWaypoints = [
+            Waypoint(
+              id: 'inj_1',
+              title: '=cmd|\'/C calc\'!A0',
+              latitude: 10.0,
+              longitude: 20.0,
+              createdAt: DateTime.now(),
+              category: WaypointCategory.custom,
+              notes: '+1234567890 Phone Number',
+            ),
+            Waypoint(
+              id: 'inj_2',
+              title: '@SUM(A1:A10)',
+              latitude: 11.0,
+              longitude: 21.0,
+              createdAt: DateTime.now(),
+              category: WaypointCategory.work,
+              notes: '-Sensitive Discount Code',
+            ),
+          ];
 
-        final csv = WaypointExporter.toCsv(injectionWaypoints);
+          final csv = WaypointExporter.toCsv(injectionWaypoints);
 
-        // Formula triggers must be prefixed with single quote
-        expect(csv, contains('\'=cmd|'));
-        expect(csv, contains('\'+1234567890'));
-        expect(csv, contains('\'@SUM'));
-        expect(csv, contains('\'-Sensitive'));
-      });
+          // Formula triggers must be prefixed with single quote
+          expect(csv, contains('\'=cmd|'));
+          expect(csv, contains('\'+1234567890'));
+          expect(csv, contains('\'@SUM'));
+          expect(csv, contains('\'-Sensitive'));
+        },
+      );
 
       test('properly escapes quotes, commas, and line breaks per RFC 4180', () {
         final specialWaypoints = [

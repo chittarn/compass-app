@@ -48,10 +48,13 @@ void main() {
         expect(rel.abs(), lessThan(0.5));
       });
 
-      test('Directly behind: target 0°, heading 180° -> relBearing = ±180°', () {
-        final rel = northWp.relativeBearingFrom(0.0, 0.0, 180.0);
-        expect(rel.abs(), closeTo(180.0, 0.5));
-      });
+      test(
+        'Directly behind: target 0°, heading 180° -> relBearing = ±180°',
+        () {
+          final rel = northWp.relativeBearingFrom(0.0, 0.0, 180.0);
+          expect(rel.abs(), closeTo(180.0, 0.5));
+        },
+      );
 
       test('Target to the right: target 90° (East), heading 0° (North) -> relBearing = +90°', () {
         final rel = eastWp.relativeBearingFrom(0.0, 0.0, 0.0);
@@ -141,7 +144,11 @@ void main() {
           arrivalRadiusMeters: 25.0,
           maxPermissibleAccuracyMeters: 40.0,
         );
-        expect(arrived, isFalse, reason: 'Poor GPS accuracy must suppress false arrival');
+        expect(
+          arrived,
+          isFalse,
+          reason: 'Poor GPS accuracy must suppress false arrival',
+        );
       });
 
       test('Hysteresis prevents flickering: remains arrived between 25m and 35m', () {
@@ -174,7 +181,11 @@ void main() {
           previouslyArrived: true,
           hysteresisMeters: 10.0,
         );
-        expect(alreadyArrived, isTrue, reason: 'Hysteresis prevents rapid on/off flickering at boundary');
+        expect(
+          alreadyArrived,
+          isTrue,
+          reason: 'Hysteresis prevents rapid on/off flickering at boundary',
+        );
 
         // Case C: User steps clearly beyond 35m (e.g. 40m) -> Exits arrived state
         final exitWp = Waypoint(
@@ -192,30 +203,41 @@ void main() {
           previouslyArrived: true,
           hysteresisMeters: 10.0,
         );
-        expect(exited, isFalse, reason: 'Exits arrived status once beyond hysteresis threshold');
+        expect(
+          exited,
+          isFalse,
+          reason: 'Exits arrived status once beyond hysteresis threshold',
+        );
       });
     });
 
     group('Persistence & Backward Compatibility', () {
-      test('Legacy JSON without category or notes parses cleanly with defaults', () {
-        final legacyJson = {
-          'id': 'legacy_101',
-          'title': 'My Old Car Spot',
-          'latitude': 37.7749,
-          'longitude': -122.4194,
-          'altitude': 15.0,
-          'createdAt': '2025-10-01T10:00:00.000Z',
-        };
+      test(
+        'Legacy JSON without category or notes parses cleanly with defaults',
+        () {
+          final legacyJson = {
+            'id': 'legacy_101',
+            'title': 'My Old Car Spot',
+            'latitude': 37.7749,
+            'longitude': -122.4194,
+            'altitude': 15.0,
+            'createdAt': '2025-10-01T10:00:00.000Z',
+          };
 
-        final wp = Waypoint.fromJson(legacyJson);
-        expect(wp.id, 'legacy_101');
-        expect(wp.title, 'My Old Car Spot');
-        expect(wp.latitude, 37.7749);
-        expect(wp.longitude, -122.4194);
-        expect(wp.altitude, 15.0);
-        expect(wp.category, WaypointCategory.custom, reason: 'Defaults to custom category');
-        expect(wp.notes, isNull, reason: 'Defaults to null notes');
-      });
+          final wp = Waypoint.fromJson(legacyJson);
+          expect(wp.id, 'legacy_101');
+          expect(wp.title, 'My Old Car Spot');
+          expect(wp.latitude, 37.7749);
+          expect(wp.longitude, -122.4194);
+          expect(wp.altitude, 15.0);
+          expect(
+            wp.category,
+            WaypointCategory.custom,
+            reason: 'Defaults to custom category',
+          );
+          expect(wp.notes, isNull, reason: 'Defaults to null notes');
+        },
+      );
 
       test('Modern JSON with category and notes serializes and deserializes losslessly', () {
         final wp = Waypoint(
@@ -238,28 +260,31 @@ void main() {
         expect(restored.notes, 'Gate code #4491. Park near pillar B3.');
       });
 
-      test('Waypoint editing retains id and updates title, category, and notes', () {
-        final original = Waypoint(
-          id: 'edit_303',
-          title: 'Camp Site',
-          latitude: 34.0522,
-          longitude: -118.2437,
-          createdAt: DateTime.now(),
-          category: WaypointCategory.travel,
-          notes: 'Tent pitched near creek',
-        );
+      test(
+        'Waypoint editing retains id and updates title, category, and notes',
+        () {
+          final original = Waypoint(
+            id: 'edit_303',
+            title: 'Camp Site',
+            latitude: 34.0522,
+            longitude: -118.2437,
+            createdAt: DateTime.now(),
+            category: WaypointCategory.travel,
+            notes: 'Tent pitched near creek',
+          );
 
-        final updated = original.copyWith(
-          title: 'Base Camp Alpha',
-          category: WaypointCategory.work,
-          notes: 'Emergency satellite comms tested',
-        );
+          final updated = original.copyWith(
+            title: 'Base Camp Alpha',
+            category: WaypointCategory.work,
+            notes: 'Emergency satellite comms tested',
+          );
 
-        expect(updated.id, original.id);
-        expect(updated.title, 'Base Camp Alpha');
-        expect(updated.category, WaypointCategory.work);
-        expect(updated.notes, 'Emergency satellite comms tested');
-      });
+          expect(updated.id, original.id);
+          expect(updated.title, 'Base Camp Alpha');
+          expect(updated.category, WaypointCategory.work);
+          expect(updated.notes, 'Emergency satellite comms tested');
+        },
+      );
     });
   });
 }

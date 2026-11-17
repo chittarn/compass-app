@@ -1,11 +1,3 @@
-enum HeadingType {
-  magnetic,
-  trueNorth,
-}
+enum HeadingType { magnetic, trueNorth }
 
-enum SensorAccuracyLevel {
-  high,
-  medium,
-  low,
-  unreliable,
-}
+enum SensorAccuracyLevel { high, medium, low, unreliable }

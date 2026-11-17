@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../controllers/compass_controller.dart';
 
@@ -25,7 +26,10 @@ class GpsOnboardingModal extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.accentCyan.withOpacity(0.5), width: 1.5),
+        border: Border.all(
+          color: AppColors.accentCyan.withOpacity(0.5),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.6),
@@ -61,7 +65,9 @@ class GpsOnboardingModal extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.accentCyan.withOpacity(0.15),
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.accentCyan.withOpacity(0.4)),
+                  border: Border.all(
+                    color: AppColors.accentCyan.withOpacity(0.4),
+                  ),
                 ),
                 child: const Icon(
                   Icons.satellite_alt_rounded,
@@ -166,7 +172,9 @@ class GpsOnboardingModal extends StatelessWidget {
               ),
               onPressed: () async {
                 Navigator.pop(context);
-                await ref.read(compassControllerProvider.notifier).requestGpsPermissionAndFix();
+                await ref
+                    .read(compassControllerProvider.notifier)
+                    .requestGpsPermissionAndFix();
               },
             ),
           ),

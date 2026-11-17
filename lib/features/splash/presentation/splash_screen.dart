@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import '../../compass/presentation/compass_screen.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -55,9 +57,10 @@ class _SplashScreenState extends State<SplashScreen>
             transitionDuration: const Duration(milliseconds: 500),
             pageBuilder: (context, animation, secondaryAnimation) =>
                 const CompassScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
           ),
         );
       }
@@ -207,7 +210,11 @@ class _SplashCompassPainter extends CustomPainter {
       final outerY = center.dy - (radius - 4) * math.cos(rad);
       final innerX = center.dx + (radius - 10) * math.sin(rad);
       final innerY = center.dy - (radius - 10) * math.cos(rad);
-      canvas.drawLine(Offset(innerX, innerY), Offset(outerX, outerY), tickPaint);
+      canvas.drawLine(
+        Offset(innerX, innerY),
+        Offset(outerX, outerY),
+        tickPaint,
+      );
     }
 
     // North Needle (Red)

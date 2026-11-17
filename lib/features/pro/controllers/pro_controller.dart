@@ -2,12 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../compass/domain/heading_type.dart';
 import '../domain/pro_state.dart';
+import '../services/billing_service.dart';
 
-final proControllerProvider =
-    StateNotifierProvider<ProController, ProState>((ref) {
+final proControllerProvider = StateNotifierProvider<ProController, ProState>((
+  ref,
+) {
   return ProController();
 });
 
@@ -18,11 +21,44 @@ class ProController extends StateNotifier<ProState> {
   static const String _keyNightVision = 'compass_night_vision';
   static const String _keyThemeMode = 'compass_theme_mode';
 
+  final BillingService _billingService;
   int _lastDriftStep = 0;
   DateTime _lastDriftHapticTime = DateTime.fromMillisecondsSinceEpoch(0);
 
-  ProController() : super(const ProState()) {
+  ProController({BillingService? billingService})
+    : _billingService = billingService ?? BillingService(),
+      super(const ProState()) {
     _loadPreferences();
+    _initBilling();
+  }
+
+  void _initBilling() {
+    _billingService.initialize(
+      onEntitlementChanged: (isPro) {
+        setEntitled(isPro);
+      },
+      onPriceLoaded: (price) {
+        state = state.copyWith(productPrice: price);
+      },
+      onPendingChanged: (isPending) {
+        state = state.copyWith(isPurchasePending: isPending);
+      },
+      onError: (error) {
+        state = state.copyWith(billingErrorMessage: error);
+      },
+    );
+  }
+
+  Future<bool> buyProLifetime() async {
+    return await _billingService.buyProLifetime();
+  }
+
+  Future<void> restorePurchases() async {
+    await _billingService.restorePurchases();
+  }
+
+  void clearBillingError() {
+    state = state.copyWith(clearBillingError: true);
   }
 
   Future<void> _loadPreferences() async {
@@ -31,7 +67,8 @@ class ProController extends StateNotifier<ProState> {
       final isPro = prefs.getBool(_keyIsPro) ?? false;
       final isNightVision = prefs.getBool(_keyNightVision) ?? false;
       final themeIndex = prefs.getInt(_keyThemeMode) ?? 0;
-      final themeMode = (themeIndex >= 0 && themeIndex < AppThemeMode.values.length)
+      final themeMode =
+          (themeIndex >= 0 && themeIndex < AppThemeMode.values.length)
           ? AppThemeMode.values[themeIndex]
           : AppThemeMode.tacticalDark;
 
@@ -63,13 +100,6 @@ class ProController extends StateNotifier<ProState> {
     await setEntitled(value);
   }
 
-  /// Temporary Pro switcher for on-device testing in both debug and release builds.
-  Future<void> toggleProMode() async {
-    HapticFeedback.mediumImpact();
-    final newPro = !state.isPro;
-    await setEntitled(newPro);
-  }
-
   /// Development-only Pro toggle. Strictly disabled in release builds.
   Future<void> debugTogglePro() async {
     if (!kDebugMode) return;
@@ -78,9 +108,16 @@ class ProController extends StateNotifier<ProState> {
     await setEntitled(newPro);
   }
 
+  /// Backward-compatible alias for development testing; disabled in release builds.
+  Future<void> toggleProMode() async {
+    if (!kDebugMode) return;
+    await debugTogglePro();
+  }
+
   /// Wrapper around debugTogglePro to preserve backwards compatibility in debug mode
   Future<void> togglePro() async {
-    await toggleProMode();
+    if (!kDebugMode) return;
+    await debugTogglePro();
   }
 
   Future<void> toggleNightVision() async {
@@ -89,7 +126,9 @@ class ProController extends StateNotifier<ProState> {
     final newNight = !state.isNightVision;
     state = state.copyWith(
       isNightVision: newNight,
-      themeMode: newNight ? AppThemeMode.nightVision : AppThemeMode.tacticalDark,
+      themeMode: newNight
+          ? AppThemeMode.nightVision
+          : AppThemeMode.tacticalDark,
     );
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -104,10 +143,7 @@ class ProController extends StateNotifier<ProState> {
     }
     HapticFeedback.selectionClick();
     final isNight = mode == AppThemeMode.nightVision;
-    state = state.copyWith(
-      themeMode: mode,
-      isNightVision: isNight,
-    );
+    state = state.copyWith(themeMode: mode, isNightVision: isNight);
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_keyThemeMode, mode.index);
@@ -183,7 +219,8 @@ class ProController extends StateNotifier<ProState> {
     // If back on-course (< 10° drift) after being off-course:
     if (currentStep == 0) {
       if (_lastDriftStep > 0) {
-        if (currentTime.difference(_lastDriftHapticTime).inMilliseconds >= 400) {
+        if (currentTime.difference(_lastDriftHapticTime).inMilliseconds >=
+            400) {
           HapticFeedback.selectionClick();
           _lastDriftHapticTime = currentTime;
         }
@@ -221,5 +258,11 @@ class ProController extends StateNotifier<ProState> {
   void clearWaypoint() {
     HapticFeedback.selectionClick();
     state = state.copyWith(clearWaypoint: true);
+  }
+
+  @override
+  void dispose() {
+    _billingService.dispose();
+    super.dispose();
   }
 }

@@ -39,7 +39,8 @@ class Waypoint {
     final deltaLambda = (longitude - fromLng) * (math.pi / 180.0);
 
     final y = math.sin(deltaLambda) * math.cos(phi2);
-    final x = math.cos(phi1) * math.sin(phi2) -
+    final x =
+        math.cos(phi1) * math.sin(phi2) -
         math.sin(phi1) * math.cos(phi2) * math.cos(deltaLambda);
 
     final theta = math.atan2(y, x);
@@ -48,7 +49,11 @@ class Waypoint {
 
   /// Computes relative bearing in degrees [-180, +180] relative to phone's current heading.
   /// Negative = Turn Left, Positive = Turn Right.
-  double relativeBearingFrom(double fromLat, double fromLng, double currentHeading) {
+  double relativeBearingFrom(
+    double fromLat,
+    double fromLng,
+    double currentHeading,
+  ) {
     final targetBearing = bearingFrom(fromLat, fromLng);
     double diff = (targetBearing - currentHeading) % 360.0;
     if (diff > 180.0) diff -= 360.0;
@@ -64,7 +69,8 @@ class Waypoint {
     final deltaPhi = (latitude - fromLat) * (math.pi / 180.0);
     final deltaLambda = (longitude - fromLng) * (math.pi / 180.0);
 
-    final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
+    final a =
+        math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
         math.cos(phi1) *
             math.cos(phi2) *
             math.sin(deltaLambda / 2) *
@@ -85,7 +91,8 @@ class Waypoint {
     double hysteresisMeters = 10.0,
   }) {
     // If GPS accuracy is too poor (e.g. > 40m uncertainty), avoid false arrival claims
-    if (locationAccuracyMeters != null && locationAccuracyMeters > maxPermissibleAccuracyMeters) {
+    if (locationAccuracyMeters != null &&
+        locationAccuracyMeters > maxPermissibleAccuracyMeters) {
       return false;
     }
 
@@ -131,31 +138,31 @@ class Waypoint {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'latitude': latitude,
-        'longitude': longitude,
-        'altitude': altitude,
-        'createdAt': createdAt.toIso8601String(),
-        'category': category.name,
-        'notes': notes,
-      };
+    'id': id,
+    'title': title,
+    'latitude': latitude,
+    'longitude': longitude,
+    'altitude': altitude,
+    'createdAt': createdAt.toIso8601String(),
+    'category': category.name,
+    'notes': notes,
+  };
 
   factory Waypoint.fromJson(Map<String, dynamic> json) => Waypoint(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
-        altitude: json['altitude'] != null
-            ? (json['altitude'] as num).toDouble()
-            : null,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        category: json['category'] != null
-            ? WaypointCategory.values.firstWhere(
-                (c) => c.name == json['category'],
-                orElse: () => WaypointCategory.custom,
-              )
-            : WaypointCategory.custom,
-        notes: json['notes'] as String?,
-      );
+    id: json['id'] as String,
+    title: json['title'] as String,
+    latitude: (json['latitude'] as num).toDouble(),
+    longitude: (json['longitude'] as num).toDouble(),
+    altitude: json['altitude'] != null
+        ? (json['altitude'] as num).toDouble()
+        : null,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    category: json['category'] != null
+        ? WaypointCategory.values.firstWhere(
+            (c) => c.name == json['category'],
+            orElse: () => WaypointCategory.custom,
+          )
+        : WaypointCategory.custom,
+    notes: json['notes'] as String?,
+  );
 }

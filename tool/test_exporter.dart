@@ -29,9 +29,15 @@ void main() {
 
   // 1. GPX Test
   final gpx = WaypointExporter.toGpx(sampleWaypoints);
-  assert(gpx.contains('<?xml version="1.0" encoding="UTF-8"?>'), 'Must contain XML declaration');
+  assert(
+    gpx.contains('<?xml version="1.0" encoding="UTF-8"?>'),
+    'Must contain XML declaration',
+  );
   assert(gpx.contains('<gpx version="1.1"'), 'Must contain GPX 1.1 root');
-  assert(gpx.contains('<name>Base Camp &amp; Tent</name>'), 'Must escape ampersand');
+  assert(
+    gpx.contains('<name>Base Camp &amp; Tent</name>'),
+    'Must escape ampersand',
+  );
   assert(gpx.contains('&lt;danger zone&gt;'), 'Must escape angle brackets');
   assert(!gpx.contains('<danger zone>'), 'Must not contain unescaped XML');
   print('  [PASS] GPX 1.1 XML structure and entity escaping validated!');

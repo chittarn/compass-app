@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../../core/constants/compass_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class TelemetryGuideModal extends StatelessWidget {
@@ -73,7 +76,10 @@ class TelemetryGuideModal extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: AppColors.textSecondary,
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -93,13 +99,11 @@ class TelemetryGuideModal extends StatelessWidget {
                   content: [
                     _buildItem(
                       term: 'Magnetic North (🧲)',
-                      explanation:
-                          'Points directly to Earth\'s wandering magnetic north pole using your device\'s magnetometer sensor. Works offline, in airplane mode, and requires zero GPS or data connection.',
+                      explanation: 'Points directly to Earth\'s wandering magnetic north pole using your device\'s magnetometer sensor. Works offline, in airplane mode, and requires zero GPS or data connection.',
                     ),
                     _buildItem(
                       term: 'True North (🌐)',
-                      explanation:
-                          'Points to the exact Geographic North Pole (Earth\'s rotational axis at 90°N). Uses your GPS coordinates to compute the magnetic declination offset. Essential for aligning with printed topographic maps and aviation/nautical navigation.',
+                      explanation: 'Points to the exact Geographic North Pole (Earth\'s rotational axis at 90°N). Uses your GPS coordinates to compute the magnetic declination offset. Essential for aligning with printed topographic maps and aviation/nautical navigation.',
                     ),
                   ],
                 ),
@@ -111,18 +115,15 @@ class TelemetryGuideModal extends StatelessWidget {
                   content: [
                     _buildItem(
                       term: 'Kaaba Direction (🕋)',
-                      explanation:
-                          'Calculates the exact spherical great-circle bearing from your GPS position directly to the Holy Kaaba in Mecca (21.4225°N, 39.8262°E). The emerald green Kaaba marker on the dial rim shows you the exact bearing.',
+                      explanation: 'Calculates the exact spherical great-circle bearing from your GPS position directly to the Holy Kaaba in Mecca (21.4225°N, 39.8262°E). The emerald green Kaaba marker on the dial rim shows you the exact bearing.',
                     ),
                     _buildItem(
                       term: 'Alignment Vibration Pulse',
-                      explanation:
-                          'When your phone points directly at the Kaaba (within ±3°), the dial lights up with a green glow and triggers a tactile haptic pulse.',
+                      explanation: 'When your phone points directly at the Kaaba (within ±3°), the dial lights up with a green glow and triggers a tactile haptic pulse.',
                     ),
                     _buildItem(
                       term: 'Geodesic Distance',
-                      explanation:
-                          'Displays the real-time distance in kilometers to Mecca calculated via the WGS-84 Haversine geodesic model.',
+                      explanation: 'Displays the real-time distance in kilometers to Mecca calculated via the WGS-84 Haversine geodesic model.',
                     ),
                   ],
                 ),
@@ -134,13 +135,11 @@ class TelemetryGuideModal extends StatelessWidget {
                   content: [
                     _buildItem(
                       term: 'Magnetic Flux Density (Microteslas)',
-                      explanation:
-                          'Earth\'s natural ambient magnetic field typically measures between 30 μT and 60 μT. Readout updates live with low-pass noise filtering.',
+                      explanation: 'Earth\'s natural ambient magnetic field typically measures between 30 μT and 60 μT. Readout updates live with low-pass noise filtering.',
                     ),
                     _buildItem(
                       term: 'Interference & Metal Stud Detection',
-                      explanation:
-                          '• 30–65 μT: NORMAL ambient Earth field.\n• 65–110 μT: ELEVATED magnetic fields (electronics or wiring nearby).\n• >110 μT: HIGH INTERFERENCE. Can be used as a handheld metal stud and ferrous material detector behind drywall, or indicates you should step away from steel objects for accurate compass navigation.',
+                      explanation: '• 30–65 μT: NORMAL ambient Earth field.\n• 65–110 μT: ELEVATED magnetic fields (electronics or wiring nearby).\n• >110 μT: HIGH INTERFERENCE. Can be used as a handheld metal stud and ferrous material detector behind drywall, or indicates you should step away from steel objects for accurate compass navigation.',
                     ),
                   ],
                 ),
@@ -152,18 +151,15 @@ class TelemetryGuideModal extends StatelessWidget {
                   content: [
                     _buildItem(
                       term: 'Pitch',
-                      explanation:
-                          'Measures the front-to-back tilt angle (nose up or down). Tilt values range from -90° to +90°.',
+                      explanation: 'Measures the front-to-back tilt angle (nose up or down). Tilt values range from -90° to +90°.',
                     ),
                     _buildItem(
                       term: 'Roll',
-                      explanation:
-                          'Measures the side-to-side rotation (lateral wing dip left or right). Tilt values range from -180° to +180°.',
+                      explanation: 'Measures the side-to-side rotation (lateral wing dip left or right). Tilt values range from -180° to +180°.',
                     ),
                     _buildItem(
                       term: 'Level Status (±1.5° Deadband)',
-                      explanation:
-                          'LEVEL (Green): The phone is held flat on the horizontal plane. Magnetic heading is at peak physical accuracy.\nTILTED (Amber): Tilt exceeds ±1.5°. Electronic magnetometers experience 3D gimbal distortion when tilted off-axis.',
+                      explanation: 'LEVEL (Green): The phone is held flat on the horizontal plane. Magnetic heading is at peak physical accuracy.\nTILTED (Amber): Tilt exceeds ±1.5°. Electronic magnetometers experience 3D gimbal distortion when tilted off-axis.',
                     ),
                   ],
                 ),
@@ -175,13 +171,11 @@ class TelemetryGuideModal extends StatelessWidget {
                   content: [
                     _buildItem(
                       term: 'Accuracy Pill Badge',
-                      explanation:
-                          'Displays the real-time sensor health: HIGH, MEDIUM, LOW, or UNRELIABLE. Reflects the hardware magnetometer\'s confidence level.',
+                      explanation: 'Displays the real-time sensor health: HIGH, MEDIUM, LOW, or UNRELIABLE. Reflects the hardware magnetometer\'s confidence level.',
                     ),
                     _buildItem(
                       term: 'Figure-8 Calibration',
-                      explanation:
-                          'Magnetic phone cases, electronic gadgets, steel rebar, or car dashes cause magnetic distortion. When accuracy drops, tap the accuracy badge and wave your phone in a 3D figure-8 motion to recalibrate.',
+                      explanation: 'Magnetic phone cases, electronic gadgets, steel rebar, or car dashes cause magnetic distortion. When accuracy drops, tap the accuracy badge and wave your phone in a 3D figure-8 motion to recalibrate.',
                     ),
                   ],
                 ),
@@ -193,13 +187,11 @@ class TelemetryGuideModal extends StatelessWidget {
                   content: [
                     _buildItem(
                       term: 'Sun ☀️ & Moon 🌙 Azimuth',
-                      explanation:
-                          'Real-time astronomical positions computed 100% offline using standard NOAA ephemeris formulas. Displays live solar and lunar heading markers directly on the dial rim.',
+                      explanation: 'Real-time astronomical positions computed 100% offline using standard NOAA ephemeris formulas. Displays live solar and lunar heading markers directly on the dial rim.',
                     ),
                     _buildItem(
                       term: 'Sunrise & Sunset Times',
-                      explanation:
-                          'Local official solar dawn and dusk computed geometrically from your GPS coordinates. Perfect for golden-hour photography, hiking safety, and dusk preparedness.',
+                      explanation: 'Local official solar dawn and dusk computed geometrically from your GPS coordinates. Perfect for golden-hour photography, hiking safety, and dusk preparedness.',
                     ),
                   ],
                 ),
@@ -211,13 +203,11 @@ class TelemetryGuideModal extends StatelessWidget {
                   content: [
                     _buildItem(
                       term: '1-Tap Spot Bookmark',
-                      explanation:
-                          'Bookmark where you parked your car, pitched your tent, or started your hike. Zero internet or map tiles required.',
+                      explanation: 'Bookmark where you parked your car, pitched your tent, or started your hike. Zero internet or map tiles required.',
                     ),
                     _buildItem(
                       term: 'Cyan Beacon Guiding Needle',
-                      explanation:
-                          'A high-visibility cyan needle appears on the dial rim with real-time distance. Align the needle with the 12 o\'clock index to walk straight back to your saved spot.',
+                      explanation: 'A high-visibility cyan needle appears on the dial rim with real-time distance. Align the needle with the 12 o\'clock index to walk straight back to your saved spot.',
                     ),
                   ],
                 ),
@@ -229,8 +219,54 @@ class TelemetryGuideModal extends StatelessWidget {
                   content: [
                     _buildItem(
                       term: 'Sensory Guidance',
-                      explanation:
-                          '• Light Click: Every 15° tick mark crossed.\n• Medium Pulse: Major cardinal directions (East 090°, South 180°, West 270°).\n• Heavy Sharp Pulse: True/Magnetic North (000°) & Qibla alignment.\n\nEquipped with velocity suppression to prevent haptic stutter during fast spins.',
+                      explanation: '• Light Click: Every 15° tick mark crossed.\n• Medium Pulse: Major cardinal directions (East 090°, South 180°, West 270°).\n• Heavy Sharp Pulse: True/Magnetic North (000°) & Qibla alignment.\n\nEquipped with velocity suppression to prevent haptic stutter during fast spins.',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSection(
+                  icon: Icons.share_rounded,
+                  iconColor: AppColors.goldPro,
+                  title: 'SHARE & ABOUT COMPASS',
+                  content: [
+                    _buildItem(
+                      term: 'Offline-First Mission',
+                      explanation: 'Compass is an ad-free, tracker-free navigation utility built for outdoor explorers, tactical navigation, and architectural alignment.',
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accentCyan.withOpacity(
+                            0.18,
+                          ),
+                          foregroundColor: AppColors.accentCyan,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: AppColors.accentCyan.withOpacity(0.4),
+                            ),
+                          ),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.share_rounded, size: 18),
+                        label: const Text(
+                          'Share Compass with Friends',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        onPressed: () {
+                          Share.share(
+                            CompassConstants.shareMessage,
+                            subject: 'Compass — Offline Tactical Navigation & Vastu Suite',
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),

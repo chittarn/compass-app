@@ -27,10 +27,13 @@ void main() {
       expect(tilt.isLevel, isFalse);
     });
 
-    test('Device tilted within 1.0 degree tolerance remains isLevel == true', () {
-      // Slight imperfect resting angle (0.8 degrees)
-      final tilt = TiltCalculator.fromAccelerometer(0.1, 0.1, 9.8);
-      expect(tilt.isLevel, isTrue);
-    });
+    test(
+      'Device tilted within 1.0 degree tolerance remains isLevel == true',
+      () {
+        // Slight imperfect resting angle (0.8 degrees)
+        final tilt = TiltCalculator.fromAccelerometer(0.1, 0.1, 9.8);
+        expect(tilt.isLevel, isTrue);
+      },
+    );
   });
 }

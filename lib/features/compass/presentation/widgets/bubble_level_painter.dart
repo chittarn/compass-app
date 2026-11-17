@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 
 class BubbleLevelPainter extends CustomPainter {
   final double pitch; // X tilt (-90 to 90)
-  final double roll;  // Y tilt (-180 to 180)
+  final double roll; // Y tilt (-180 to 180)
   final bool isLevel;
 
   BubbleLevelPainter({
@@ -72,7 +73,9 @@ class BubbleLevelPainter extends CustomPainter {
     final bubblePos = Offset(center.dx + dx, center.dy + dy);
 
     // 4. Draw Bubble Indicator
-    final bubbleColor = isLevel ? AppColors.bubbleLevel : AppColors.bubbleDefault;
+    final bubbleColor = isLevel
+        ? AppColors.bubbleLevel
+        : AppColors.bubbleDefault;
 
     // Bubble shadow/glow
     final glowPaint = Paint()

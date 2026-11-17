@@ -27,7 +27,9 @@ class SolarCalculator {
     final q = _normalizeDeg(280.459 + 0.98564736 * d);
 
     // Ecliptic longitude of the Sun
-    final l = _normalizeDeg(q + 1.915 * math.sin(gRad) + 0.020 * math.sin(2 * gRad));
+    final l = _normalizeDeg(
+      q + 1.915 * math.sin(gRad) + 0.020 * math.sin(2 * gRad),
+    );
     final lRad = _degToRad(l);
 
     // Obliquity of the ecliptic
@@ -53,7 +55,9 @@ class SolarCalculator {
 
     // Calculate solar azimuth
     final y = -math.sin(haRad);
-    final x = math.tan(decRad) * math.cos(latRad) - math.sin(latRad) * math.cos(haRad);
+    final x =
+        math.tan(decRad) * math.cos(latRad) -
+        math.sin(latRad) * math.cos(haRad);
     final azimuthRad = math.atan2(y, x);
 
     return _normalizeDeg(_radToDeg(azimuthRad));
@@ -79,7 +83,10 @@ class SolarCalculator {
 
     final sinDec = math.sin(epsRad) * math.sin(lambdaRad);
     final decRad = math.asin(sinDec);
-    final raRad = math.atan2(math.cos(epsRad) * math.sin(lambdaRad), math.cos(lambdaRad));
+    final raRad = math.atan2(
+      math.cos(epsRad) * math.sin(lambdaRad),
+      math.cos(lambdaRad),
+    );
 
     final gmst = _normalizeDeg(280.46061837 + 360.98564736629 * d);
     final lstRad = _degToRad(_normalizeDeg(gmst + lng));
@@ -88,7 +95,9 @@ class SolarCalculator {
     final latRad = _degToRad(lat);
 
     final y = -math.sin(haRad);
-    final x = math.tan(decRad) * math.cos(latRad) - math.sin(latRad) * math.cos(haRad);
+    final x =
+        math.tan(decRad) * math.cos(latRad) -
+        math.sin(latRad) * math.cos(haRad);
     final azimuthRad = math.atan2(y, x);
 
     return _normalizeDeg(_radToDeg(azimuthRad));
@@ -96,7 +105,10 @@ class SolarCalculator {
 
   /// Calculates local Sunrise and Sunset times for a given day and coordinates
   static ({DateTime? sunrise, DateTime? sunset}) calculateSunriseSunset(
-      double lat, double lng, DateTime localDate) {
+    double lat,
+    double lng,
+    DateTime localDate,
+  ) {
     final year = localDate.year;
     final month = localDate.month;
     final day = localDate.day;
@@ -111,7 +123,8 @@ class SolarCalculator {
       final m = (0.9856 * t) - 3.289;
       final mRad = _degToRad(m);
 
-      var l = m + (1.916 * math.sin(mRad)) + (0.020 * math.sin(2 * mRad)) + 282.634;
+      var l =
+          m + (1.916 * math.sin(mRad)) + (0.020 * math.sin(2 * mRad)) + 282.634;
       l = _normalizeDeg(l);
       final lRad = _degToRad(l);
 
@@ -130,7 +143,8 @@ class SolarCalculator {
       const zenithRad = 1.58534; // 90.833° in radians
       final latRad = _degToRad(lat);
 
-      final cosH = (math.cos(zenithRad) - (sinDec * math.sin(latRad))) /
+      final cosH =
+          (math.cos(zenithRad) - (sinDec * math.sin(latRad))) /
           (cosDec * math.cos(latRad));
 
       if (cosH > 1.0 || cosH < -1.0) {
@@ -153,16 +167,14 @@ class SolarCalculator {
       return utcDateTime.toLocal();
     }
 
-    return (
-      sunrise: computeTime(true),
-      sunset: computeTime(false),
-    );
+    return (sunrise: computeTime(true), sunset: computeTime(false));
   }
 
   static double _getJulianDay(DateTime utc) {
     int y = utc.year;
     int m = utc.month;
-    final d = utc.day +
+    final d =
+        utc.day +
         (utc.hour / 24.0) +
         (utc.minute / 1440.0) +
         (utc.second / 86400.0);

@@ -1,34 +1,40 @@
 import 'package:flutter/foundation.dart';
+
 import 'heading_type.dart';
 import '../../../core/utils/qibla_calculator.dart';
 import '../../../core/utils/vastu_calculator.dart';
 import '../../../core/utils/wmm_calculator.dart';
 
 class CompassState {
-  final double heading;              // 0..360 for display readout
-  final double unwrappedHeading;     // continuous angle for smooth animation controller
+  final double heading; // 0..360 for display readout
+  final double
+  unwrappedHeading; // continuous angle for smooth animation controller
   final HeadingType headingType;
   final SensorAccuracyLevel accuracy;
   final double pitch;
   final double roll;
   final bool isLevel;
   final bool hasLocationPermission;
-  final double? trueHeading;          // True north heading if GPS available
-  final double? magneticDeclination;  // Difference between True and Magnetic
-  final WmmReliabilityLevel wmmReliability; // Compass horizontal field reliability
+  final double? trueHeading; // True north heading if GPS available
+  final double? magneticDeclination; // Difference between True and Magnetic
+  final WmmReliabilityLevel
+  wmmReliability; // Compass horizontal field reliability
   final double? latitude;
   final double? longitude;
-  final double? altitude;             // Elevation in meters
-  final double? locationAccuracy;     // Horizontal GPS accuracy in meters
-  final double? magneticFieldStrength; // Live magnetic flux density in microteslas (μT)
-  final bool isQiblaMode;             // Whether Qibla navigation mode is active
-  final double? qiblaBearing;         // Forward azimuth to Kaaba in degrees [0, 360)
-  final double? qiblaDistanceKm;      // Great-circle distance to Kaaba in km
-  final double? sunAzimuth;           // Solar azimuth in degrees [0, 360) clockwise from True North
-  final double? moonAzimuth;          // Lunar azimuth in degrees [0, 360) clockwise from True North
-  final DateTime? sunriseTime;        // Local Sunrise time
-  final DateTime? sunsetTime;         // Local Sunset time
-  final bool isVastuMode;             // Whether Vastu Shastra architectural mode is active
+  final double? altitude; // Elevation in meters
+  final double? locationAccuracy; // Horizontal GPS accuracy in meters
+  final double?
+  magneticFieldStrength; // Live magnetic flux density in microteslas (μT)
+  final bool isQiblaMode; // Whether Qibla navigation mode is active
+  final double? qiblaBearing; // Forward azimuth to Kaaba in degrees [0, 360)
+  final double? qiblaDistanceKm; // Great-circle distance to Kaaba in km
+  final double?
+  sunAzimuth; // Solar azimuth in degrees [0, 360) clockwise from True North
+  final double?
+  moonAzimuth; // Lunar azimuth in degrees [0, 360) clockwise from True North
+  final DateTime? sunriseTime; // Local Sunrise time
+  final DateTime? sunsetTime; // Local Sunset time
+  final bool isVastuMode; // Whether Vastu Shastra architectural mode is active
   final VastuRoomType? activeVastuRoom; // Selected room target beacon
 
   const CompassState({
@@ -61,7 +67,8 @@ class CompassState {
 
   /// True North is verified and available only when in True North mode AND
   /// a valid magnetic declination has been calculated by WMM from GPS.
-  bool get isTrueNorthAvailable => headingType == HeadingType.trueNorth && magneticDeclination != null;
+  bool get isTrueNorthAvailable =>
+      headingType == HeadingType.trueNorth && magneticDeclination != null;
 
   String get formattedCoordinates {
     if (latitude == null || longitude == null) {
@@ -75,9 +82,13 @@ class CompassState {
   /// - iOS: Height above Mean Sea Level (MSL).
   String get formattedAltitude {
     if (altitude == null) {
-      return defaultTargetPlatform == TargetPlatform.android ? '-- m WGS-84' : '-- m MSL';
+      return defaultTargetPlatform == TargetPlatform.android
+          ? '-- m WGS-84'
+          : '-- m MSL';
     }
-    final datum = defaultTargetPlatform == TargetPlatform.android ? 'm WGS-84' : 'm MSL';
+    final datum = defaultTargetPlatform == TargetPlatform.android
+        ? 'm WGS-84'
+        : 'm MSL';
     return '${altitude!.round()} $datum';
   }
 
@@ -116,8 +127,10 @@ class CompassState {
     if (qiblaBearing == null) return false;
     // When True North is selected but declination is not yet available,
     // we cannot verify the heading — report unavailable rather than a false positive.
-    if (headingType == HeadingType.trueNorth && magneticDeclination == null) return false;
-    final effectiveTrueHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
+    if (headingType == HeadingType.trueNorth && magneticDeclination == null)
+      return false;
+    final effectiveTrueHeading =
+        (headingType == HeadingType.trueNorth || magneticDeclination == null)
         ? heading
         : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;
     return QiblaCalculator.isAligned(effectiveTrueHeading, qiblaBearing!);
@@ -142,7 +155,8 @@ class CompassState {
     // heading cannot be presented as a verified True North value. Return the zone
     // based on raw heading but callers should check isTrueNorthAvailable before
     // treating this as a definitive True North Vastu reading.
-    final effectiveHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
+    final effectiveHeading =
+        (headingType == HeadingType.trueNorth || magneticDeclination == null)
         ? heading
         : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;
     return VastuCalculator.getZone(effectiveHeading);
@@ -151,17 +165,20 @@ class CompassState {
   bool get isVastuRoomAligned {
     if (activeVastuRoom == null) return false;
     // Guard: do not report alignment when True North is selected but unverified
-    if (headingType == HeadingType.trueNorth && magneticDeclination == null) return false;
-    final effectiveHeading = (headingType == HeadingType.trueNorth || magneticDeclination == null)
+    if (headingType == HeadingType.trueNorth && magneticDeclination == null)
+      return false;
+    final effectiveHeading =
+        (headingType == HeadingType.trueNorth || magneticDeclination == null)
         ? heading
         : ((heading + magneticDeclination!) % 360.0 + 360.0) % 360.0;
-    return VastuCalculator.isAlignedWithRoom(effectiveHeading, activeVastuRoom!);
+    return VastuCalculator.isAlignedWithRoom(
+      effectiveHeading,
+      activeVastuRoom!,
+    );
   }
 
   static String _toDms(double val, {required bool isLat}) {
-    final direction = isLat
-        ? (val >= 0 ? 'N' : 'S')
-        : (val >= 0 ? 'E' : 'W');
+    final direction = isLat ? (val >= 0 ? 'N' : 'S') : (val >= 0 ? 'E' : 'W');
     final absVal = val.abs();
     final degrees = absVal.floor();
     final minutesDouble = (absVal - degrees) * 60.0;
@@ -207,7 +224,8 @@ class CompassState {
       pitch: pitch ?? this.pitch,
       roll: roll ?? this.roll,
       isLevel: isLevel ?? this.isLevel,
-      hasLocationPermission: hasLocationPermission ?? this.hasLocationPermission,
+      hasLocationPermission:
+          hasLocationPermission ?? this.hasLocationPermission,
       trueHeading: trueHeading ?? this.trueHeading,
       magneticDeclination: magneticDeclination ?? this.magneticDeclination,
       wmmReliability: wmmReliability ?? this.wmmReliability,
@@ -215,7 +233,8 @@ class CompassState {
       longitude: longitude ?? this.longitude,
       altitude: altitude ?? this.altitude,
       locationAccuracy: locationAccuracy ?? this.locationAccuracy,
-      magneticFieldStrength: magneticFieldStrength ?? this.magneticFieldStrength,
+      magneticFieldStrength:
+          magneticFieldStrength ?? this.magneticFieldStrength,
       isQiblaMode: isQiblaMode ?? this.isQiblaMode,
       qiblaBearing: qiblaBearing ?? this.qiblaBearing,
       qiblaDistanceKm: qiblaDistanceKm ?? this.qiblaDistanceKm,
@@ -224,7 +243,9 @@ class CompassState {
       sunriseTime: sunriseTime ?? this.sunriseTime,
       sunsetTime: sunsetTime ?? this.sunsetTime,
       isVastuMode: isVastuMode ?? this.isVastuMode,
-      activeVastuRoom: clearVastuRoom ? null : (activeVastuRoom ?? this.activeVastuRoom),
+      activeVastuRoom: clearVastuRoom
+          ? null
+          : (activeVastuRoom ?? this.activeVastuRoom),
     );
   }
 }

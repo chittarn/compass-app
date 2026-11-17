@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'core/theme/app_colors.dart';
 import 'features/splash/presentation/splash_screen.dart';
 
@@ -8,9 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Lock orientation to portrait for typical compass ergonomics
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // Set immersive dark system UI overlay
   SystemChrome.setSystemUIOverlayStyle(
@@ -22,11 +21,7 @@ void main() async {
     ),
   );
 
-  runApp(
-    const ProviderScope(
-      child: CompassApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: CompassApp()));
 }
 
 class CompassApp extends StatelessWidget {

@@ -1,8 +1,11 @@
 import 'dart:math' as math;
+
 import '../lib/core/utils/wmm_calculator.dart';
 
 void main() {
-  print('=== VERIFYING DART WMM-2025 IMPLEMENTATION AGAINST NOAA TEST VECTORS ===');
+  print(
+    '=== VERIFYING DART WMM-2025 IMPLEMENTATION AGAINST NOAA TEST VECTORS ===',
+  );
 
   // Official NOAA WMM-2025 Test Vectors:
   // (year, altKm, lat, lon, expDec, expInc, expF)
@@ -36,7 +39,11 @@ void main() {
     // Convert decimal year back to DateTime for testing API
     final int y = year.floor();
     final double fraction = year - y;
-    final date = DateTime.utc(y, 1, 1).add(Duration(days: (fraction * 365.25).round()));
+    final date = DateTime.utc(
+      y,
+      1,
+      1,
+    ).add(Duration(days: (fraction * 365.25).round()));
 
     final res = WmmCalculator.calculate(
       latitudeDeg: lat,
@@ -51,7 +58,9 @@ void main() {
 
     final passed = diffDec < 0.02 && diffInc < 0.02 && diffF < 5.0;
     final status = passed ? 'PASS' : 'FAIL';
-    print('[$status] Lat: ${lat.toString().padLeft(4)}°, Lon: ${lon.toString().padLeft(5)}°, Alt: ${altKm.toString().padLeft(3)}km, Yr: $year -> Dec: ${res.declinationDeg.toStringAsFixed(2)}° (Exp: ${expDec.toStringAsFixed(2)}°, diff: ${diffDec.toStringAsFixed(4)}°)');
+    print(
+      '[$status] Lat: ${lat.toString().padLeft(4)}°, Lon: ${lon.toString().padLeft(5)}°, Alt: ${altKm.toString().padLeft(3)}km, Yr: $year -> Dec: ${res.declinationDeg.toStringAsFixed(2)}° (Exp: ${expDec.toStringAsFixed(2)}°, diff: ${diffDec.toStringAsFixed(4)}°)',
+    );
     if (!passed) allPassed = false;
   }
 
@@ -81,7 +90,9 @@ void main() {
       date: date2025,
     );
     final sign = dec >= 0 ? 'E' : 'W';
-    print('${name.padRight(22)}: ${dec.abs().toStringAsFixed(2)}° $sign ($dec°)');
+    print(
+      '${name.padRight(22)}: ${dec.abs().toStringAsFixed(2)}° $sign ($dec°)',
+    );
   }
 
   print('\n=== CHECKING BHUBANESWAR REFERENCE TEST VALUES ===');
@@ -91,9 +102,17 @@ void main() {
     altitudeMeters: 45.0,
     date: DateTime.utc(2025, 1, 1),
   );
-  print('Bhubaneswar 2025.0: Dec = ${bbi2025.declinationDeg.toStringAsFixed(4)}°, Inc = ${bbi2025.inclinationDeg.toStringAsFixed(4)}°, H = ${bbi2025.horizontalIntensityNt.toStringAsFixed(1)} nT, F = ${bbi2025.totalIntensityNt.toStringAsFixed(1)} nT, Reliability: ${bbi2025.reliabilityLevel.label}');
-  assert((bbi2025.declinationDeg - (-0.4279)).abs() < 0.01, 'Bhubaneswar 2025.0 declination check failed');
-  assert(bbi2025.reliabilityLevel == WmmReliabilityLevel.normal, 'Bhubaneswar must be Normal reliability');
+  print(
+    'Bhubaneswar 2025.0: Dec = ${bbi2025.declinationDeg.toStringAsFixed(4)}°, Inc = ${bbi2025.inclinationDeg.toStringAsFixed(4)}°, H = ${bbi2025.horizontalIntensityNt.toStringAsFixed(1)} nT, F = ${bbi2025.totalIntensityNt.toStringAsFixed(1)} nT, Reliability: ${bbi2025.reliabilityLevel.label}',
+  );
+  assert(
+    (bbi2025.declinationDeg - (-0.4279)).abs() < 0.01,
+    'Bhubaneswar 2025.0 declination check failed',
+  );
+  assert(
+    bbi2025.reliabilityLevel == WmmReliabilityLevel.normal,
+    'Bhubaneswar must be Normal reliability',
+  );
 
   final bbi2026 = WmmCalculator.calculate(
     latitudeDeg: 20.2961,
@@ -101,9 +120,16 @@ void main() {
     altitudeMeters: 45.0,
     date: DateTime.utc(2026, 1, 1),
   );
-  print('Bhubaneswar 2026.0: Dec = ${bbi2026.declinationDeg.toStringAsFixed(4)}°, Inc = ${bbi2026.inclinationDeg.toStringAsFixed(4)}°, H = ${bbi2026.horizontalIntensityNt.toStringAsFixed(1)} nT, F = ${bbi2026.totalIntensityNt.toStringAsFixed(1)} nT, Reliability: ${bbi2026.reliabilityLevel.label}');
-  assert((bbi2026.declinationDeg - (-0.4032)).abs() < 0.01, 'Bhubaneswar 2026.0 declination check failed');
-  print('[PASS] Bhubaneswar reference values 100% verified against NOAA WMM-2025!\n');
+  print(
+    'Bhubaneswar 2026.0: Dec = ${bbi2026.declinationDeg.toStringAsFixed(4)}°, Inc = ${bbi2026.inclinationDeg.toStringAsFixed(4)}°, H = ${bbi2026.horizontalIntensityNt.toStringAsFixed(1)} nT, F = ${bbi2026.totalIntensityNt.toStringAsFixed(1)} nT, Reliability: ${bbi2026.reliabilityLevel.label}',
+  );
+  assert(
+    (bbi2026.declinationDeg - (-0.4032)).abs() < 0.01,
+    'Bhubaneswar 2026.0 declination check failed',
+  );
+  print(
+    '[PASS] Bhubaneswar reference values 100% verified against NOAA WMM-2025!\n',
+  );
 
   print('=== CHECKING MODEL BOUNDARY & VALIDATION CHECKS ===');
   bool pre2025Throws = false;
@@ -160,14 +186,26 @@ void main() {
 
   // Complete WGS-84 longitude boundary tests:
   // -180.0° and +180.0° valid
-  final decNeg180 = WmmCalculator.calculateDeclination(latitudeDeg: 0.0, longitudeDeg: -180.0, date: DateTime.utc(2025, 1, 1));
-  final decPos180 = WmmCalculator.calculateDeclination(latitudeDeg: 0.0, longitudeDeg: 180.0, date: DateTime.utc(2025, 1, 1));
+  final decNeg180 = WmmCalculator.calculateDeclination(
+    latitudeDeg: 0.0,
+    longitudeDeg: -180.0,
+    date: DateTime.utc(2025, 1, 1),
+  );
+  final decPos180 = WmmCalculator.calculateDeclination(
+    latitudeDeg: 0.0,
+    longitudeDeg: 180.0,
+    date: DateTime.utc(2025, 1, 1),
+  );
   assert(decNeg180.isFinite && decPos180.isFinite);
   assert((decNeg180 - decPos180).abs() < 0.0001);
 
   bool neg180_1Throws = false;
   try {
-    WmmCalculator.calculate(latitudeDeg: 0.0, longitudeDeg: -180.1, date: DateTime.utc(2025, 1, 1));
+    WmmCalculator.calculate(
+      latitudeDeg: 0.0,
+      longitudeDeg: -180.1,
+      date: DateTime.utc(2025, 1, 1),
+    );
   } on ArgumentError {
     neg180_1Throws = true;
   }
@@ -175,7 +213,11 @@ void main() {
 
   bool pos180_1Throws = false;
   try {
-    WmmCalculator.calculate(latitudeDeg: 0.0, longitudeDeg: 180.1, date: DateTime.utc(2025, 1, 1));
+    WmmCalculator.calculate(
+      latitudeDeg: 0.0,
+      longitudeDeg: 180.1,
+      date: DateTime.utc(2025, 1, 1),
+    );
   } on ArgumentError {
     pos180_1Throws = true;
   }
@@ -183,7 +225,11 @@ void main() {
 
   bool posInfThrows = false;
   try {
-    WmmCalculator.calculate(latitudeDeg: 0.0, longitudeDeg: double.infinity, date: DateTime.utc(2025, 1, 1));
+    WmmCalculator.calculate(
+      latitudeDeg: 0.0,
+      longitudeDeg: double.infinity,
+      date: DateTime.utc(2025, 1, 1),
+    );
   } on ArgumentError {
     posInfThrows = true;
   }
@@ -191,12 +237,18 @@ void main() {
 
   bool negInfThrows = false;
   try {
-    WmmCalculator.calculate(latitudeDeg: 0.0, longitudeDeg: double.negativeInfinity, date: DateTime.utc(2025, 1, 1));
+    WmmCalculator.calculate(
+      latitudeDeg: 0.0,
+      longitudeDeg: double.negativeInfinity,
+      date: DateTime.utc(2025, 1, 1),
+    );
   } on ArgumentError {
     negInfThrows = true;
   }
   assert(negInfThrows);
-  print('WGS-84 longitude bounds [-180°, +180°], ±180.1°, ±inf, nan validated: [PASS]');
+  print(
+    'WGS-84 longitude bounds [-180°, +180°], ±180.1°, ±inf, nan validated: [PASS]',
+  );
 
   print('[PASS] WMM-2025 Boundary & input validation verified!\n');
 
@@ -208,7 +260,9 @@ void main() {
     altitudeMeters: 28000.0,
     date: DateTime.utc(2025, 1, 1),
   );
-  print('Arctic dip pole H: ${blackoutPoint.horizontalIntensityNt.toStringAsFixed(1)} nT -> ${blackoutPoint.reliabilityLevel.label}');
+  print(
+    'Arctic dip pole H: ${blackoutPoint.horizontalIntensityNt.toStringAsFixed(1)} nT -> ${blackoutPoint.reliabilityLevel.label}',
+  );
   assert(blackoutPoint.reliabilityLevel == WmmReliabilityLevel.blackout);
 
   // Caution zone: 80°N, -96°W -> H ≈ 2167 nT (2000..6000 nT)
@@ -218,13 +272,17 @@ void main() {
     altitudeMeters: 48000.0,
     date: DateTime.utc(2025, 1, 1),
   );
-  print('Sub-Arctic caution H: ${cautionPoint.horizontalIntensityNt.toStringAsFixed(1)} nT -> ${cautionPoint.reliabilityLevel.label}');
+  print(
+    'Sub-Arctic caution H: ${cautionPoint.horizontalIntensityNt.toStringAsFixed(1)} nT -> ${cautionPoint.reliabilityLevel.label}',
+  );
   assert(cautionPoint.reliabilityLevel == WmmReliabilityLevel.caution);
 
   print('[PASS] WMM Reliability warnings verified!\n');
 
   if (allPassed) {
-    print('>>> ALL NOAA TEST VECTORS, BHUBANESWAR REFERENCE, VALIDATION & WARNING CHECKS PASSED (100%)! <<<');
+    print(
+      '>>> ALL NOAA TEST VECTORS, BHUBANESWAR REFERENCE, VALIDATION & WARNING CHECKS PASSED (100%)! <<<',
+    );
   } else {
     print('>>> SOME TESTS FAILED! <<<');
   }

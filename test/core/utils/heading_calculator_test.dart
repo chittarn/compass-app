@@ -51,41 +51,50 @@ void main() {
       expect(heading, closeTo(270.0, 0.5));
     });
 
-    test('Tilt compensation: Pitch 30° up while pointing North maintains 0°', () {
-      final heading = HeadingCalculator.calculateAzimuth(
-        ax: 0.0,
-        ay: 4.9,
-        az: 8.487,
-        mx: 0.0,
-        my: 45.98,
-        mz: -19.64,
-      );
-      expect(heading, closeTo(0.0, 1.0));
-    });
+    test(
+      'Tilt compensation: Pitch 30° up while pointing North maintains 0°',
+      () {
+        final heading = HeadingCalculator.calculateAzimuth(
+          ax: 0.0,
+          ay: 4.9,
+          az: 8.487,
+          mx: 0.0,
+          my: 45.98,
+          mz: -19.64,
+        );
+        expect(heading, closeTo(0.0, 1.0));
+      },
+    );
 
-    test('WMM-2025 Declination calculation returns expected values for New Delhi', () {
-      final dec = HeadingCalculator.calculateDeclination(
-        28.6139,
-        77.2090,
-        altitudeMeters: 216.0,
-        date: DateTime.utc(2025, 1, 1),
-      );
-      // New Delhi declination at 2025.0 is approximately +1.30° East
-      expect(dec, closeTo(1.30, 0.2));
-      expect(dec, greaterThan(0.0));
-    });
+    test(
+      'WMM-2025 Declination calculation returns expected values for New Delhi',
+      () {
+        final dec = HeadingCalculator.calculateDeclination(
+          28.6139,
+          77.2090,
+          altitudeMeters: 216.0,
+          date: DateTime.utc(2025, 1, 1),
+        );
+        // New Delhi declination at 2025.0 is approximately +1.30° East
+        expect(dec, closeTo(1.30, 0.2));
+        expect(dec, greaterThan(0.0));
+      },
+    );
 
-    test('WMM-2025 Declination calculation returns expected values for New York', () {
-      final dec = HeadingCalculator.calculateDeclination(
-        40.7128,
-        -74.0060,
-        altitudeMeters: 10.0,
-        date: DateTime.utc(2025, 1, 1),
-      );
-      // New York declination at 2025.0 is approximately -12.53° West
-      expect(dec, closeTo(-12.53, 0.2));
-      expect(dec, lessThan(0.0));
-    });
+    test(
+      'WMM-2025 Declination calculation returns expected values for New York',
+      () {
+        final dec = HeadingCalculator.calculateDeclination(
+          40.7128,
+          -74.0060,
+          altitudeMeters: 10.0,
+          date: DateTime.utc(2025, 1, 1),
+        );
+        // New York declination at 2025.0 is approximately -12.53° West
+        expect(dec, closeTo(-12.53, 0.2));
+        expect(dec, lessThan(0.0));
+      },
+    );
 
     test('True Heading calculation applies declination correctly: True = (Mag + Dec) mod 360', () {
       // In New York (Dec = -12.53°), user points Magnetic North (0°)

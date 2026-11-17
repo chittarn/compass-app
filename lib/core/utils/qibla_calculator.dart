@@ -18,7 +18,8 @@ class QiblaCalculator {
     final deltaLambda = (kaabaLng - userLng) * (math.pi / 180.0);
 
     final y = math.sin(deltaLambda) * math.cos(phi2);
-    final x = math.cos(phi1) * math.sin(phi2) -
+    final x =
+        math.cos(phi1) * math.sin(phi2) -
         math.sin(phi1) * math.cos(phi2) * math.cos(deltaLambda);
 
     final theta = math.atan2(y, x);
@@ -33,7 +34,8 @@ class QiblaCalculator {
     final deltaPhi = (kaabaLat - userLat) * (math.pi / 180.0);
     final deltaLambda = (kaabaLng - userLng) * (math.pi / 180.0);
 
-    final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
+    final a =
+        math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
         math.cos(phi1) *
             math.cos(phi2) *
             math.sin(deltaLambda / 2) *
@@ -45,7 +47,11 @@ class QiblaCalculator {
 
   /// Determines if the current heading is aligned with the Qibla bearing
   /// within a specified tolerance band (default 3.0 degrees).
-  static bool isAligned(double currentHeading, double qiblaBearing, {double toleranceDeg = 3.0}) {
+  static bool isAligned(
+    double currentHeading,
+    double qiblaBearing, {
+    double toleranceDeg = 3.0,
+  }) {
     double diff = (currentHeading - qiblaBearing) % 360.0;
     if (diff > 180.0) diff -= 360.0;
     if (diff < -180.0) diff += 360.0;

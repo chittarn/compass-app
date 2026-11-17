@@ -1,9 +1,10 @@
 import 'dart:math' as math;
+
 import '../constants/compass_constants.dart';
 
 class DeviceTilt {
   final double pitch; // X tilt in degrees (-90 to 90)
-  final double roll;  // Y tilt in degrees (-180 to 180)
+  final double roll; // Y tilt in degrees (-180 to 180)
   final bool isLevel;
 
   const DeviceTilt({
@@ -13,7 +14,8 @@ class DeviceTilt {
   });
 
   @override
-  String toString() => 'DeviceTilt(pitch: ${pitch.toStringAsFixed(1)}°, roll: ${roll.toStringAsFixed(1)}°, level: $isLevel)';
+  String toString() =>
+      'DeviceTilt(pitch: ${pitch.toStringAsFixed(1)}°, roll: ${roll.toStringAsFixed(1)}°, level: $isLevel)';
 }
 
 class TiltCalculator {
@@ -27,13 +29,10 @@ class TiltCalculator {
     final pitchDeg = pitchRad * (180.0 / math.pi);
     final rollDeg = rollRad * (180.0 / math.pi);
 
-    final isLevel = (pitchDeg.abs() <= CompassConstants.levelToleranceDegrees) &&
-                    (rollDeg.abs() <= CompassConstants.levelToleranceDegrees);
+    final isLevel =
+        (pitchDeg.abs() <= CompassConstants.levelToleranceDegrees) &&
+        (rollDeg.abs() <= CompassConstants.levelToleranceDegrees);
 
-    return DeviceTilt(
-      pitch: pitchDeg,
-      roll: rollDeg,
-      isLevel: isLevel,
-    );
+    return DeviceTilt(pitch: pitchDeg, roll: rollDeg, isLevel: isLevel);
   }
 }

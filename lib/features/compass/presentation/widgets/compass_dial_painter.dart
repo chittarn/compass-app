@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 
 class CompassDialPainter extends CustomPainter {
@@ -119,17 +121,81 @@ class CompassDialPainter extends CustomPainter {
 
     // Draw Cardinal Text (N, E, S, W)
     final cardinalRadius = radius - 56;
-    _drawCardinalText(canvas, 'N', 0, cardinalRadius, theme.northRed, isBold: true, fontSize: 18);
-    _drawCardinalText(canvas, 'E', 90, cardinalRadius, theme.textPrimary, isBold: true, fontSize: 16);
-    _drawCardinalText(canvas, 'S', 180, cardinalRadius, theme.textPrimary, isBold: true, fontSize: 16);
-    _drawCardinalText(canvas, 'W', 270, cardinalRadius, theme.textPrimary, isBold: true, fontSize: 16);
+    _drawCardinalText(
+      canvas,
+      'N',
+      0,
+      cardinalRadius,
+      theme.northRed,
+      isBold: true,
+      fontSize: 18,
+    );
+    _drawCardinalText(
+      canvas,
+      'E',
+      90,
+      cardinalRadius,
+      theme.textPrimary,
+      isBold: true,
+      fontSize: 16,
+    );
+    _drawCardinalText(
+      canvas,
+      'S',
+      180,
+      cardinalRadius,
+      theme.textPrimary,
+      isBold: true,
+      fontSize: 16,
+    );
+    _drawCardinalText(
+      canvas,
+      'W',
+      270,
+      cardinalRadius,
+      theme.textPrimary,
+      isBold: true,
+      fontSize: 16,
+    );
 
     // Draw Sub-cardinals (NE, SE, SW, NW)
     final subCardinalRadius = radius - 55;
-    _drawCardinalText(canvas, 'NE', 45, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
-    _drawCardinalText(canvas, 'SE', 135, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
-    _drawCardinalText(canvas, 'SW', 225, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
-    _drawCardinalText(canvas, 'NW', 315, subCardinalRadius, theme.textSecondary, isBold: false, fontSize: 11);
+    _drawCardinalText(
+      canvas,
+      'NE',
+      45,
+      subCardinalRadius,
+      theme.textSecondary,
+      isBold: false,
+      fontSize: 11,
+    );
+    _drawCardinalText(
+      canvas,
+      'SE',
+      135,
+      subCardinalRadius,
+      theme.textSecondary,
+      isBold: false,
+      fontSize: 11,
+    );
+    _drawCardinalText(
+      canvas,
+      'SW',
+      225,
+      subCardinalRadius,
+      theme.textSecondary,
+      isBold: false,
+      fontSize: 11,
+    );
+    _drawCardinalText(
+      canvas,
+      'NW',
+      315,
+      subCardinalRadius,
+      theme.textSecondary,
+      isBold: false,
+      fontSize: 11,
+    );
 
     // If Target Bearing is Locked (PRO feature), draw Target Beacon on dial rim
     if (lockedBearing != null) {
@@ -272,8 +338,16 @@ class CompassDialPainter extends CustomPainter {
 
       final cPath = Path()
         ..moveTo(0, -5.5)
-        ..arcToPoint(const Offset(0, 5.5), radius: const Radius.circular(5.5), clockwise: false)
-        ..arcToPoint(const Offset(0, -5.5), radius: const Radius.circular(7.5), clockwise: true)
+        ..arcToPoint(
+          const Offset(0, 5.5),
+          radius: const Radius.circular(5.5),
+          clockwise: false,
+        )
+        ..arcToPoint(
+          const Offset(0, -5.5),
+          radius: const Radius.circular(7.5),
+          clockwise: true,
+        )
         ..close();
       canvas.drawPath(cPath, moonPaint);
 
@@ -356,10 +430,42 @@ class CompassDialPainter extends CustomPainter {
 
     // Vastu Sanskrit Sub-Cardinal Labels on Dial Rim
     if (isVastuMode) {
-      _drawCardinalText(canvas, 'ईशान', 45, radius - 46, const Color(0xFFFFD700), isBold: true, fontSize: 8.5);
-      _drawCardinalText(canvas, 'आग्नेय', 135, radius - 46, const Color(0xFFFFD700), isBold: true, fontSize: 8.5);
-      _drawCardinalText(canvas, 'नैऋत्य', 225, radius - 46, const Color(0xFFFFD700), isBold: true, fontSize: 8.5);
-      _drawCardinalText(canvas, 'वायव्य', 315, radius - 46, const Color(0xFFFFD700), isBold: true, fontSize: 8.5);
+      _drawCardinalText(
+        canvas,
+        'ईशान',
+        45,
+        radius - 46,
+        const Color(0xFFFFD700),
+        isBold: true,
+        fontSize: 8.5,
+      );
+      _drawCardinalText(
+        canvas,
+        'आग्नेय',
+        135,
+        radius - 46,
+        const Color(0xFFFFD700),
+        isBold: true,
+        fontSize: 8.5,
+      );
+      _drawCardinalText(
+        canvas,
+        'नैऋत्य',
+        225,
+        radius - 46,
+        const Color(0xFFFFD700),
+        isBold: true,
+        fontSize: 8.5,
+      );
+      _drawCardinalText(
+        canvas,
+        'वायव्य',
+        315,
+        radius - 46,
+        const Color(0xFFFFD700),
+        isBold: true,
+        fontSize: 8.5,
+      );
     }
 
     canvas.restore();
@@ -378,7 +484,13 @@ class CompassDialPainter extends CustomPainter {
     canvas.drawPath(lubberPath, lubberPaint);
   }
 
-  void _drawDegreeText(Canvas canvas, String text, int deg, double r, Color color) {
+  void _drawDegreeText(
+    Canvas canvas,
+    String text,
+    int deg,
+    double r,
+    Color color,
+  ) {
     final rad = deg * (math.pi / 180.0);
     final textPainter = TextPainter(
       text: TextSpan(
@@ -398,7 +510,10 @@ class CompassDialPainter extends CustomPainter {
 
     canvas.save();
     canvas.translate(x + textPainter.width / 2, y + textPainter.height / 2);
-    textPainter.paint(canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
+    textPainter.paint(
+      canvas,
+      Offset(-textPainter.width / 2, -textPainter.height / 2),
+    );
     canvas.restore();
   }
 

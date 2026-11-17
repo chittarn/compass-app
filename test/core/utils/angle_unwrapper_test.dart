@@ -33,12 +33,15 @@ void main() {
       expect(next, 361.0); // 359 + 2
     });
 
-    test('Counter-clockwise wrap-around from 1° to 359° steps -2°, not +358°', () {
-      final unwrapper = AngleUnwrapper(1.0);
-      unwrapper.unwrap(1.0);
-      final next = unwrapper.unwrap(359.0);
-      expect(next, -1.0); // 1 - 2
-    });
+    test(
+      'Counter-clockwise wrap-around from 1° to 359° steps -2°, not +358°',
+      () {
+        final unwrapper = AngleUnwrapper(1.0);
+        unwrapper.unwrap(1.0);
+        final next = unwrapper.unwrap(359.0);
+        expect(next, -1.0); // 1 - 2
+      },
+    );
 
     test('Multiple complete clockwise revolutions unwrap continuously', () {
       final unwrapper = AngleUnwrapper(350.0);

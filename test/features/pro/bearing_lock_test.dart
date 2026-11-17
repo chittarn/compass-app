@@ -58,11 +58,14 @@ void main() {
       expect(getDriftGuidance(diff), 'STEER_RIGHT');
     });
 
-    test('Dead on target: Locked 180°, Current 180° -> diff 0° (On Course)', () {
-      final diff = calculateDrift(180.0, 180.0);
-      expect(diff, 0.0);
-      expect(getDriftGuidance(diff), 'ON_COURSE');
-    });
+    test(
+      'Dead on target: Locked 180°, Current 180° -> diff 0° (On Course)',
+      () {
+        final diff = calculateDrift(180.0, 180.0);
+        expect(diff, 0.0);
+        expect(getDriftGuidance(diff), 'ON_COURSE');
+      },
+    );
   });
 
   group('Bearing Lock Haptic Transitions & Throttling', () {

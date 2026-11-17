@@ -115,16 +115,19 @@ void main() {
       expect(res.inclinationDeg, closeTo(-26.06, 0.02));
     });
 
-    test('Vector 11: Mid-epoch 2025.5 secular variation (-36°S, -137°W, 6km)', () {
-      final res = WmmCalculator.calculate(
-        latitudeDeg: -36.0,
-        longitudeDeg: -137.0,
-        altitudeMeters: 6000.0,
-        date: DateTime.utc(2025, 7, 2),
-      );
-      expect(res.declinationDeg, closeTo(20.28, 0.02));
-      expect(res.inclinationDeg, closeTo(-52.11, 0.02));
-    });
+    test(
+      'Vector 11: Mid-epoch 2025.5 secular variation (-36°S, -137°W, 6km)',
+      () {
+        final res = WmmCalculator.calculate(
+          latitudeDeg: -36.0,
+          longitudeDeg: -137.0,
+          altitudeMeters: 6000.0,
+          date: DateTime.utc(2025, 7, 2),
+        );
+        expect(res.declinationDeg, closeTo(20.28, 0.02));
+        expect(res.inclinationDeg, closeTo(-52.11, 0.02));
+      },
+    );
 
     test('Vector 12: Mid-epoch 2025.5 (26°N, 81°E, 63km)', () {
       final res = WmmCalculator.calculate(
@@ -231,35 +234,38 @@ void main() {
       expect(dec, greaterThan(0.0));
     });
 
-    test('Bhubaneswar, Odisha, India: Official NOAA WMM-2025 Reference Test', () {
-      // Bhubaneswar Coordinates: 20.2961° N, 85.8245° E, Elevation: 45.0m WGS-84
-      // Epoch 2025.0: Expected Dec: -0.43° W (-0.4279°), Inc: 30.40°, H: 38,980.5 nT, F: 45,196.0 nT
-      final res2025 = WmmCalculator.calculate(
-        latitudeDeg: 20.2961,
-        longitudeDeg: 85.8245,
-        altitudeMeters: 45.0,
-        date: DateTime.utc(2025, 1, 1),
-      );
-      expect(res2025.declinationDeg, closeTo(-0.43, 0.05));
-      expect(res2025.inclinationDeg, closeTo(30.40, 0.1));
-      expect(res2025.totalIntensityNt, closeTo(45196.0, 10.0));
-      expect(res2025.horizontalIntensityNt, closeTo(38980.5, 10.0));
-      expect(res2025.reliabilityLevel, equals(WmmReliabilityLevel.normal));
+    test(
+      'Bhubaneswar, Odisha, India: Official NOAA WMM-2025 Reference Test',
+      () {
+        // Bhubaneswar Coordinates: 20.2961° N, 85.8245° E, Elevation: 45.0m WGS-84
+        // Epoch 2025.0: Expected Dec: -0.43° W (-0.4279°), Inc: 30.40°, H: 38,980.5 nT, F: 45,196.0 nT
+        final res2025 = WmmCalculator.calculate(
+          latitudeDeg: 20.2961,
+          longitudeDeg: 85.8245,
+          altitudeMeters: 45.0,
+          date: DateTime.utc(2025, 1, 1),
+        );
+        expect(res2025.declinationDeg, closeTo(-0.43, 0.05));
+        expect(res2025.inclinationDeg, closeTo(30.40, 0.1));
+        expect(res2025.totalIntensityNt, closeTo(45196.0, 10.0));
+        expect(res2025.horizontalIntensityNt, closeTo(38980.5, 10.0));
+        expect(res2025.reliabilityLevel, equals(WmmReliabilityLevel.normal));
 
-      // Epoch 2026.0 (Secular variation drift rate validation):
-      // Expected Dec: -0.40° W (-0.4032°), Inc: 30.43°, H: 38,998.6 nT, F: 45,230.0 nT
-      final res2026 = WmmCalculator.calculate(
-        latitudeDeg: 20.2961,
-        longitudeDeg: 85.8245,
-        altitudeMeters: 45.0,
-        date: DateTime.utc(2026, 1, 1),
-      );
-      expect(res2026.declinationDeg, closeTo(-0.40, 0.05));
-      expect(res2026.inclinationDeg, closeTo(30.43, 0.1));
-      expect(res2026.totalIntensityNt, closeTo(45230.0, 10.0));
-      expect(res2026.horizontalIntensityNt, closeTo(38998.6, 10.0));
-      expect(res2026.reliabilityLevel, equals(WmmReliabilityLevel.normal));
-    });
+        // Epoch 2026.0 (Secular variation drift rate validation):
+        // Expected Dec: -0.40° W (-0.4032°), Inc: 30.43°, H: 38,998.6 nT, F: 45,230.0 nT
+        final res2026 = WmmCalculator.calculate(
+          latitudeDeg: 20.2961,
+          longitudeDeg: 85.8245,
+          altitudeMeters: 45.0,
+          date: DateTime.utc(2026, 1, 1),
+        );
+        expect(res2026.declinationDeg, closeTo(-0.40, 0.05));
+        expect(res2026.inclinationDeg, closeTo(30.43, 0.1));
+        expect(res2026.totalIntensityNt, closeTo(45230.0, 10.0));
+        expect(res2026.horizontalIntensityNt, closeTo(38998.6, 10.0));
+        expect(res2026.reliabilityLevel, equals(WmmReliabilityLevel.normal));
+      },
+    );
   });
 
   group('WMM-2025 Reliability Warnings & Field Strength Thresholds', () {
@@ -287,17 +293,20 @@ void main() {
       expect(res.reliabilityLevel, equals(WmmReliabilityLevel.caution));
     });
 
-    test('Blackout zone: Horizontal intensity H < 2000 nT near magnetic dip pole', () {
-      // 89°N, -121°W has H ≈ 1500 nT
-      final res = WmmCalculator.calculate(
-        latitudeDeg: 89.0,
-        longitudeDeg: -121.0,
-        altitudeMeters: 28000.0,
-        date: DateTime.utc(2025, 1, 1),
-      );
-      expect(res.horizontalIntensityNt, lessThan(2000.0));
-      expect(res.reliabilityLevel, equals(WmmReliabilityLevel.blackout));
-    });
+    test(
+      'Blackout zone: Horizontal intensity H < 2000 nT near magnetic dip pole',
+      () {
+        // 89°N, -121°W has H ≈ 1500 nT
+        final res = WmmCalculator.calculate(
+          latitudeDeg: 89.0,
+          longitudeDeg: -121.0,
+          altitudeMeters: 28000.0,
+          date: DateTime.utc(2025, 1, 1),
+        );
+        expect(res.horizontalIntensityNt, lessThan(2000.0));
+        expect(res.reliabilityLevel, equals(WmmReliabilityLevel.blackout));
+      },
+    );
   });
 
   group('Boundary & Graceful Handling Tests', () {
@@ -342,68 +351,71 @@ void main() {
       );
     });
 
-    test('Longitude validation strictly enforces WGS-84 range [-180°, +180°]', () {
-      // Valid boundaries: -180.0° and +180.0° must compute cleanly
-      final decNeg180 = WmmCalculator.calculateDeclination(
-        latitudeDeg: 0.0,
-        longitudeDeg: -180.0,
-        date: DateTime.utc(2025, 1, 1),
-      );
-      expect(decNeg180.isFinite, isTrue);
+    test(
+      'Longitude validation strictly enforces WGS-84 range [-180°, +180°]',
+      () {
+        // Valid boundaries: -180.0° and +180.0° must compute cleanly
+        final decNeg180 = WmmCalculator.calculateDeclination(
+          latitudeDeg: 0.0,
+          longitudeDeg: -180.0,
+          date: DateTime.utc(2025, 1, 1),
+        );
+        expect(decNeg180.isFinite, isTrue);
 
-      final decPos180 = WmmCalculator.calculateDeclination(
-        latitudeDeg: 0.0,
-        longitudeDeg: 180.0,
-        date: DateTime.utc(2025, 1, 1),
-      );
-      expect(decPos180.isFinite, isTrue);
-      // Longitude -180° and +180° represent the antimeridian and must yield identical declination
-      expect(decNeg180, closeTo(decPos180, 0.0001));
+        final decPos180 = WmmCalculator.calculateDeclination(
+          latitudeDeg: 0.0,
+          longitudeDeg: 180.0,
+          date: DateTime.utc(2025, 1, 1),
+        );
+        expect(decPos180.isFinite, isTrue);
+        // Longitude -180° and +180° represent the antimeridian and must yield identical declination
+        expect(decNeg180, closeTo(decPos180, 0.0001));
 
-      // Invalid boundaries: -180.1° and +180.1° must throw ArgumentError
-      expect(
-        () => WmmCalculator.calculate(
-          latitudeDeg: 0.0,
-          longitudeDeg: -180.1,
-          date: DateTime.utc(2025, 1, 1),
-        ),
-        throwsArgumentError,
-      );
-      expect(
-        () => WmmCalculator.calculate(
-          latitudeDeg: 0.0,
-          longitudeDeg: 180.1,
-          date: DateTime.utc(2025, 1, 1),
-        ),
-        throwsArgumentError,
-      );
+        // Invalid boundaries: -180.1° and +180.1° must throw ArgumentError
+        expect(
+          () => WmmCalculator.calculate(
+            latitudeDeg: 0.0,
+            longitudeDeg: -180.1,
+            date: DateTime.utc(2025, 1, 1),
+          ),
+          throwsArgumentError,
+        );
+        expect(
+          () => WmmCalculator.calculate(
+            latitudeDeg: 0.0,
+            longitudeDeg: 180.1,
+            date: DateTime.utc(2025, 1, 1),
+          ),
+          throwsArgumentError,
+        );
 
-      // Non-finite longitudes: NaN, +infinity, -infinity must throw ArgumentError
-      expect(
-        () => WmmCalculator.calculate(
-          latitudeDeg: 0.0,
-          longitudeDeg: double.nan,
-          date: DateTime.utc(2025, 1, 1),
-        ),
-        throwsArgumentError,
-      );
-      expect(
-        () => WmmCalculator.calculate(
-          latitudeDeg: 0.0,
-          longitudeDeg: double.infinity,
-          date: DateTime.utc(2025, 1, 1),
-        ),
-        throwsArgumentError,
-      );
-      expect(
-        () => WmmCalculator.calculate(
-          latitudeDeg: 0.0,
-          longitudeDeg: double.negativeInfinity,
-          date: DateTime.utc(2025, 1, 1),
-        ),
-        throwsArgumentError,
-      );
-    });
+        // Non-finite longitudes: NaN, +infinity, -infinity must throw ArgumentError
+        expect(
+          () => WmmCalculator.calculate(
+            latitudeDeg: 0.0,
+            longitudeDeg: double.nan,
+            date: DateTime.utc(2025, 1, 1),
+          ),
+          throwsArgumentError,
+        );
+        expect(
+          () => WmmCalculator.calculate(
+            latitudeDeg: 0.0,
+            longitudeDeg: double.infinity,
+            date: DateTime.utc(2025, 1, 1),
+          ),
+          throwsArgumentError,
+        );
+        expect(
+          () => WmmCalculator.calculate(
+            latitudeDeg: 0.0,
+            longitudeDeg: double.negativeInfinity,
+            date: DateTime.utc(2025, 1, 1),
+          ),
+          throwsArgumentError,
+        );
+      },
+    );
 
     test('Non-finite coordinates or altitude throw ArgumentError', () {
       expect(
@@ -487,10 +499,14 @@ void main() {
     });
 
     test('Date conversion handles leap years and standard years', () {
-      final yr2025 = WmmCalculator.dateToDecimalYear(DateTime.utc(2025, 7, 2, 12));
+      final yr2025 = WmmCalculator.dateToDecimalYear(
+        DateTime.utc(2025, 7, 2, 12),
+      );
       expect(yr2025, closeTo(2025.5, 0.01));
 
-      final yr2028 = WmmCalculator.dateToDecimalYear(DateTime.utc(2028, 7, 1, 12));
+      final yr2028 = WmmCalculator.dateToDecimalYear(
+        DateTime.utc(2028, 7, 1, 12),
+      );
       expect(yr2028, closeTo(2028.5, 0.01));
     });
   });

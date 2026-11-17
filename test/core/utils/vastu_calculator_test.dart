@@ -41,23 +41,35 @@ void main() {
 
     test('computes 32-zone entrance pada fields and auspiciousness', () {
       expect(VastuCalculator.thirtyTwoZones.length, 32);
-      final jayanta = VastuCalculator.thirtyTwoZones.firstWhere((p) => p.padaCode == 'E3');
+      final jayanta = VastuCalculator.thirtyTwoZones.firstWhere(
+        (p) => p.padaCode == 'E3',
+      );
       expect(jayanta.deityName, contains('Jayanta'));
       expect(jayanta.suitability, EntranceSuitability.auspicious);
 
-      final mukhya = VastuCalculator.thirtyTwoZones.firstWhere((p) => p.padaCode == 'N3');
+      final mukhya = VastuCalculator.thirtyTwoZones.firstWhere(
+        (p) => p.padaCode == 'N3',
+      );
       expect(mukhya.deityName, contains('Mukhya'));
       expect(mukhya.suitability, EntranceSuitability.auspicious);
 
-      final yama = VastuCalculator.thirtyTwoZones.firstWhere((p) => p.padaCode == 'S5');
+      final yama = VastuCalculator.thirtyTwoZones.firstWhere(
+        (p) => p.padaCode == 'S5',
+      );
       expect(yama.suitability, EntranceSuitability.inauspicious);
     });
 
     test('room guidelines provide accurate target headings and alignment', () {
       final pooja = VastuCalculator.getGuideline(VastuRoomType.poojaRoom);
       expect(pooja.targetHeading, 45.0);
-      expect(VastuCalculator.isAlignedWithRoom(46.0, VastuRoomType.poojaRoom), isTrue);
-      expect(VastuCalculator.isAlignedWithRoom(180.0, VastuRoomType.poojaRoom), isFalse);
+      expect(
+        VastuCalculator.isAlignedWithRoom(46.0, VastuRoomType.poojaRoom),
+        isTrue,
+      );
+      expect(
+        VastuCalculator.isAlignedWithRoom(180.0, VastuRoomType.poojaRoom),
+        isFalse,
+      );
 
       final kitchen = VastuCalculator.getGuideline(VastuRoomType.kitchen);
       expect(kitchen.targetHeading, 135.0);
@@ -67,11 +79,15 @@ void main() {
     });
 
     test('commercial guidelines provide accurate executive placements', () {
-      final md = VastuCalculator.getCommercialGuideline(CommercialRoomType.managingDirector);
+      final md = VastuCalculator.getCommercialGuideline(
+        CommercialRoomType.managingDirector,
+      );
       expect(md.targetHeading, 225.0);
       expect(md.idealDirection, contains('South-West'));
 
-      final cashier = VastuCalculator.getCommercialGuideline(CommercialRoomType.cashierAccounts);
+      final cashier = VastuCalculator.getCommercialGuideline(
+        CommercialRoomType.cashierAccounts,
+      );
       expect(cashier.targetHeading, 0.0);
       expect(cashier.idealDirection, contains('North'));
     });

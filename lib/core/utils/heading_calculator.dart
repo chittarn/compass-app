@@ -1,10 +1,11 @@
 import 'dart:math' as math;
+
 import 'wmm_calculator.dart';
 
 class HeadingCalculator {
   /// Computes a 3D tilt-compensated magnetic azimuth in degrees [0, 360) using Android's
   /// SensorManager rotation matrix algorithm.
-  /// 
+  ///
   /// [ax], [ay], [az]: Accelerometer measurements in m/s^2.
   /// [mx], [my], [mz]: Magnetometer measurements in µT.
   static double calculateAzimuth({

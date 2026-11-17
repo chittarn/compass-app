@@ -5,10 +5,15 @@ class ProState {
   final bool isNightVision;
   final AppThemeMode themeMode;
   final double? lockedBearing;
-  final double? lockedMagneticBearing; // Invariant physical magnetic heading [0, 360)
+  final double?
+  lockedMagneticBearing; // Invariant physical magnetic heading [0, 360)
   final double? waypointLat;
   final double? waypointLng;
   final String? waypointLabel;
+  final String productPrice;
+  final bool isBillingLoading;
+  final bool isPurchasePending;
+  final String? billingErrorMessage;
 
   const ProState({
     this.isPro = false,
@@ -19,6 +24,10 @@ class ProState {
     this.waypointLat,
     this.waypointLng,
     this.waypointLabel,
+    this.productPrice = '₹149',
+    this.isBillingLoading = false,
+    this.isPurchasePending = false,
+    this.billingErrorMessage,
   });
 
   bool get hasLockedBearing => lockedBearing != null;
@@ -52,16 +61,33 @@ class ProState {
     double? waypointLng,
     String? waypointLabel,
     bool clearWaypoint = false,
+    String? productPrice,
+    bool? isBillingLoading,
+    bool? isPurchasePending,
+    String? billingErrorMessage,
+    bool clearBillingError = false,
   }) {
     return ProState(
       isPro: isPro ?? this.isPro,
       isNightVision: isNightVision ?? this.isNightVision,
       themeMode: themeMode ?? this.themeMode,
-      lockedBearing: clearBearing ? null : (lockedBearing ?? this.lockedBearing),
-      lockedMagneticBearing: clearBearing ? null : (lockedMagneticBearing ?? this.lockedMagneticBearing),
+      lockedBearing: clearBearing
+          ? null
+          : (lockedBearing ?? this.lockedBearing),
+      lockedMagneticBearing: clearBearing
+          ? null
+          : (lockedMagneticBearing ?? this.lockedMagneticBearing),
       waypointLat: clearWaypoint ? null : (waypointLat ?? this.waypointLat),
       waypointLng: clearWaypoint ? null : (waypointLng ?? this.waypointLng),
-      waypointLabel: clearWaypoint ? null : (waypointLabel ?? this.waypointLabel),
+      waypointLabel: clearWaypoint
+          ? null
+          : (waypointLabel ?? this.waypointLabel),
+      productPrice: productPrice ?? this.productPrice,
+      isBillingLoading: isBillingLoading ?? this.isBillingLoading,
+      isPurchasePending: isPurchasePending ?? this.isPurchasePending,
+      billingErrorMessage: clearBillingError
+          ? null
+          : (billingErrorMessage ?? this.billingErrorMessage),
     );
   }
 }

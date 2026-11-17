@@ -101,62 +101,68 @@ void main() {
       expect(controller.state.lockedMagneticBearing, 90.0);
     });
 
-    test('Scenario 5: Bearing Lock already active when declination arrives', () {
-      // User locked bearing in Magnetic North, then GPS arrives
-      controller.lockBearing(350.0, headingType: HeadingType.magnetic);
+    test(
+      'Scenario 5: Bearing Lock already active when declination arrives',
+      () {
+        // User locked bearing in Magnetic North, then GPS arrives
+        controller.lockBearing(350.0, headingType: HeadingType.magnetic);
 
-      // Declination arrives while still in True North
-      controller.updateReferenceFrame(
-        headingType: HeadingType.trueNorth,
-        declination: 15.0, // East (+15°)
-      );
+        // Declination arrives while still in True North
+        controller.updateReferenceFrame(
+          headingType: HeadingType.trueNorth,
+          declination: 15.0, // East (+15°)
+        );
 
-      // (350.0 + 15.0) % 360.0 = 5.0°
-      expect(controller.state.lockedBearing, closeTo(5.0, 0.001));
-      expect(controller.state.lockedMagneticBearing, 350.0);
-    });
+        // (350.0 + 15.0) % 360.0 = 5.0°
+        expect(controller.state.lockedBearing, closeTo(5.0, 0.001));
+        expect(controller.state.lockedMagneticBearing, 350.0);
+      },
+    );
 
-    test('Scenario 6: Repeated GPS updates without repeated bearing adjustments', () {
-      // User locks bearing in Magnetic at 200.0°
-      controller.lockBearing(200.0, headingType: HeadingType.magnetic);
+    test(
+      'Scenario 6: Repeated GPS updates without repeated bearing adjustments',
+      () {
+        // User locks bearing in Magnetic at 200.0°
+        controller.lockBearing(200.0, headingType: HeadingType.magnetic);
 
-      // Switched to True North
-      controller.updateReferenceFrame(
-        headingType: HeadingType.trueNorth,
-        declination: null,
-      );
+        // Switched to True North
+        controller.updateReferenceFrame(
+          headingType: HeadingType.trueNorth,
+          declination: null,
+        );
 
-      // GPS update 1 arrives: declination = +5.0°
-      controller.updateReferenceFrame(
-        headingType: HeadingType.trueNorth,
-        declination: 5.0,
-      );
-      expect(controller.state.lockedBearing, 205.0);
+        // GPS update 1 arrives: declination = +5.0°
+        controller.updateReferenceFrame(
+          headingType: HeadingType.trueNorth,
+          declination: 5.0,
+        );
+        expect(controller.state.lockedBearing, 205.0);
 
-      // GPS update 2 arrives (1 second later with same declination)
-      controller.updateReferenceFrame(
-        headingType: HeadingType.trueNorth,
-        declination: 5.0,
-      );
-      // MUST NOT be 210.0°! Must remain exactly 205.0°!
-      expect(controller.state.lockedBearing, 205.0);
+        // GPS update 2 arrives (1 second later with same declination)
+        controller.updateReferenceFrame(
+          headingType: HeadingType.trueNorth,
+          declination: 5.0,
+        );
+        // MUST NOT be 210.0°! Must remain exactly 205.0°!
+        expect(controller.state.lockedBearing, 205.0);
 
-      // GPS update 3 arrives (slight micro-drift in declination to +5.02°)
-      controller.updateReferenceFrame(
-        headingType: HeadingType.trueNorth,
-        declination: 5.02,
-      );
-      expect(controller.state.lockedBearing, closeTo(205.02, 0.001));
-
-      // Multiple stream updates simulated (100 times)
-      for (int i = 0; i < 100; i++) {
+        // GPS update 3 arrives (slight micro-drift in declination to +5.02°)
         controller.updateReferenceFrame(
           headingType: HeadingType.trueNorth,
           declination: 5.02,
         );
-      }
-      expect(controller.state.lockedBearing, closeTo(205.02, 0.001));
-      expect(controller.state.lockedMagneticBearing, 200.0);
-    });
+        expect(controller.state.lockedBearing, closeTo(205.02, 0.001));
+
+        // Multiple stream updates simulated (100 times)
+        for (int i = 0; i < 100; i++) {
+          controller.updateReferenceFrame(
+            headingType: HeadingType.trueNorth,
+            declination: 5.02,
+          );
+        }
+        expect(controller.state.lockedBearing, closeTo(205.02, 0.001));
+        expect(controller.state.lockedMagneticBearing, 200.0);
+      },
+    );
   });
 }

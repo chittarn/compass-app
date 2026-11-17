@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../domain/heading_type.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -6,11 +7,7 @@ class AccuracyBadge extends StatelessWidget {
   final SensorAccuracyLevel accuracy;
   final VoidCallback onTap;
 
-  const AccuracyBadge({
-    super.key,
-    required this.accuracy,
-    required this.onTap,
-  });
+  const AccuracyBadge({super.key, required this.accuracy, required this.onTap});
 
   Color get _badgeColor {
     switch (accuracy) {
@@ -47,10 +44,7 @@ class AccuracyBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceElevated,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: _badgeColor.withOpacity(0.5),
-            width: 1.2,
-          ),
+          border: Border.all(color: _badgeColor.withOpacity(0.5), width: 1.2),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

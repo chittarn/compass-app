@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
 
 enum AppThemeMode {
-  tacticalDark('Classic Dark', 'Default tactical cyan and dark slate', Color(0xFF00E5FF)),
-  tacticalAmber('Tactical Amber', 'Military aviation high-contrast amber', Color(0xFFFFB300)),
-  arcticCyan('Arctic Cyan', 'Ice blue high-contrast polar palette', Color(0xFF80DEEA)),
-  nightVision('OLED Red Vision', 'Pure scotopic red on true black for darkness', Color(0xFFFF1E1E));
+  tacticalDark(
+    'Classic Dark',
+    'Default tactical cyan and dark slate',
+    Color(0xFF00E5FF),
+  ),
+  tacticalAmber(
+    'Tactical Amber',
+    'Military aviation high-contrast amber',
+    Color(0xFFFFB300),
+  ),
+  arcticCyan(
+    'Arctic Cyan',
+    'Ice blue high-contrast polar palette',
+    Color(0xFF80DEEA),
+  ),
+  nightVision(
+    'OLED Red Vision',
+    'Pure scotopic red on true black for darkness',
+    Color(0xFFFF1E1E),
+  );
 
   final String label;
   final String description;

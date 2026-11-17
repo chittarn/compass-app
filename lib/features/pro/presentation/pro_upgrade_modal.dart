@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../controllers/pro_controller.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -78,9 +80,13 @@ class ProUpgradeModal extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          proState.isPro ? 'COMPASS PRO ACTIVE' : 'UPGRADE TO PRO',
+                          proState.isPro
+                              ? 'COMPASS PRO ACTIVE'
+                              : 'UPGRADE TO PRO',
                           style: TextStyle(
-                            color: proState.isPro ? theme.accentCyan : theme.goldPro,
+                            color: proState.isPro
+                                ? theme.accentCyan
+                                : theme.goldPro,
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.2,
@@ -155,14 +161,17 @@ class ProUpgradeModal extends ConsumerWidget {
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: theme.goldPro,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Text(
-                              '\$1.99',
-                              style: TextStyle(
+                            child: Text(
+                              proState.productPrice,
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w900,
                                 fontSize: 16,
@@ -176,7 +185,11 @@ class ProUpgradeModal extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.check_circle_rounded, color: theme.goldPro, size: 14),
+                          Icon(
+                            Icons.check_circle_rounded,
+                            color: theme.goldPro,
+                            size: 14,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -208,7 +221,10 @@ class ProUpgradeModal extends ConsumerWidget {
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.accentGreen.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(4),
@@ -270,7 +286,8 @@ class ProUpgradeModal extends ConsumerWidget {
                   theme: theme,
                   icon: Icons.grid_view_rounded,
                   iconColor: const Color(0xFFFFD700),
-                  title: '32-Zone Vastu Purusha Mandala & Commercial Directives',
+                  title:
+                      '32-Zone Vastu Purusha Mandala & Commercial Directives',
                   desc: 'Precision Vedic energy mapping across all 32 Devata Padas with doorway entrance ratings and dedicated commercial office guidelines.',
                   badge: 'AVAILABLE',
                   badgeColor: theme.accentGreen,
@@ -301,7 +318,10 @@ class ProUpgradeModal extends ConsumerWidget {
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: theme.textSecondary.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(4),
@@ -348,7 +368,9 @@ class ProUpgradeModal extends ConsumerWidget {
                       proNotifier.toggleProMode();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('🧪 TEMPORARY TEST MODE: Switched back to Free Tier (5 waypoints limit).'),
+                          content: Text(
+                            '🧪 TEMPORARY TEST MODE: Switched back to Free Tier (5 waypoints limit).',
+                          ),
                           duration: Duration(seconds: 2),
                         ),
                       );
@@ -356,14 +378,18 @@ class ProUpgradeModal extends ConsumerWidget {
                       proNotifier.toggleProMode();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('🧪 TEMPORARY TEST MODE: Compass Pro unlocked for device testing (Not a real purchase).'),
+                          content: Text(
+                            '🧪 TEMPORARY TEST MODE: Compass Pro unlocked for device testing (Not a real purchase).',
+                          ),
                           duration: Duration(seconds: 2),
                         ),
                       );
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: proState.isPro ? theme.accentGreen : theme.goldPro,
+                    backgroundColor: proState.isPro
+                        ? theme.accentGreen
+                        : theme.goldPro,
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -375,7 +401,9 @@ class ProUpgradeModal extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        proState.isPro ? Icons.check_circle_rounded : Icons.science_outlined,
+                        proState.isPro
+                            ? Icons.check_circle_rounded
+                            : Icons.science_outlined,
                         color: Colors.black,
                         size: 20,
                       ),
@@ -408,82 +436,216 @@ class ProUpgradeModal extends ConsumerWidget {
 
                 // Temporary Pro Version Switcher Card (Explicitly labeled for QA/Internal testing)
                 const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: proState.isPro
-                        ? theme.accentCyan.withOpacity(0.12)
-                        : theme.goldPro.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: proState.isPro ? theme.accentCyan : theme.goldPro,
-                      width: 1.2,
+
+                // Error Banner (if any)
+                if (proState.billingErrorMessage != null) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.northRed.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: theme.northRed.withOpacity(0.4),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          color: theme.northRed,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            proState.billingErrorMessage!,
+                            style: TextStyle(
+                              color: theme.northRed,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: theme.northRed,
+                            size: 16,
+                          ),
+                          onPressed: () => proNotifier.clearBillingError(),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.science_outlined,
-                                    color: proState.isPro ? theme.accentCyan : theme.goldPro,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'TEMPORARY TEST MODE — NOT A PURCHASE',
-                                    style: TextStyle(
-                                      color: proState.isPro ? theme.accentCyan : theme.goldPro,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 11,
-                                      letterSpacing: 0.8,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                proState.isPro
-                                    ? 'Current State: PRO (Unlimited Waypoints)'
-                                    : 'Current State: FREE (5 Waypoints Limit)',
-                                style: TextStyle(
-                                  color: theme.textSecondary,
-                                  fontSize: 11,
+                ],
+
+                // Real Google Play Purchase Action Buttons
+                if (!proState.isPro) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.goldPro,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 2,
+                      ),
+                      onPressed: proState.isPurchasePending
+                          ? null
+                          : () => proNotifier.buyProLifetime(),
+                      child: proState.isPurchasePending
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.black,
                                 ),
                               ),
-                            ],
-                          ),
-                          Switch(
-                            value: proState.isPro,
-                            activeColor: theme.accentCyan,
-                            activeTrackColor: theme.accentCyan.withOpacity(0.4),
-                            inactiveThumbColor: theme.textSecondary,
-                            inactiveTrackColor: theme.dialRing,
-                            onChanged: (_) {
-                              proNotifier.toggleProMode();
-                            },
-                          ),
-                        ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.workspace_premium_rounded,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'UPGRADE TO PRO • ${proState.productPrice}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 14,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Center(
+                    child: TextButton.icon(
+                      icon: Icon(
+                        Icons.restore_rounded,
+                        size: 16,
+                        color: theme.textSecondary,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Internal test toggle for physical device validation. Does not process billing. Will be replaced by verified Google Play Billing before production release.',
+                      label: Text(
+                        'Already purchased? Restore Purchases',
                         style: TextStyle(
-                          color: theme.textSecondary.withOpacity(0.7),
-                          fontSize: 10,
-                          fontStyle: FontStyle.italic,
+                          color: theme.textSecondary,
+                          fontSize: 12,
+                          decoration: TextDecoration.underline,
                         ),
                       ),
-                    ],
+                      onPressed: () => proNotifier.restorePurchases(),
+                    ),
                   ),
-                ),
+                ] else ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: theme.accentGreen.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: theme.accentGreen.withOpacity(0.4),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.verified_rounded,
+                          color: theme.accentGreen,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'PRO UNLOCKED • LIFETIME LICENSE ACTIVE',
+                          style: TextStyle(
+                            color: theme.accentGreen,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Development-Only Toggle (Strictly hidden in production & release builds)
+                if (kDebugMode) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.cardBackground,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: theme.textSecondary.withOpacity(0.2),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.developer_mode_rounded,
+                              color: theme.accentAmber,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'DEVELOPER DEBUG TOGGLE',
+                                  style: TextStyle(
+                                    color: theme.accentAmber,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                Text(
+                                  'Debug builds only. Stripped in release.',
+                                  style: TextStyle(
+                                    color: theme.textSecondary,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Switch(
+                          value: proState.isPro,
+                          activeColor: theme.accentCyan,
+                          onChanged: (_) {
+                            proNotifier.debugTogglePro();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 const SizedBox(height: 16),
               ],
@@ -542,12 +704,19 @@ class ProUpgradeModal extends ConsumerWidget {
                     if (badge != null) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: (badgeColor ?? theme.accentCyan).withOpacity(0.15),
+                          color: (badgeColor ?? theme.accentCyan).withOpacity(
+                            0.15,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
-                            color: (badgeColor ?? theme.accentCyan).withOpacity(0.5),
+                            color: (badgeColor ?? theme.accentCyan).withOpacity(
+                              0.5,
+                            ),
                             width: 0.8,
                           ),
                         ),

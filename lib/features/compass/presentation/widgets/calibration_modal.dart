@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import '../../domain/heading_type.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -122,7 +124,10 @@ class _CalibrationModalState extends State<CalibrationModal>
                 ),
               ),
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Got it', style: TextStyle(fontWeight: FontWeight.w600)),
+              child: const Text(
+                'Got it',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
           ),
         ],
@@ -168,7 +173,8 @@ class _Figure8Painter extends CustomPainter {
     final tNode = progress * 2 * math.pi;
     final denomNode = 1 + math.pow(math.sin(tNode), 2);
     final nodeX = center.dx + (a * math.cos(tNode)) / denomNode;
-    final nodeY = center.dy + (b * math.sin(tNode) * math.cos(tNode)) / denomNode;
+    final nodeY =
+        center.dy + (b * math.sin(tNode) * math.cos(tNode)) / denomNode;
     final nodePos = Offset(nodeX, nodeY);
 
     // Node glow

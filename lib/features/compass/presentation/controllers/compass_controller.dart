@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../domain/compass_state.dart';
 import '../../domain/heading_type.dart';
 import '../../../../core/utils/angle_unwrapper.dart';
+import '../../../../core/utils/circular_heading_filter.dart';
 import '../../../../core/utils/haptic_throttler.dart';
 import '../../../../core/utils/tilt_calculator.dart';
 import '../../../../core/utils/qibla_calculator.dart';
@@ -19,8 +23,8 @@ import '../../../../core/utils/heading_calculator.dart';
 
 final compassControllerProvider =
     StateNotifierProvider<CompassController, CompassState>((ref) {
-  return CompassController();
-});
+      return CompassController();
+    });
 
 class CompassController extends StateNotifier<CompassState> {
   static const String _keyHeadingType = 'compass_heading_type';
@@ -29,6 +33,11 @@ class CompassController extends StateNotifier<CompassState> {
 
   final AngleUnwrapper _unwrapper = AngleUnwrapper();
   final HapticThrottler _hapticThrottler = HapticThrottler();
+  final CircularHeadingFilter _headingFilter = CircularHeadingFilter(
+    deadbandDegrees: 0.6,
+  );
+
+  double? get filteredHeading => _headingFilter.filteredHeading;
 
   StreamSubscription? _compassSub;
   StreamSubscription? _accelerometerSub;
@@ -52,7 +61,8 @@ class CompassController extends StateNotifier<CompassState> {
   double? _filteredEmf;
 
   CompassController()
-      : super(const CompassState(
+    : super(
+        const CompassState(
           heading: 0.0,
           unwrappedHeading: 0.0,
           headingType: HeadingType.magnetic,
@@ -61,7 +71,8 @@ class CompassController extends StateNotifier<CompassState> {
           roll: 0.0,
           isLevel: true,
           hasLocationPermission: false,
-        )) {
+        ),
+      ) {
     _loadPreferences();
     _initStreams();
   }
@@ -70,7 +81,8 @@ class CompassController extends StateNotifier<CompassState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedTypeIndex = prefs.getInt(_keyHeadingType);
-      if (savedTypeIndex != null && savedTypeIndex < HeadingType.values.length) {
+      if (savedTypeIndex != null &&
+          savedTypeIndex < HeadingType.values.length) {
         final savedType = HeadingType.values[savedTypeIndex];
         state = state.copyWith(headingType: savedType);
       }
@@ -91,7 +103,9 @@ class CompassController extends StateNotifier<CompassState> {
     } catch (_) {}
 
     try {
-      _accelerometerSub = accelerometerEventStream().listen(_onAccelerometerEvent);
+      _accelerometerSub = accelerometerEventStream().listen(
+        _onAccelerometerEvent,
+      );
     } catch (_) {}
 
     try {
@@ -109,9 +123,21 @@ class CompassController extends StateNotifier<CompassState> {
     if (state.latitude == null || state.longitude == null) return;
     final nowUtc = DateTime.now().toUtc();
     final nowLocal = DateTime.now();
-    final sunAz = SolarCalculator.calculateSunAzimuth(state.latitude!, state.longitude!, nowUtc);
-    final moonAz = SolarCalculator.calculateMoonAzimuth(state.latitude!, state.longitude!, nowUtc);
-    final sunTimes = SolarCalculator.calculateSunriseSunset(state.latitude!, state.longitude!, nowLocal);
+    final sunAz = SolarCalculator.calculateSunAzimuth(
+      state.latitude!,
+      state.longitude!,
+      nowUtc,
+    );
+    final moonAz = SolarCalculator.calculateMoonAzimuth(
+      state.latitude!,
+      state.longitude!,
+      nowUtc,
+    );
+    final sunTimes = SolarCalculator.calculateSunriseSunset(
+      state.latitude!,
+      state.longitude!,
+      nowLocal,
+    );
 
     state = state.copyWith(
       sunAzimuth: sunAz,
@@ -181,26 +207,45 @@ class CompassController extends StateNotifier<CompassState> {
   void _startGpsStream() {
     _positionSub?.cancel();
     try {
-      _positionSub = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 2,
-        ),
-      ).listen((Position pos) {
-        _updatePosition(pos);
-      });
+      _positionSub =
+          Geolocator.getPositionStream(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              distanceFilter: 2,
+            ),
+          ).listen((Position pos) {
+            _updatePosition(pos);
+          });
     } catch (_) {}
   }
 
   void _updatePosition(Position pos) {
-    final qBearing = QiblaCalculator.calculateBearing(pos.latitude, pos.longitude);
-    final qDist = QiblaCalculator.calculateDistanceKm(pos.latitude, pos.longitude);
+    final qBearing = QiblaCalculator.calculateBearing(
+      pos.latitude,
+      pos.longitude,
+    );
+    final qDist = QiblaCalculator.calculateDistanceKm(
+      pos.latitude,
+      pos.longitude,
+    );
 
     final nowUtc = DateTime.now().toUtc();
     final nowLocal = DateTime.now();
-    final sunAz = SolarCalculator.calculateSunAzimuth(pos.latitude, pos.longitude, nowUtc);
-    final moonAz = SolarCalculator.calculateMoonAzimuth(pos.latitude, pos.longitude, nowUtc);
-    final sunTimes = SolarCalculator.calculateSunriseSunset(pos.latitude, pos.longitude, nowLocal);
+    final sunAz = SolarCalculator.calculateSunAzimuth(
+      pos.latitude,
+      pos.longitude,
+      nowUtc,
+    );
+    final moonAz = SolarCalculator.calculateMoonAzimuth(
+      pos.latitude,
+      pos.longitude,
+      nowUtc,
+    );
+    final sunTimes = SolarCalculator.calculateSunriseSunset(
+      pos.latitude,
+      pos.longitude,
+      nowLocal,
+    );
     final wmmResult = HeadingCalculator.calculateWmm(
       pos.latitude,
       pos.longitude,
@@ -243,14 +288,19 @@ class CompassController extends StateNotifier<CompassState> {
     final dt = now.difference(_lastTimestamp).inMilliseconds / 1000.0;
     _lastTimestamp = now;
 
-    // Use magnetic heading by default, or true heading if requested and declination known
-    double chosenHeading = rawHeadingVal;
-    if (state.headingType == HeadingType.trueNorth && state.magneticDeclination != null) {
-      chosenHeading = chosenHeading + state.magneticDeclination!;
+    // 1. Circular adaptive low-pass filter with deadband suppression
+    // Eliminates micro-fluctuations and EMF-induced dial jitter when phone is stationary.
+    final filteredMagnetic = _headingFilter.filter(rawHeadingVal);
+
+    // 2. Select reference frame: Magnetic North vs True North
+    double activeHeading = filteredMagnetic;
+    if (state.headingType == HeadingType.trueNorth &&
+        state.magneticDeclination != null) {
+      activeHeading = activeHeading + state.magneticDeclination!;
     }
 
-    final rawHeading = (chosenHeading % 360.0 + 360.0) % 360.0;
-    final unwrapped = _unwrapper.unwrap(rawHeading);
+    final effectiveHeading = (activeHeading % 360.0 + 360.0) % 360.0;
+    final unwrapped = _unwrapper.unwrap(effectiveHeading);
 
     double velocity = 0.0;
     if (dt > 0.001) {
@@ -260,7 +310,7 @@ class CompassController extends StateNotifier<CompassState> {
 
     // Trigger tactical haptics if cardinal/sub-cardinal criteria met
     _hapticThrottler.evaluateHeading(
-      headingDegrees: rawHeading,
+      headingDegrees: effectiveHeading,
       angularVelocityDegPerSec: velocity,
       currentTime: now,
     );
@@ -269,14 +319,22 @@ class CompassController extends StateNotifier<CompassState> {
     // Guard: suppress haptic feedback when True North is selected but declination
     // is not yet available — raw magnetic heading is not a verified true heading.
     if (state.isQiblaMode && state.qiblaBearing != null) {
-      if (state.headingType == HeadingType.trueNorth && state.magneticDeclination == null) {
+      if (state.headingType == HeadingType.trueNorth &&
+          state.magneticDeclination == null) {
         // True North mode but GPS/WMM not ready — skip alignment check
         _lastQiblaAligned = false;
       } else {
-        final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
-            ? rawHeading
-            : ((rawHeading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
-        final isNowAligned = QiblaCalculator.isAligned(effectiveTrueHeading, state.qiblaBearing!);
+        final effectiveTrueHeading =
+            (state.headingType == HeadingType.trueNorth ||
+                state.magneticDeclination == null)
+            ? effectiveHeading
+            : ((effectiveHeading + state.magneticDeclination!) % 360.0 +
+                      360.0) %
+                  360.0;
+        final isNowAligned = QiblaCalculator.isAligned(
+          effectiveTrueHeading,
+          state.qiblaBearing!,
+        );
         if (!_lastQiblaAligned && isNowAligned) {
           HapticFeedback.heavyImpact();
         }
@@ -287,13 +345,21 @@ class CompassController extends StateNotifier<CompassState> {
     // Vastu Room Target Alignment Haptic Pulse
     // Same guard: suppress when True North is selected but unverified.
     if (state.isVastuMode && state.activeVastuRoom != null) {
-      if (state.headingType == HeadingType.trueNorth && state.magneticDeclination == null) {
+      if (state.headingType == HeadingType.trueNorth &&
+          state.magneticDeclination == null) {
         _lastVastuAligned = false;
       } else {
-        final effectiveTrueHeading = (state.headingType == HeadingType.trueNorth || state.magneticDeclination == null)
-            ? rawHeading
-            : ((rawHeading + state.magneticDeclination!) % 360.0 + 360.0) % 360.0;
-        final isNowAligned = VastuCalculator.isAlignedWithRoom(effectiveTrueHeading, state.activeVastuRoom!);
+        final effectiveTrueHeading =
+            (state.headingType == HeadingType.trueNorth ||
+                state.magneticDeclination == null)
+            ? effectiveHeading
+            : ((effectiveHeading + state.magneticDeclination!) % 360.0 +
+                      360.0) %
+                  360.0;
+        final isNowAligned = VastuCalculator.isAlignedWithRoom(
+          effectiveTrueHeading,
+          state.activeVastuRoom!,
+        );
         if (!_lastVastuAligned && isNowAligned) {
           HapticFeedback.mediumImpact();
         }
@@ -301,14 +367,17 @@ class CompassController extends StateNotifier<CompassState> {
       }
     }
 
-    final accuracy = accuracyVal != null ? _mapAccuracy(accuracyVal) : state.accuracy;
+    final accuracy = accuracyVal != null
+        ? _mapAccuracy(accuracyVal)
+        : state.accuracy;
 
     state = state.copyWith(
-      heading: rawHeading,
+      heading: effectiveHeading,
       unwrappedHeading: unwrapped,
       accuracy: accuracy,
       trueHeading: state.magneticDeclination != null
-          ? ((rawHeadingVal + state.magneticDeclination!) % 360.0 + 360.0) % 360.0
+          ? ((filteredMagnetic + state.magneticDeclination!) % 360.0 + 360.0) %
+                360.0
           : null,
     );
   }
@@ -357,8 +426,9 @@ class CompassController extends StateNotifier<CompassState> {
       }
     }
 
-    final isLevel = (displayPitch.abs() <= CompassConstants.levelToleranceDegrees) &&
-                    (displayRoll.abs() <= CompassConstants.levelToleranceDegrees);
+    final isLevel =
+        (displayPitch.abs() <= CompassConstants.levelToleranceDegrees) &&
+        (displayRoll.abs() <= CompassConstants.levelToleranceDegrees);
 
     state = state.copyWith(
       pitch: displayPitch,
@@ -368,7 +438,9 @@ class CompassController extends StateNotifier<CompassState> {
   }
 
   void _onMagnetometerEvent(MagnetometerEvent event) {
-    final rawMag = math.sqrt(event.x * event.x + event.y * event.y + event.z * event.z);
+    final rawMag = math.sqrt(
+      event.x * event.x + event.y * event.y + event.z * event.z,
+    );
 
     if (_filteredMx == null) {
       _filteredMx = event.x;
@@ -402,7 +474,8 @@ class CompassController extends StateNotifier<CompassState> {
     // When FlutterCompass does not emit valid non-null headings (common on OEM ROMs),
     // compute real-time tilt-compensated azimuth from raw accelerometer + magnetometer.
     final now = DateTime.now();
-    final bool flutterCompassStale = _lastFlutterCompassEventTime == null ||
+    final bool flutterCompassStale =
+        _lastFlutterCompassEventTime == null ||
         now.difference(_lastFlutterCompassEventTime!).inMilliseconds > 1200;
 
     if (flutterCompassStale && _filteredAx != null) {
@@ -473,11 +546,13 @@ class CompassController extends StateNotifier<CompassState> {
 
       // 4. In background, request fresh GPS fix
       Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 6),
-      ).then((pos) {
-        _updatePosition(pos);
-      }).catchError((_) {});
+            desiredAccuracy: LocationAccuracy.medium,
+            timeLimit: const Duration(seconds: 6),
+          )
+          .then((pos) {
+            _updatePosition(pos);
+          })
+          .catchError((_) {});
 
       try {
         final prefs = await SharedPreferences.getInstance();

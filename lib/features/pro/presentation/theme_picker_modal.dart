@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../controllers/pro_controller.dart';
 import 'pro_upgrade_modal.dart';
@@ -106,7 +107,9 @@ class ThemePickerModal extends ConsumerWidget {
 
               // Theme Cards
               ...AppThemeMode.values.map((mode) {
-                final isSelected = (mode == AppThemeMode.nightVision && proState.isNightVision) ||
+                final isSelected =
+                    (mode == AppThemeMode.nightVision &&
+                        proState.isNightVision) ||
                     (!proState.isNightVision && proState.themeMode == mode);
                 final isProTheme = mode != AppThemeMode.tacticalDark;
                 final isLocked = isProTheme && !proState.isPro;
@@ -132,7 +135,10 @@ class ThemePickerModal extends ConsumerWidget {
                     },
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? mode.primaryColor.withOpacity(0.12)
@@ -155,12 +161,15 @@ class ThemePickerModal extends ConsumerWidget {
                               color: mode == AppThemeMode.nightVision
                                   ? Colors.black
                                   : (mode == AppThemeMode.arcticCyan
-                                      ? const Color(0xFF081016)
-                                      : (mode == AppThemeMode.tacticalAmber
-                                          ? const Color(0xFF100E08)
-                                          : const Color(0xFF0F1115))),
+                                        ? const Color(0xFF081016)
+                                        : (mode == AppThemeMode.tacticalAmber
+                                              ? const Color(0xFF100E08)
+                                              : const Color(0xFF0F1115))),
                               shape: BoxShape.circle,
-                              border: Border.all(color: mode.primaryColor, width: 2.0),
+                              border: Border.all(
+                                color: mode.primaryColor,
+                                width: 2.0,
+                              ),
                             ),
                             child: Center(
                               child: Container(
@@ -185,7 +194,9 @@ class ThemePickerModal extends ConsumerWidget {
                                     Text(
                                       mode.label,
                                       style: TextStyle(
-                                        color: isSelected ? mode.primaryColor : theme.textPrimary,
+                                        color: isSelected
+                                            ? mode.primaryColor
+                                            : theme.textPrimary,
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -193,10 +204,17 @@ class ThemePickerModal extends ConsumerWidget {
                                     const SizedBox(width: 6),
                                     if (!isProTheme)
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: theme.accentCyan.withOpacity(0.15),
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: theme.accentCyan.withOpacity(
+                                            0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                         child: Text(
                                           'FREE',
@@ -209,10 +227,17 @@ class ThemePickerModal extends ConsumerWidget {
                                       )
                                     else
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: theme.goldPro.withOpacity(0.18),
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: theme.goldPro.withOpacity(
+                                            0.18,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
                                         ),
                                         child: Text(
                                           'PRO',
@@ -239,11 +264,23 @@ class ThemePickerModal extends ConsumerWidget {
 
                           // State Indicator: Selected Check or Lock
                           if (isSelected)
-                            Icon(Icons.check_circle_rounded, color: mode.primaryColor, size: 20)
+                            Icon(
+                              Icons.check_circle_rounded,
+                              color: mode.primaryColor,
+                              size: 20,
+                            )
                           else if (isLocked)
-                            Icon(Icons.lock_rounded, color: theme.goldPro, size: 18)
+                            Icon(
+                              Icons.lock_rounded,
+                              color: theme.goldPro,
+                              size: 18,
+                            )
                           else
-                            Icon(Icons.circle_outlined, color: theme.textSecondary.withOpacity(0.4), size: 18),
+                            Icon(
+                              Icons.circle_outlined,
+                              color: theme.textSecondary.withOpacity(0.4),
+                              size: 18,
+                            ),
                         ],
                       ),
                     ),

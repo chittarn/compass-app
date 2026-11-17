@@ -33,16 +33,24 @@ void main() {
 
   // Target to Right
   final toRight = eastWp.relativeBearingFrom(0.0, 0.0, 0.0);
-  assert((toRight - 90.0).abs() < 0.5, 'East target from north heading is +90° (turn right)');
+  assert(
+    (toRight - 90.0).abs() < 0.5,
+    'East target from north heading is +90° (turn right)',
+  );
   print('  [PASS] Target to Right: +${toRight.round()}° (Turn Right)');
 
   // Target to Left
   final toLeft = northWp.relativeBearingFrom(0.0, 0.0, 90.0);
-  assert((toLeft - (-90.0)).abs() < 0.5, 'North target from east heading is -90° (turn left)');
+  assert(
+    (toLeft - (-90.0)).abs() < 0.5,
+    'North target from east heading is -90° (turn left)',
+  );
   print('  [PASS] Target to Left: ${toLeft.round()}° (Turn Left)');
 
   // 2. Arrival Detection & GPS Accuracy Suppression & Hysteresis
-  print('\n2. Testing Arrival Detection & GPS Accuracy Suppression & Hysteresis...');
+  print(
+    '\n2. Testing Arrival Detection & GPS Accuracy Suppression & Hysteresis...',
+  );
   final nearWp = Waypoint(
     id: 'near',
     title: 'Near Spot',
@@ -52,14 +60,30 @@ void main() {
   );
 
   // Clean arrival
-  final arrivedGoodGps = nearWp.isArrived(0.0, 0.0, locationAccuracyMeters: 6.0, arrivalRadiusMeters: 25.0);
+  final arrivedGoodGps = nearWp.isArrived(
+    0.0,
+    0.0,
+    locationAccuracyMeters: 6.0,
+    arrivalRadiusMeters: 25.0,
+  );
   assert(arrivedGoodGps == true, 'Must arrive with good GPS accuracy');
   print('  [PASS] Arrival confirmed with high accuracy (6m): $arrivedGoodGps');
 
   // Suppressed by poor GPS accuracy
-  final arrivedPoorGps = nearWp.isArrived(0.0, 0.0, locationAccuracyMeters: 55.0, arrivalRadiusMeters: 25.0, maxPermissibleAccuracyMeters: 40.0);
-  assert(arrivedPoorGps == false, 'Must suppress arrival when accuracy is poor (>40m)');
-  print('  [PASS] False arrival suppressed when GPS accuracy is poor (55m uncertainty)');
+  final arrivedPoorGps = nearWp.isArrived(
+    0.0,
+    0.0,
+    locationAccuracyMeters: 55.0,
+    arrivalRadiusMeters: 25.0,
+    maxPermissibleAccuracyMeters: 40.0,
+  );
+  assert(
+    arrivedPoorGps == false,
+    'Must suppress arrival when accuracy is poor (>40m)',
+  );
+  print(
+    '  [PASS] False arrival suppressed when GPS accuracy is poor (55m uncertainty)',
+  );
 
   // Hysteresis at 30m boundary
   final boundaryWp = Waypoint(
@@ -70,12 +94,32 @@ void main() {
     createdAt: DateTime.now(),
   );
 
-  final freshNotArrived = boundaryWp.isArrived(0.0, 0.0, previouslyArrived: false, arrivalRadiusMeters: 25.0, hysteresisMeters: 10.0);
-  assert(freshNotArrived == false, 'Fresh approach at 30m is not arrived (entry threshold 25m)');
+  final freshNotArrived = boundaryWp.isArrived(
+    0.0,
+    0.0,
+    previouslyArrived: false,
+    arrivalRadiusMeters: 25.0,
+    hysteresisMeters: 10.0,
+  );
+  assert(
+    freshNotArrived == false,
+    'Fresh approach at 30m is not arrived (entry threshold 25m)',
+  );
 
-  final keptArrived = boundaryWp.isArrived(0.0, 0.0, previouslyArrived: true, arrivalRadiusMeters: 25.0, hysteresisMeters: 10.0);
-  assert(keptArrived == true, 'Already arrived remains arrived at 30m (exit threshold 35m)');
-  print('  [PASS] Hysteresis verified: Prevents status flickering between 25m and 35m');
+  final keptArrived = boundaryWp.isArrived(
+    0.0,
+    0.0,
+    previouslyArrived: true,
+    arrivalRadiusMeters: 25.0,
+    hysteresisMeters: 10.0,
+  );
+  assert(
+    keptArrived == true,
+    'Already arrived remains arrived at 30m (exit threshold 35m)',
+  );
+  print(
+    '  [PASS] Hysteresis verified: Prevents status flickering between 25m and 35m',
+  );
 
   // 3. Bearing Lock Drift Calculation
   print('\n3. Testing Bearing Lock Drift Calculations with known headings...');
@@ -86,13 +130,33 @@ void main() {
     return diff;
   }
 
-  assert(getDrift(15.0, 0.0) == 15.0, 'Locked 0, Heading 15 -> +15° (Steer Left)');
-  assert(getDrift(345.0, 0.0) == -15.0, 'Locked 0, Heading 345 -> -15° (Steer Right)');
-  assert(getDrift(80.0, 90.0) == -10.0, 'Locked 90, Heading 80 -> -10° (Steer Right)');
-  assert(getDrift(110.0, 90.0) == 20.0, 'Locked 90, Heading 110 -> +20° (Steer Left)');
-  assert(getDrift(10.0, 350.0) == 20.0, 'Wraparound Locked 350, Heading 10 -> +20° (Steer Left)');
-  assert(getDrift(350.0, 10.0) == -20.0, 'Wraparound Locked 10, Heading 350 -> -20° (Steer Right)');
-  print('  [PASS] All 6 Bearing Lock drift scenarios verified with exact degrees!');
+  assert(
+    getDrift(15.0, 0.0) == 15.0,
+    'Locked 0, Heading 15 -> +15° (Steer Left)',
+  );
+  assert(
+    getDrift(345.0, 0.0) == -15.0,
+    'Locked 0, Heading 345 -> -15° (Steer Right)',
+  );
+  assert(
+    getDrift(80.0, 90.0) == -10.0,
+    'Locked 90, Heading 80 -> -10° (Steer Right)',
+  );
+  assert(
+    getDrift(110.0, 90.0) == 20.0,
+    'Locked 90, Heading 110 -> +20° (Steer Left)',
+  );
+  assert(
+    getDrift(10.0, 350.0) == 20.0,
+    'Wraparound Locked 350, Heading 10 -> +20° (Steer Left)',
+  );
+  assert(
+    getDrift(350.0, 10.0) == -20.0,
+    'Wraparound Locked 10, Heading 350 -> -20° (Steer Right)',
+  );
+  print(
+    '  [PASS] All 6 Bearing Lock drift scenarios verified with exact degrees!',
+  );
 
   // 4. Backward Compatibility & Persistence
   print('\n4. Testing Legacy Persistence & Deserialization...');
@@ -106,9 +170,14 @@ void main() {
   final parsed = Waypoint.fromJson(legacyJson);
   assert(parsed.id == 'legacy_spot_99');
   assert(parsed.title == 'Original Car Location');
-  assert(parsed.category == WaypointCategory.custom, 'Must default legacy to custom category');
+  assert(
+    parsed.category == WaypointCategory.custom,
+    'Must default legacy to custom category',
+  );
   assert(parsed.notes == null, 'Must default legacy notes to null');
-  print('  [PASS] Legacy waypoint JSON without category/notes parsed 100% cleanly!');
+  print(
+    '  [PASS] Legacy waypoint JSON without category/notes parsed 100% cleanly!',
+  );
 
   print('\n=== ALL PHASE 4 STABILISATION CHECKS PASSED (100%) ===');
 }

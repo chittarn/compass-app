@@ -4,10 +4,7 @@ class WaypointsState {
   final List<Waypoint> waypoints;
   final String? activeWaypointId;
 
-  const WaypointsState({
-    this.waypoints = const [],
-    this.activeWaypointId,
-  });
+  const WaypointsState({this.waypoints = const [], this.activeWaypointId});
 
   Waypoint? get activeWaypoint {
     if (activeWaypointId == null) return null;
@@ -27,7 +24,9 @@ class WaypointsState {
   }) {
     return WaypointsState(
       waypoints: waypoints ?? this.waypoints,
-      activeWaypointId: clearActive ? null : (activeWaypointId ?? this.activeWaypointId),
+      activeWaypointId: clearActive
+          ? null
+          : (activeWaypointId ?? this.activeWaypointId),
     );
   }
 }

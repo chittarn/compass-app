@@ -77,6 +77,7 @@ jobs:
               <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
               <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
               <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+              <uses-permission android:name="com.android.vending.BILLING"/>
 
               <application
                   android:label="Compass"
@@ -138,12 +139,10 @@ jobs:
           git commit -m "Add build.log" || true
           git push -f origin build-logs || true
 
-      - name: Create GitHub Release with APK
+      - name: Create GitHub Release with APK (Tagged Releases Only)
         uses: softprops/action-gh-release@v2
-        if: success()
+        if: success() && startsWith(github.ref, 'refs/tags/v')
         with:
-          tag_name: v1.0.9+29
-          name: "Compass v1.0.9+29 — Phase 6A Mobile UI/UX Corrections"
           draft: false
           prerelease: false
           make_latest: true
