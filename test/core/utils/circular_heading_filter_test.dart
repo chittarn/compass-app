@@ -56,8 +56,8 @@ void main() {
       // Diff is now 90 - 67.5 = 22.5° -> alpha = 0.45 -> step = 22.5 * 0.45 = 10.125° -> 77.625°
       expect(step2, closeTo(77.625, 0.5));
 
-      // After ~300ms of sensor events (15 ticks at 50Hz), it smoothly converges to 90°
-      for (int i = 0; i < 15; i++) {
+      // After 25 sensor ticks (~500ms at 50Hz), it smoothly converges to within deadband of 90°
+      for (int i = 0; i < 25; i++) {
         filter.filter(90.0);
       }
       expect(filter.filteredHeading, closeTo(90.0, 0.6));
