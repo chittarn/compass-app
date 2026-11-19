@@ -75,6 +75,10 @@ void main() {
       controller = ProController();
     });
 
+    tearDown(() {
+      controller.dispose();
+    });
+
     test('Transitions, Throttling and Reset Behavior', () {
       // Free users do not trigger bearing lock haptics
       controller.evaluateDriftHaptics(15.0);

@@ -16,6 +16,10 @@ void main() {
       controller.setEntitled(true);
     });
 
+    tearDown(() {
+      controller.dispose();
+    });
+
     test('Scenario 1: Magnetic to True with declination available', () {
       // User locks bearing in Magnetic mode at 45.0°
       const headingMag = 45.0;
