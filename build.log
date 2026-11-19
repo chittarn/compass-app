@@ -1,0 +1,267 @@
+Analyzing compass-app...                                        
+
+   info • Use 'const' for final variables initialized to a constant value • lib/core/utils/qibla_calculator.dart:17:5 • prefer_const_declarations
+   info • Use 'const' for final variables initialized to a constant value • lib/core/utils/qibla_calculator.dart:33:5 • prefer_const_declarations
+   info • Statements in an if should be enclosed in a block • lib/features/compass/domain/compass_state.dart:131:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/features/compass/domain/compass_state.dart:169:7 • curly_braces_in_flow_control_structures
+   info • Use 'const' with the constructor to improve performance • lib/features/compass/presentation/widgets/gps_onboarding_modal.dart:79:15 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/features/compass/presentation/widgets/gps_onboarding_modal.dart:80:24 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/features/compass/presentation/widgets/vastu_guide_modal.dart:222:22 • prefer_const_constructors
+   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/features/compass/presentation/widgets/vastu_guide_modal.dart:223:27 • prefer_const_literals_to_create_immutables
+   info • Use 'const' with the constructor to improve performance • lib/features/compass/presentation/widgets/vastu_guide_modal.dart:266:25 • prefer_const_constructors
+   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/features/compass/presentation/widgets/vastu_guide_modal.dart:267:37 • prefer_const_literals_to_create_immutables
+   info • Unnecessary 'break' statement • lib/features/compass/presentation/widgets/vastu_guide_modal.dart:607:9 • unnecessary_breaks
+   info • Unnecessary 'break' statement • lib/features/compass/presentation/widgets/vastu_guide_modal.dart:613:9 • unnecessary_breaks
+   info • Use 'const' with the constructor to improve performance • lib/features/compass/presentation/widgets/vastu_guide_modal.dart:1013:9 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/features/splash/presentation/splash_screen.dart:122:41 • prefer_const_constructors
+   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/features/splash/presentation/splash_screen.dart:123:41 • prefer_const_literals_to_create_immutables
+   info • Use 'const' with the constructor to improve performance • lib/features/splash/presentation/splash_screen.dart:175:21 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/features/splash/presentation/splash_screen.dart:177:30 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance • lib/features/waypoints/presentation/waypoint_modal.dart:789:26 • prefer_const_constructors
+   info • Use 'const' literals as arguments to constructors of '@immutable' classes • lib/features/waypoints/presentation/waypoint_modal.dart:790:31 • prefer_const_literals_to_create_immutables
+   info • Use 'const' for final variables initialized to a constant value • test/core/utils/heading_calculator_test.dart:103:7 • prefer_const_declarations
+   info • Use 'const' for final variables initialized to a constant value • test/core/utils/heading_calculator_test.dart:108:7 • prefer_const_declarations
+
+21 issues found. (ran in 11.0s)
+
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests CompassConstants.getDirectionLabel resolves 16-point compass rose
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests CompassState copyWith updates immutably
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests CompassState formats GPS coordinates and altitude datum properly
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests CompassState validates isTrueNorthAvailable and wmmReliability
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests CompassState formats magnetic field and Qibla telemetry properly
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests CompassState formats celestial ephemeris (Sunrise/Sunset) properly
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests CompassState computes current Vastu zone and room alignment
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests Qibla and Vastu True North unavailable handling guards against false alignment
+✅ /home/runner/work/compass-app/compass-app/test/features/compass/domain/compass_state_test.dart: CompassState & Constants Tests CompassState formats magnetic declination correctly
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) Validates product ID is compass_pro_lifetime
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 1. Startup subscribes to purchase stream before restoring
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 2. Startup restore is triggered only once
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 4. Restore with no previous purchases finishes cleanly without indefinite pending state
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+::endgroup::
+::group::❌ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 5. Empty serverVerificationData with a non-empty purchaseID does not grant Pro (failed)
+[BillingService] Purchase verification failed or reported error: null
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+Expected: null
+  Actual: <true>
+
+package:matcher                                     expect
+package:flutter_test/src/widget_tester.dart 474:18  expect
+test/features/pro/billing_service_test.dart 206:7   main.<fn>.<fn>
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 6. Valid matching purchase with non-empty serverVerificationData grants Pro
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+::endgroup::
+::group::❌ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 7. Duplicate delivery of the same token grants Pro only once (failed)
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+Expected: <1>
+  Actual: <2>
+
+package:matcher                                     expect
+package:flutter_test/src/widget_tester.dart 474:18  expect
+test/features/pro/billing_service_test.dart 247:9   main.<fn>.<fn>
+::endgroup::
+::group::❌ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 8. Unrelated product IDs are ignored (failed)
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+Expected: null
+  Actual: <true>
+
+package:matcher                                     expect
+package:flutter_test/src/widget_tester.dart 474:18  expect
+test/features/pro/billing_service_test.dart 265:7   main.<fn>.<fn>
+::endgroup::
+::group::❌ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 9. Pending and canceled purchases do not grant Pro (failed)
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+Expected: null
+  Actual: <true>
+
+package:matcher                                     expect
+package:flutter_test/src/widget_tester.dart 474:18  expect
+test/features/pro/billing_service_test.dart 285:7   main.<fn>.<fn>
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 10. Purchase launch returning false clears pending
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 11. Exception during purchase launch clears pending and reports error
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) 12. Purchase completion errors are reported without silently claiming acknowledgement
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+[BillingService] Error completing purchase: Exception: Network timeout completing purchase
+[BillingService] Error completing purchase: Exception: Network timeout completing purchase
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) Loads product details with localized INR pricing from store
+[BillingService] Loaded product: compass_pro_lifetime, price: ₹149.00
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) Loads foreign currency pricing formatted by store without hardcoded INR
+[BillingService] Loaded product: compass_pro_lifetime, price: $1.99
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) Handles store unavailable gracefully
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) Handles product in notFoundIDs gracefully
+[BillingService] Product compass_pro_lifetime not found in store.
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/billing_service_test.dart: BillingService & Google Play Lifetime Pro Tests (Phase 6B.2) Handles queryProductDetails error correctly
+[BillingService] Product query error: Billing API unavailable
+::endgroup::
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_reference_frame_test.dart: Bearing Lock & Delayed GPS Reference Frame Edge Cases Scenario 1: Magnetic to True with declination available
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_reference_frame_test.dart: Bearing Lock & Delayed GPS Reference Frame Edge Cases Scenario 2: True to Magnetic with declination available
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_reference_frame_test.dart: Bearing Lock & Delayed GPS Reference Frame Edge Cases Scenario 3: Magnetic to True while declination is null (GPS fix pending)
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_reference_frame_test.dart: Bearing Lock & Delayed GPS Reference Frame Edge Cases Scenario 4: GPS declination arriving after mode switch
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_reference_frame_test.dart: Bearing Lock & Delayed GPS Reference Frame Edge Cases Scenario 5: Bearing Lock already active when declination arrives
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_reference_frame_test.dart: Bearing Lock & Delayed GPS Reference Frame Edge Cases Scenario 6: Repeated GPS updates without repeated bearing adjustments
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/pro_entitlement_migration_test.dart: Pro Entitlement Migration Tests (Phase 6B.1) Migrates legacy compass_is_pro = true to Free and deletes legacy key
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/pro_entitlement_migration_test.dart: Pro Entitlement Migration Tests (Phase 6B.1) Migrates legacy compass_is_pro = false cleanly
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/pro_entitlement_migration_test.dart: Pro Entitlement Migration Tests (Phase 6B.1) Fresh install initializes schema v2 as Free
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/pro_entitlement_migration_test.dart: Pro Entitlement Migration Tests (Phase 6B.1) Subsequent launches do not reset genuinely confirmed Pro cache
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/pro_entitlement_migration_test.dart: Pro Entitlement Migration Tests (Phase 6B.1) Debug Pro override is isolated from genuine persistent cache
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/pro_entitlement_migration_test.dart: Pro Entitlement Migration Tests (Phase 6B.1) Genuine purchase confirmation persists to v2 cache
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::endgroup::
+::group::✅ /home/runner/work/compass-app/compass-app/test/features/pro/pro_entitlement_migration_test.dart: Pro Entitlement Migration Tests (Phase 6B.1) Existing cached Pro entitlement survives temporary store unavailability
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+::endgroup::
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_test.dart: Bearing Lock Drift Calculations Locked 0° (North), Current 15° (facing right of target) -> diff +15° (Steer Left)
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_test.dart: Bearing Lock Drift Calculations Locked 0° (North), Current 345° (facing left of target) -> diff -15° (Steer Right)
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_test.dart: Bearing Lock Drift Calculations Locked 90° (East), Current 80° -> diff -10° (Steer Right)
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_test.dart: Bearing Lock Drift Calculations Locked 90° (East), Current 110° -> diff +20° (Steer Left)
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_test.dart: Bearing Lock Drift Calculations Wraparound: Locked 350°, Current 10° -> diff +20° (Steer Left)
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_test.dart: Bearing Lock Drift Calculations Wraparound: Locked 10°, Current 350° -> diff -20° (Steer Right)
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_test.dart: Bearing Lock Drift Calculations Dead on target: Locked 180°, Current 180° -> diff 0° (On Course)
+✅ /home/runner/work/compass-app/compass-app/test/features/pro/bearing_lock_test.dart: Bearing Lock Haptic Transitions & Throttling Transitions, Throttling and Reset Behavior
+[BillingService] Google Play Billing unavailable.
+[BillingService] Store unavailable during startup restore check.
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Calculates distance and bearing from origin to destination
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Relative Steering & North Reference Scenarios Directly ahead: target 0°, heading 0° -> relBearing = 0°
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Relative Steering & North Reference Scenarios Directly behind: target 0°, heading 180° -> relBearing = ±180°
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Relative Steering & North Reference Scenarios Target to the right: target 90° (East), heading 0° (North) -> relBearing = +90°
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Relative Steering & North Reference Scenarios Target to the left: target 0° (North), heading 90° (East) -> relBearing = -90°
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Relative Steering & North Reference Scenarios Wraparound: target 10°, heading 350° -> relBearing = +20° (Steer Right)
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Relative Steering & North Reference Scenarios Wraparound: target 350°, heading 10° -> relBearing = -20° (Steer Left)
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Arrival Detection & GPS Accuracy & Hysteresis Arrived when distance <= 25m and GPS accuracy is good
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Arrival Detection & GPS Accuracy & Hysteresis Not arrived when distance > 25m
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Arrival Detection & GPS Accuracy & Hysteresis Suppresses false arrival when GPS accuracy is poor (> 40m uncertainty)
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Arrival Detection & GPS Accuracy & Hysteresis Hysteresis prevents flickering: remains arrived between 25m and 35m
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Persistence & Backward Compatibility Legacy JSON without category or notes parses cleanly with defaults
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Persistence & Backward Compatibility Modern JSON with category and notes serializes and deserializes losslessly
+✅ /home/runner/work/compass-app/compass-app/test/features/waypoints/waypoint_test.dart: Waypoint & Backtracking Tests Persistence & Backward Compatibility Waypoint editing retains id and updates title, category, and notes
+✅ /home/runner/work/compass-app/compass-app/test/core/constants/share_content_test.dart: App Sharing & Distribution Constants Tests App identity and Package ID match Google Play requirements
+✅ /home/runner/work/compass-app/compass-app/test/core/constants/share_content_test.dart: App Sharing & Distribution Constants Tests Share message contains app name, description, and store link
+✅ /home/runner/work/compass-app/compass-app/test/core/constants/share_content_test.dart: App Sharing & Distribution Constants Tests Share message contains zero user location or personal identifiers
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/vastu_calculator_test.dart: VastuCalculator Tests computes correct 8-direction Vastu zone across all angles
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/vastu_calculator_test.dart: VastuCalculator Tests computes correct 16-zone Shodasha Mandala sub-zones
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/vastu_calculator_test.dart: VastuCalculator Tests computes 32-zone entrance pada fields and auspiciousness
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/vastu_calculator_test.dart: VastuCalculator Tests room guidelines provide accurate target headings and alignment
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/vastu_calculator_test.dart: VastuCalculator Tests commercial guidelines provide accurate executive placements
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/heading_calculator_test.dart: HeadingCalculator Tests Flat horizontal device pointing North (0°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/heading_calculator_test.dart: HeadingCalculator Tests Flat horizontal device pointing East (90°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/heading_calculator_test.dart: HeadingCalculator Tests Flat horizontal device pointing South (180°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/heading_calculator_test.dart: HeadingCalculator Tests Flat horizontal device pointing West (270°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/heading_calculator_test.dart: HeadingCalculator Tests Tilt compensation: Pitch 30° up while pointing North maintains 0°
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/heading_calculator_test.dart: HeadingCalculator Tests WMM-2025 Declination calculation returns expected values for New Delhi
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/heading_calculator_test.dart: HeadingCalculator Tests WMM-2025 Declination calculation returns expected values for New York
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/heading_calculator_test.dart: HeadingCalculator Tests True Heading calculation applies declination correctly: True = (Mag + Dec) mod 360
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/waypoint_exporter_test.dart: WaypointExporter Tests GPX 1.1 XML Hardening & Validation exports to standard GPX 1.1 format with strict XML escaping
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/waypoint_exporter_test.dart: WaypointExporter Tests GPX 1.1 XML Hardening & Validation validates GPX XML tag pairing and balanced structure
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/waypoint_exporter_test.dart: WaypointExporter Tests CSV Formatting & Formula Injection Hardening (CWE-1236) neutralizes formula injection characters (=, +, -, @, tab, cr)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/waypoint_exporter_test.dart: WaypointExporter Tests CSV Formatting & Formula Injection Hardening (CWE-1236) properly escapes quotes, commas, and line breaks per RFC 4180
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/haptic_throttler_test.dart: HapticThrottler Tests Triggers heavy haptic when reaching North sector (0°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/haptic_throttler_test.dart: HapticThrottler Tests Triggers medium haptic on Cardinal headings (90°, 180°, 270°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/haptic_throttler_test.dart: HapticThrottler Tests Suppresses haptics when angular velocity exceeds threshold (spinning fast)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/haptic_throttler_test.dart: HapticThrottler Tests Suppresses haptics within minimum cooldown deadband
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/solar_calculator_test.dart: SolarCalculator Tests Calculates Solar Azimuth at Summer Solstice noon
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/solar_calculator_test.dart: SolarCalculator Tests Calculates Sunrise and Sunset times for London
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/solar_calculator_test.dart: SolarCalculator Tests Calculates Moon Azimuth within valid angle range [0, 360)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/tilt_calculator_test.dart: TiltCalculator Tests Flat horizontal device on table (gravity along +Z) is Level
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/tilt_calculator_test.dart: TiltCalculator Tests Device tilted nose up (Pitch +30°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/tilt_calculator_test.dart: TiltCalculator Tests Device tilted bank right (Roll +30°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/tilt_calculator_test.dart: TiltCalculator Tests Device tilted within 1.0 degree tolerance remains isLevel == true
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/circular_heading_filter_test.dart: CircularHeadingFilter Unit Tests Initializes with first raw reading
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/circular_heading_filter_test.dart: CircularHeadingFilter Unit Tests Suppresses micro-jitter when phone is stationary on a table (EMF noise simulation)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/circular_heading_filter_test.dart: CircularHeadingFilter Unit Tests Engages adaptive EMA when user physically turns phone past deadband
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/circular_heading_filter_test.dart: CircularHeadingFilter Unit Tests Responsive tracking during fast physical rotation (90° turn)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/circular_heading_filter_test.dart: CircularHeadingFilter Unit Tests Handles circular wrap-around seamlessly across 359° -> 001° (clockwise shortest path)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/circular_heading_filter_test.dart: CircularHeadingFilter Unit Tests Handles circular wrap-around seamlessly across 001° -> 359° (counter-clockwise shortest path)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/circular_heading_filter_test.dart: CircularHeadingFilter Unit Tests Reset clears filter history or sets initial angle
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/circular_heading_filter_test.dart: CircularHeadingFilter Unit Tests Handles negative angle inputs cleanly via normalization
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/qibla_calculator_test.dart: QiblaCalculator Geodesic Tests Calculates forward azimuth to Kaaba correctly for major global cities
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/qibla_calculator_test.dart: QiblaCalculator Geodesic Tests Calculates distance in km to Mecca accurately
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/qibla_calculator_test.dart: QiblaCalculator Geodesic Tests isAligned checks tolerance threshold properly
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 1: Arctic high latitude (89°N, -121°W, 28km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 2: Northern Canada (80°N, -96°W, 48km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 3: Siberia (82°N, 87°E, 54km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 4: Central Asia (43°N, 93°E, 65km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 5: Indian Ocean (-33°S, 109°E, 51km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 6: South Atlantic (-59°S, -8°W, 39km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 7: South Pacific (-50°S, -103°W, 3km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 8: West of Chile (-29°S, -110°W, 94km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 9: Micronesia (14°N, 143°E, 66km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 10: Equatorial Africa (0°N, 21°E, 18km, 2025.0)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 11: Mid-epoch 2025.5 secular variation (-36°S, -137°W, 6km)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 12: Mid-epoch 2025.5 (26°N, 81°E, 63km)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 13: Mid-epoch 2025.5 (38°N, -144°W, 69km)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: NOAA WMM-2025 Ground Truth Test Vectors Vector 14: Epoch 2026.0 secular variation (-57°S, 3°E, 74km)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Major Reference Cities & Convention Tests New York, USA: ~12.5° West (-12.53°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Major Reference Cities & Convention Tests London, UK: ~0.9° East (+0.91°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Major Reference Cities & Convention Tests New Delhi, India: ~1.3° East (+1.30°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Major Reference Cities & Convention Tests Tokyo, Japan: ~7.9° West (-7.87°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Major Reference Cities & Convention Tests Sydney, Australia: ~12.8° East (+12.79°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Major Reference Cities & Convention Tests Mecca (Kaaba), Saudi Arabia: ~3.5° East (+3.52°)
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Major Reference Cities & Convention Tests Bhubaneswar, Odisha, India: Official NOAA WMM-2025 Reference Test
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Reliability Warnings & Field Strength Thresholds Normal reliability: Horizontal intensity H > 6000 nT
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Reliability Warnings & Field Strength Thresholds Caution zone: Horizontal intensity 2000 nT <= H <= 6000 nT
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: WMM-2025 Reliability Warnings & Field Strength Thresholds Blackout zone: Horizontal intensity H < 2000 nT near magnetic dip pole
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Dates before 2025.0 throw ArgumentError
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Dates after 2030.0 throw ArgumentError
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Invalid latitude (> 90° or < -90°) throws ArgumentError
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Longitude validation strictly enforces WGS-84 range [-180°, +180°]
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Non-finite coordinates or altitude throw ArgumentError
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Exact North Pole (+90.0°) computes cleanly within valid bounds
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Exact South Pole (-90.0°) computes cleanly within valid bounds
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Equator (0.0°) computes cleanly
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/wmm_calculator_test.dart: Boundary & Graceful Handling Tests Date conversion handles leap years and standard years
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/angle_unwrapper_test.dart: AngleUnwrapper Tests Initializes with first target angle
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/angle_unwrapper_test.dart: AngleUnwrapper Tests Small clockwise change within same revolution
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/angle_unwrapper_test.dart: AngleUnwrapper Tests Small counter-clockwise change within same revolution
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/angle_unwrapper_test.dart: AngleUnwrapper Tests Clockwise wrap-around from 359° to 1° steps +2°, not -358°
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/angle_unwrapper_test.dart: AngleUnwrapper Tests Counter-clockwise wrap-around from 1° to 359° steps -2°, not +358°
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/angle_unwrapper_test.dart: AngleUnwrapper Tests Multiple complete clockwise revolutions unwrap continuously
+✅ /home/runner/work/compass-app/compass-app/test/core/utils/angle_unwrapper_test.dart: AngleUnwrapper Tests Reset correctly re-centers angle unwrapper
+
+::error::139 tests passed, 4 failed.
