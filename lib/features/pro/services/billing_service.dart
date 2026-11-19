@@ -11,6 +11,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 /// - Transaction lifecycle handling: pending, purchased, restored, error, canceled
 /// - Purchase completion & acknowledgment per Google Play specifications
 /// - Offline resilience and graceful degradation when Play Services are absent
+/// - Token-based idempotency preventing duplicate entitlement processing
 class BillingService {
   static const String proLifetimeProductId = 'compass_pro_lifetime';
 
@@ -18,6 +19,8 @@ class BillingService {
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   ProductDetails? _productDetails;
   Future<void>? _inFlightQuery;
+  bool _hasRestoredOnStartup = false;
+  final Set<String> _processedPurchaseTokens = <String>{};
 
   Function(bool isPro)? _onEntitlementChanged;
   Function(String? error)? _onError;
@@ -40,8 +43,9 @@ class BillingService {
 
   ProductDetails? get productDetails => _productDetails;
   bool get isQueryingProduct => _inFlightQuery != null;
+  bool get hasRestoredOnStartup => _hasRestoredOnStartup;
 
-  /// Initializes the billing service and subscribes to the purchase stream.
+  /// Initializes the billing service and subscribes to the purchase stream before any queries or restore calls.
   void initialize({
     required Function(bool isPro) onEntitlementChanged,
     Function(String? error)? onError,
@@ -60,7 +64,7 @@ class BillingService {
     _onProductNotFound = onProductNotFound;
 
     try {
-      // Cancel any previous subscription to ensure single active listener
+      // 1. Register purchase-stream listener first to guarantee no events are missed
       _subscription?.cancel();
       _subscription = _iap.purchaseStream.listen(
         _handlePurchaseUpdates,
@@ -73,10 +77,41 @@ class BillingService {
         },
       );
 
+      // 2. Load localized product details
       loadProductDetails();
+
+      // 3. Trigger automatic background restore once on startup
+      _restorePurchasesOnStartup();
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BillingService] Platform channel not available: $e');
+      }
+    }
+  }
+
+  /// Automatically restores purchases once during application startup.
+  /// Runs in background without presenting a payment pending spinner.
+  Future<void> _restorePurchasesOnStartup() async {
+    if (_hasRestoredOnStartup) return;
+    _hasRestoredOnStartup = true;
+
+    try {
+      final bool available = await _iap.isAvailable();
+      if (!available) {
+        if (kDebugMode) {
+          debugPrint(
+            '[BillingService] Store unavailable during startup restore check.',
+          );
+        }
+        return;
+      }
+      // Note: Do NOT set _onPendingChanged(true) on startup.
+      // If the user previously purchased Pro, Google Play emits it to purchaseStream.
+      // If the user has no purchase, this completes silently without an indefinite spinner.
+      await _iap.restorePurchases();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BillingService] Exception during startup restore: $e');
       }
     }
   }
@@ -178,7 +213,12 @@ class BillingService {
         productDetails: _productDetails!,
       );
 
-      final success = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      final bool success = await _iap.buyNonConsumable(
+        purchaseParam: purchaseParam,
+      );
+      if (!success) {
+        _onPendingChanged?.call(false);
+      }
       return success;
     } catch (e) {
       _onPendingChanged?.call(false);
@@ -187,7 +227,8 @@ class BillingService {
     }
   }
 
-  /// Restores previous purchases across devices and reinstallations.
+  /// Manual restore action invoked by the user ("Restore Purchases").
+  /// Ensures pending spinner clears cleanly even if no purchases exist in the account.
   Future<void> restorePurchases() async {
     try {
       final bool available = await _iap.isAvailable();
@@ -201,8 +242,10 @@ class BillingService {
       _onPendingChanged?.call(true);
       await _iap.restorePurchases();
     } catch (e) {
-      _onPendingChanged?.call(false);
       _onError?.call(e.toString());
+    } finally {
+      // Cleanly clear pending state so UI does not remain stuck when 0 purchases exist
+      _onPendingChanged?.call(false);
     }
   }
 
@@ -224,23 +267,23 @@ class BillingService {
         case PurchaseStatus.restored:
           _onPendingChanged?.call(false);
 
-          // Verify purchase data integrity and check for errors
-          final bool hasValidVerification =
-              purchase.verificationData.serverVerificationData
-                  .trim()
-                  .isNotEmpty ||
-              purchase.verificationData.localVerificationData
-                  .trim()
-                  .isNotEmpty ||
-              (purchase.purchaseID != null &&
-                  purchase.purchaseID!.trim().isNotEmpty);
+          // For Android Google Play, the purchase token resides in serverVerificationData.
+          // purchaseID is not a purchase token and cannot be used as verification.
+          final String purchaseToken = purchase
+              .verificationData
+              .serverVerificationData
+              .trim();
+          final bool hasValidToken = purchaseToken.isNotEmpty;
           final bool hasNoError = purchase.error == null;
 
-          if (hasValidVerification && hasNoError) {
-            // Grant verified entitlement
-            _onEntitlementChanged?.call(true);
+          if (hasValidToken && hasNoError) {
+            // Idempotency: Grant entitlement only once per unique purchase token
+            final bool isNewToken = _processedPurchaseTokens.add(purchaseToken);
+            if (isNewToken) {
+              _onEntitlementChanged?.call(true);
+            }
 
-            // Acknowledge/complete the transaction with Google Play
+            // Always complete/acknowledge pending purchases with Google Play
             if (purchase.pendingCompletePurchase) {
               try {
                 await _iap.completePurchase(purchase);
@@ -260,7 +303,8 @@ class BillingService {
               );
             }
             _onError?.call(
-              purchase.error?.message ?? 'Invalid purchase verification.',
+              purchase.error?.message ??
+                  'Invalid purchase verification: missing purchase token.',
             );
           }
 
@@ -277,6 +321,12 @@ class BillingService {
           _onPendingChanged?.call(false);
       }
     }
+  }
+
+  @visibleForTesting
+  void resetStartupRestoreForTesting() {
+    _hasRestoredOnStartup = false;
+    _processedPurchaseTokens.clear();
   }
 
   void dispose() {

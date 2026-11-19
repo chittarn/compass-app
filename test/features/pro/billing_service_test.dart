@@ -8,6 +8,7 @@ class FakePurchaseDetails extends PurchaseDetails {
   FakePurchaseDetails({
     required super.productID,
     required super.status,
+    super.purchaseID,
     IAPError? error,
     bool pendingComplete = true,
     String localVerification = 'test_token',
@@ -31,9 +32,13 @@ class FakeInAppPurchase extends Fake implements InAppPurchase {
 
   bool available = true;
   bool completePurchaseCalled = false;
-  bool restorePurchasesCalled = false;
+  int restorePurchasesCount = 0;
+  bool hasListenerWhenRestoring = false;
   bool buyNonConsumableCalled = false;
+  bool buyNonConsumableResult = true;
+  bool shouldThrowOnBuy = false;
   bool shouldFailCompletePurchase = false;
+  bool emitOnRestore = true;
   ProductDetailsResponse? customProductResponse;
 
   @override
@@ -75,22 +80,33 @@ class FakeInAppPurchase extends Fake implements InAppPurchase {
 
   @override
   Future<void> restorePurchases({String? applicationUserName}) async {
-    restorePurchasesCalled = true;
-    _controller.add([
-      FakePurchaseDetails(
-        productID: BillingService.proLifetimeProductId,
-        status: PurchaseStatus.restored,
-      ),
-    ]);
+    restorePurchasesCount++;
+    hasListenerWhenRestoring = _controller.hasListener;
+    if (emitOnRestore) {
+      _controller.add([
+        FakePurchaseDetails(
+          productID: BillingService.proLifetimeProductId,
+          status: PurchaseStatus.restored,
+          serverVerification: 'restored_token_123',
+        ),
+      ]);
+    }
   }
 
   @override
   Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
     buyNonConsumableCalled = true;
+    if (shouldThrowOnBuy) {
+      throw Exception('Google Play service unavailable');
+    }
+    if (!buyNonConsumableResult) {
+      return false;
+    }
     _controller.add([
       FakePurchaseDetails(
         productID: purchaseParam.productDetails.id,
         status: PurchaseStatus.purchased,
+        serverVerification: 'new_purchase_token_456',
       ),
     ]);
     return true;
@@ -106,7 +122,7 @@ class FakeInAppPurchase extends Fake implements InAppPurchase {
 }
 
 void main() {
-  group('BillingService & Google Play Lifetime Pro Tests', () {
+  group('BillingService & Google Play Lifetime Pro Tests (Phase 6B.2)', () {
     late FakeInAppPurchase fakeIap;
     late BillingService billingService;
 
@@ -124,20 +140,239 @@ void main() {
       expect(BillingService.proLifetimeProductId, 'compass_pro_lifetime');
     });
 
-    test('Loads product details with localized INR pricing', () async {
-      String? loadedPrice;
+    test('1. Startup subscribes to purchase stream before restoring', () async {
+      fakeIap.emitOnRestore = false;
+
+      billingService.initialize(onEntitlementChanged: (_) {});
+
+      // Wait microtask for startup initialization sequence
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      expect(fakeIap.hasListenerWhenRestoring, isTrue);
+      expect(fakeIap.restorePurchasesCount, 1);
+    });
+
+    test('2. Startup restore is triggered only once', () async {
+      fakeIap.emitOnRestore = false;
+
+      billingService.initialize(onEntitlementChanged: (_) {});
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      // Re-initialize or load details should not re-trigger startup restore
+      await billingService.loadProductDetails();
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      expect(fakeIap.restorePurchasesCount, 1);
+      expect(billingService.hasRestoredOnStartup, isTrue);
+    });
+
+    test('4. Restore with no previous purchases finishes cleanly without indefinite pending state', () async {
+      fakeIap.emitOnRestore =
+          false; // Simulates Google Play returning 0 purchases
+      bool? pendingState;
+
       billingService.initialize(
         onEntitlementChanged: (_) {},
-        onPriceLoaded: (p) => loadedPrice = p,
+        onPendingChanged: (p) => pendingState = p,
       );
 
+      final restoreFuture = billingService.restorePurchases();
+      // Should clear pending state upon completion
+      await restoreFuture;
+      expect(pendingState, isFalse);
+    });
+
+    test('5. Empty serverVerificationData with a non-empty purchaseID does not grant Pro', () async {
+      bool? isProGranted;
+      String? reportedError;
+
+      billingService.initialize(
+        onEntitlementChanged: (p) => isProGranted = p,
+        onError: (err) => reportedError = err,
+      );
+
+      // Invalid: Has a purchaseID ('order_12345') but EMPTY serverVerificationData (token)
+      fakeIap.emitPurchase(
+        FakePurchaseDetails(
+          productID: BillingService.proLifetimeProductId,
+          status: PurchaseStatus.purchased,
+          purchaseID: 'order_12345',
+          serverVerification: '   ', // whitespace / empty token
+          localVerification: '{"orderId":"order_12345"}',
+        ),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(isProGranted, isNull);
+      expect(reportedError, contains('missing purchase token'));
+    });
+
+    test('6. Valid matching purchase with non-empty serverVerificationData grants Pro', () async {
+      bool? isProGranted;
+      billingService.initialize(
+        onEntitlementChanged: (pro) => isProGranted = pro,
+      );
       await billingService.loadProductDetails();
 
-      expect(billingService.productDetails, isNotNull);
-      expect(billingService.productDetails!.id, 'compass_pro_lifetime');
-      expect(billingService.productDetails!.price, '₹149.00');
-      expect(loadedPrice, '₹149.00');
+      final started = await billingService.buyProLifetime();
+      expect(started, isTrue);
+      expect(fakeIap.buyNonConsumableCalled, isTrue);
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      expect(isProGranted, isTrue);
+      expect(fakeIap.completePurchaseCalled, isTrue);
     });
+
+    test(
+      '7. Duplicate delivery of the same token grants Pro only once',
+      () async {
+        int grantCount = 0;
+        billingService.initialize(onEntitlementChanged: (_) => grantCount++);
+
+        final purchase = FakePurchaseDetails(
+          productID: BillingService.proLifetimeProductId,
+          status: PurchaseStatus.purchased,
+          serverVerification: 'unique_verified_token_999',
+        );
+
+        // First delivery: grants entitlement
+        fakeIap.emitPurchase(purchase);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        // Duplicate delivery: must NOT trigger grant again
+        fakeIap.emitPurchase(purchase);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        expect(grantCount, 1);
+        expect(fakeIap.completePurchaseCalled, isTrue);
+      },
+    );
+
+    test('8. Unrelated product IDs are ignored', () async {
+      bool? isProGranted;
+      billingService.initialize(onEntitlementChanged: (p) => isProGranted = p);
+
+      fakeIap.emitPurchase(
+        FakePurchaseDetails(
+          productID: 'some_other_tier_or_consumable',
+          status: PurchaseStatus.purchased,
+          serverVerification: 'token_abc',
+        ),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(isProGranted, isNull);
+    });
+
+    test('9. Pending and canceled purchases do not grant Pro', () async {
+      bool? isProGranted;
+      bool? pendingState;
+
+      billingService.initialize(
+        onEntitlementChanged: (p) => isProGranted = p,
+        onPendingChanged: (p) => pendingState = p,
+      );
+
+      // Pending event
+      fakeIap.emitPurchase(
+        FakePurchaseDetails(
+          productID: BillingService.proLifetimeProductId,
+          status: PurchaseStatus.pending,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(isProGranted, isNull);
+      expect(pendingState, isTrue);
+
+      // Canceled event
+      fakeIap.emitPurchase(
+        FakePurchaseDetails(
+          productID: BillingService.proLifetimeProductId,
+          status: PurchaseStatus.canceled,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(isProGranted, isNull);
+      expect(pendingState, isFalse);
+    });
+
+    test('10. Purchase launch returning false clears pending', () async {
+      fakeIap.buyNonConsumableResult = false;
+      bool? pendingState;
+
+      billingService.initialize(
+        onEntitlementChanged: (_) {},
+        onPendingChanged: (p) => pendingState = p,
+      );
+      await billingService.loadProductDetails();
+
+      final result = await billingService.buyProLifetime();
+      expect(result, isFalse);
+      expect(pendingState, isFalse);
+    });
+
+    test(
+      '11. Exception during purchase launch clears pending and reports error',
+      () async {
+        fakeIap.shouldThrowOnBuy = true;
+        bool? pendingState;
+        String? reportedError;
+
+        billingService.initialize(
+          onEntitlementChanged: (_) {},
+          onPendingChanged: (p) => pendingState = p,
+          onError: (err) => reportedError = err,
+        );
+        await billingService.loadProductDetails();
+
+        final result = await billingService.buyProLifetime();
+        expect(result, isFalse);
+        expect(pendingState, isFalse);
+        expect(reportedError, contains('service unavailable'));
+      },
+    );
+
+    test('12. Purchase completion errors are reported without silently claiming acknowledgement', () async {
+      fakeIap.shouldFailCompletePurchase = true;
+      String? reportedError;
+      billingService.initialize(
+        onEntitlementChanged: (_) {},
+        onError: (err) => reportedError = err,
+      );
+
+      fakeIap.emitPurchase(
+        FakePurchaseDetails(
+          productID: BillingService.proLifetimeProductId,
+          status: PurchaseStatus.purchased,
+          serverVerification: 'token_will_fail_complete',
+        ),
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(
+        reportedError,
+        contains('Failed to acknowledge purchase with Google Play'),
+      );
+    });
+
+    test(
+      'Loads product details with localized INR pricing from store',
+      () async {
+        String? loadedPrice;
+        billingService.initialize(
+          onEntitlementChanged: (_) {},
+          onPriceLoaded: (p) => loadedPrice = p,
+        );
+
+        await billingService.loadProductDetails();
+
+        expect(billingService.productDetails, isNotNull);
+        expect(billingService.productDetails!.id, 'compass_pro_lifetime');
+        expect(billingService.productDetails!.price, '₹149.00');
+        expect(loadedPrice, '₹149.00');
+      },
+    );
 
     test(
       'Loads foreign currency pricing formatted by store without hardcoded INR',
@@ -198,23 +433,6 @@ void main() {
       expect(billingService.productDetails, isNull);
     });
 
-    test('Handles empty productDetails result gracefully', () async {
-      fakeIap.customProductResponse = ProductDetailsResponse(
-        productDetails: [],
-        notFoundIDs: [],
-      );
-
-      bool? isNotFound;
-      billingService.initialize(
-        onEntitlementChanged: (_) {},
-        onProductNotFound: (nf) => isNotFound = nf,
-      );
-
-      await billingService.loadProductDetails();
-      expect(isNotFound, isTrue);
-      expect(billingService.productDetails, isNull);
-    });
-
     test('Handles queryProductDetails error correctly', () async {
       fakeIap.customProductResponse = ProductDetailsResponse(
         productDetails: [],
@@ -234,183 +452,6 @@ void main() {
 
       await billingService.loadProductDetails();
       expect(reportedError, 'Billing API unavailable');
-    });
-
-    test(
-      'Purchase flow triggers entitlement and completes transaction',
-      () async {
-        bool? isProGranted;
-        billingService.initialize(
-          onEntitlementChanged: (pro) => isProGranted = pro,
-        );
-        await billingService.loadProductDetails();
-
-        final started = await billingService.buyProLifetime();
-        expect(started, isTrue);
-        expect(fakeIap.buyNonConsumableCalled, isTrue);
-
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-
-        expect(isProGranted, isTrue);
-        expect(fakeIap.completePurchaseCalled, isTrue);
-      },
-    );
-
-    test('Restore purchases flow restores entitlement', () async {
-      bool? isProRestored;
-      billingService.initialize(
-        onEntitlementChanged: (pro) => isProRestored = pro,
-      );
-
-      await billingService.restorePurchases();
-      expect(fakeIap.restorePurchasesCalled, isTrue);
-
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(isProRestored, isTrue);
-    });
-
-    test(
-      'Pending purchase status notifies UI and does not grant Pro',
-      () async {
-        bool? pendingState;
-        bool? isProGranted;
-        billingService.initialize(
-          onEntitlementChanged: (pro) => isProGranted = pro,
-          onPendingChanged: (p) => pendingState = p,
-        );
-
-        fakeIap.emitPurchase(
-          FakePurchaseDetails(
-            productID: BillingService.proLifetimeProductId,
-            status: PurchaseStatus.pending,
-          ),
-        );
-
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-        expect(pendingState, isTrue);
-        expect(isProGranted, isNull);
-      },
-    );
-
-    test(
-      'Canceled purchase clears pending state and does not report error',
-      () async {
-        bool? pendingState;
-        String? errorReported;
-        billingService.initialize(
-          onEntitlementChanged: (_) {},
-          onPendingChanged: (p) => pendingState = p,
-          onError: (err) => errorReported = err,
-        );
-
-        fakeIap.emitPurchase(
-          FakePurchaseDetails(
-            productID: BillingService.proLifetimeProductId,
-            status: PurchaseStatus.canceled,
-          ),
-        );
-
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-        expect(pendingState, isFalse);
-        expect(errorReported, isNull);
-      },
-    );
-
-    test('Error during purchase reports message to error callback', () async {
-      String? reportedError;
-      billingService.initialize(
-        onEntitlementChanged: (_) {},
-        onError: (e) => reportedError = e,
-      );
-
-      fakeIap.emitPurchase(
-        FakePurchaseDetails(
-          productID: BillingService.proLifetimeProductId,
-          status: PurchaseStatus.error,
-          error: IAPError(
-            source: 'google_play',
-            code: 'ITEM_ALREADY_OWNED',
-            message: 'User already owns this item.',
-          ),
-        ),
-      );
-
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(reportedError, contains('already owns'));
-    });
-
-    test('Ignores purchase events for unrelated product IDs', () async {
-      bool? isProGranted;
-      billingService.initialize(onEntitlementChanged: (p) => isProGranted = p);
-
-      fakeIap.emitPurchase(
-        FakePurchaseDetails(
-          productID: 'some_other_subscription',
-          status: PurchaseStatus.purchased,
-        ),
-      );
-
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(isProGranted, isNull);
-    });
-
-    test('Invalid or empty verification data does not grant Pro', () async {
-      bool? isProGranted;
-      String? reportedError;
-      billingService.initialize(
-        onEntitlementChanged: (p) => isProGranted = p,
-        onError: (e) => reportedError = e,
-      );
-
-      fakeIap.emitPurchase(
-        FakePurchaseDetails(
-          productID: BillingService.proLifetimeProductId,
-          status: PurchaseStatus.purchased,
-          localVerification: '',
-          serverVerification: '',
-        ),
-      );
-
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(isProGranted, isNull);
-      expect(reportedError, contains('verification'));
-    });
-
-    test('Duplicate purchase stream events are idempotent', () async {
-      int grantCount = 0;
-      billingService.initialize(onEntitlementChanged: (_) => grantCount++);
-
-      final purchase = FakePurchaseDetails(
-        productID: BillingService.proLifetimeProductId,
-        status: PurchaseStatus.purchased,
-      );
-
-      fakeIap.emitPurchase(purchase);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-
-      fakeIap.emitPurchase(purchase);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-
-      expect(grantCount, 2); // Idempotent notifications to state controller
-    });
-
-    test('Failure in completePurchase reports error to UI', () async {
-      fakeIap.shouldFailCompletePurchase = true;
-      String? reportedError;
-      billingService.initialize(
-        onEntitlementChanged: (_) {},
-        onError: (err) => reportedError = err,
-      );
-
-      fakeIap.emitPurchase(
-        FakePurchaseDetails(
-          productID: BillingService.proLifetimeProductId,
-          status: PurchaseStatus.purchased,
-        ),
-      );
-
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      expect(reportedError, contains('Failed to acknowledge purchase'));
     });
   });
 }

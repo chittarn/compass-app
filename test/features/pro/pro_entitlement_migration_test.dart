@@ -161,5 +161,33 @@ void main() {
 
       controller.dispose();
     });
+
+    test(
+      'Existing cached Pro entitlement survives temporary store unavailability',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          ProController.keyEntitlementSchemaVersion: 2,
+          ProController.keyProEntitlementCacheV2: true,
+        });
+
+        // Test with unavailable InAppPurchase instance
+        final unavailableIap =
+            FakeNoopInAppPurchase(); // isAvailable returns false
+        final billingService = BillingService(iap: unavailableIap);
+
+        final controller = ProController(billingService: billingService);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        // Entitlement must remain Pro offline even when Google Play is unavailable
+        expect(controller.state.isPro, isTrue);
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool(ProController.keyProEntitlementCacheV2), isTrue);
+
+        controller.dispose();
+        billingService.dispose();
+        unavailableIap.dispose();
+      },
+    );
   });
 }
