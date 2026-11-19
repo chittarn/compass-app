@@ -38,7 +38,7 @@ class FakeInAppPurchase extends Fake implements InAppPurchase {
   bool buyNonConsumableResult = true;
   bool shouldThrowOnBuy = false;
   bool shouldFailCompletePurchase = false;
-  bool emitOnRestore = true;
+  bool emitOnRestore = false;
   ProductDetailsResponse? customProductResponse;
 
   @override
@@ -165,6 +165,38 @@ void main() {
       expect(fakeIap.restorePurchasesCount, 1);
       expect(billingService.hasRestoredOnStartup, isTrue);
     });
+
+    test(
+      'Startup restore with existing purchase grants Pro automatically',
+      () async {
+        fakeIap.emitOnRestore = true;
+        bool? isProGranted;
+
+        billingService.initialize(
+          onEntitlementChanged: (pro) => isProGranted = pro,
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        expect(isProGranted, isTrue);
+      },
+    );
+
+    test(
+      'Manual restore flow with existing purchase restores entitlement',
+      () async {
+        fakeIap.emitOnRestore = true;
+        bool? isProRestored;
+
+        billingService.initialize(
+          onEntitlementChanged: (pro) => isProRestored = pro,
+        );
+
+        await billingService.restorePurchases();
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        expect(isProRestored, isTrue);
+      },
+    );
 
     test('4. Restore with no previous purchases finishes cleanly without indefinite pending state', () async {
       fakeIap.emitOnRestore =
