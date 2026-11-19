@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -30,16 +29,13 @@ class BillingService {
 
   BillingService({InAppPurchase? iap}) : _iap = iap ?? _resolveDefaultIap();
 
+  static InAppPurchase Function()? customIapResolver;
+
   static InAppPurchase _resolveDefaultIap() {
-    try {
-      // In headless unit tests, avoid triggering native pigeon channel connection
-      if (Platform.environment.containsKey('FLUTTER_TEST')) {
-        return _NoopInAppPurchase();
-      }
-      return InAppPurchase.instance;
-    } catch (_) {
-      return _NoopInAppPurchase();
+    if (customIapResolver != null) {
+      return customIapResolver!();
     }
+    return InAppPurchase.instance;
   }
 
   ProductDetails? get productDetails => _productDetails;
@@ -287,36 +283,4 @@ class BillingService {
     _subscription?.cancel();
     _subscription = null;
   }
-}
-
-/// Fallback dummy InAppPurchase for headless unit tests where native Pigeon channels are unattached.
-class _NoopInAppPurchase extends Fake implements InAppPurchase {
-  final StreamController<List<PurchaseDetails>> _controller =
-      StreamController<List<PurchaseDetails>>.broadcast();
-
-  @override
-  Stream<List<PurchaseDetails>> get purchaseStream => _controller.stream;
-
-  @override
-  Future<bool> isAvailable() async => false;
-
-  @override
-  Future<ProductDetailsResponse> queryProductDetails(
-    Set<String> identifiers,
-  ) async {
-    return ProductDetailsResponse(
-      productDetails: [],
-      notFoundIDs: identifiers.toList(),
-    );
-  }
-
-  @override
-  Future<void> restorePurchases({String? applicationUserName}) async {}
-
-  @override
-  Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async =>
-      false;
-
-  @override
-  Future<void> completePurchase(PurchaseDetails purchase) async {}
 }

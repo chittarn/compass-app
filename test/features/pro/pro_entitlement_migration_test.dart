@@ -4,8 +4,14 @@ import 'package:compass_app/core/theme/app_colors.dart';
 import 'package:compass_app/features/pro/controllers/pro_controller.dart';
 import 'package:compass_app/features/pro/services/billing_service.dart';
 
+import 'fake_in_app_purchase.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    BillingService.customIapResolver = () => FakeNoopInAppPurchase();
+  });
 
   group('Pro Entitlement Migration Tests (Phase 6B.1)', () {
     test(
