@@ -78,6 +78,7 @@ class ProController extends StateNotifier<ProState> {
           ? AppThemeMode.values[themeIndex]
           : AppThemeMode.tacticalDark;
 
+      if (!mounted) return;
       state = state.copyWith(
         isPro: isEffectivePro,
         isNightVision: isEffectivePro ? isNightVision : false,
@@ -95,6 +96,7 @@ class ProController extends StateNotifier<ProState> {
         _onGenuinePurchaseConfirmed(isPurchased);
       },
       onPriceLoaded: (price) {
+        if (!mounted) return;
         state = state.copyWith(
           productPrice: price,
           isBillingLoading: false,
@@ -103,24 +105,29 @@ class ProController extends StateNotifier<ProState> {
         );
       },
       onLoadingChanged: (isLoading) {
+        if (!mounted) return;
         state = state.copyWith(isBillingLoading: isLoading);
       },
       onStoreUnavailable: (isUnavailable) {
+        if (!mounted) return;
         state = state.copyWith(
           isStoreUnavailable: isUnavailable,
           isBillingLoading: false,
         );
       },
       onProductNotFound: (isNotFound) {
+        if (!mounted) return;
         state = state.copyWith(
           isProductNotFound: isNotFound,
           isBillingLoading: false,
         );
       },
       onPendingChanged: (isPending) {
+        if (!mounted) return;
         state = state.copyWith(isPurchasePending: isPending);
       },
       onError: (error) {
+        if (!mounted) return;
         state = state.copyWith(
           billingErrorMessage: error,
           isBillingLoading: false,
@@ -132,6 +139,7 @@ class ProController extends StateNotifier<ProState> {
   /// Handles store-verified purchase/restore events. Updates genuine Pro cache.
   Future<void> _onGenuinePurchaseConfirmed(bool isPurchased) async {
     _isGenuinePro = isPurchased;
+    if (!mounted) return;
     state = state.copyWith(
       isPro: isEffectivePro,
       isNightVision: isEffectivePro ? state.isNightVision : false,
