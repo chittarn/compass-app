@@ -7,7 +7,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 ///
 /// Features:
 /// - Product ID: [compass_pro_lifetime] (non-consumable, one-time purchase)
-/// - Localized price retrieval (e.g. INR ₹149 in India, USD $1.99 in US)
+/// - Localized price retrieval directly from Google Play (e.g. ₹149.00 in India, $1.99 in US)
 /// - Transaction lifecycle handling: pending, purchased, restored, error, canceled
 /// - Purchase completion & acknowledgment per Google Play specifications
 /// - Offline resilience and graceful degradation when Play Services are absent
@@ -17,14 +17,20 @@ class BillingService {
   final InAppPurchase _iap;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   ProductDetails? _productDetails;
+  bool _isQueryingProduct = false;
+
   Function(bool isPro)? _onEntitlementChanged;
   Function(String? error)? _onError;
   Function(bool isPending)? _onPendingChanged;
   Function(String formattedPrice)? _onPriceLoaded;
+  Function(bool isLoading)? _onLoadingChanged;
+  Function(bool isUnavailable)? _onStoreUnavailable;
+  Function(bool isNotFound)? _onProductNotFound;
 
   BillingService({InAppPurchase? iap}) : _iap = iap ?? InAppPurchase.instance;
 
   ProductDetails? get productDetails => _productDetails;
+  bool get isQueryingProduct => _isQueryingProduct;
 
   /// Initializes the billing service and subscribes to the purchase stream.
   void initialize({
@@ -32,13 +38,21 @@ class BillingService {
     Function(String? error)? onError,
     Function(bool isPending)? onPendingChanged,
     Function(String formattedPrice)? onPriceLoaded,
+    Function(bool isLoading)? onLoadingChanged,
+    Function(bool isUnavailable)? onStoreUnavailable,
+    Function(bool isNotFound)? onProductNotFound,
   }) {
     _onEntitlementChanged = onEntitlementChanged;
     _onError = onError;
     _onPendingChanged = onPendingChanged;
     _onPriceLoaded = onPriceLoaded;
+    _onLoadingChanged = onLoadingChanged;
+    _onStoreUnavailable = onStoreUnavailable;
+    _onProductNotFound = onProductNotFound;
 
     try {
+      // Cancel any previous subscription to ensure single active listener
+      _subscription?.cancel();
       _subscription = _iap.purchaseStream.listen(
         _handlePurchaseUpdates,
         onDone: () => _subscription?.cancel(),
@@ -60,12 +74,19 @@ class BillingService {
 
   /// Queries Google Play Store for the product details of [compass_pro_lifetime].
   Future<void> loadProductDetails() async {
+    if (_isQueryingProduct) return;
+    _isQueryingProduct = true;
+    _onLoadingChanged?.call(true);
+
     try {
       final bool available = await _iap.isAvailable();
       if (!available) {
         if (kDebugMode) {
           debugPrint('[BillingService] Google Play Billing unavailable.');
         }
+        _onStoreUnavailable?.call(true);
+        _onLoadingChanged?.call(false);
+        _isQueryingProduct = false;
         return;
       }
 
@@ -80,23 +101,48 @@ class BillingService {
           );
         }
         _onError?.call(response.error!.message);
+        _onLoadingChanged?.call(false);
+        _isQueryingProduct = false;
         return;
       }
 
-      if (response.productDetails.isNotEmpty) {
-        _productDetails = response.productDetails.first;
+      if (response.notFoundIDs.contains(proLifetimeProductId) ||
+          response.productDetails.isEmpty) {
         if (kDebugMode) {
           debugPrint(
-            '[BillingService] Loaded product: ${_productDetails!.id}, price: ${_productDetails!.price}',
+            '[BillingService] Product $proLifetimeProductId not found in store.',
           );
         }
-        _onPriceLoaded?.call(_productDetails!.price);
+        _onProductNotFound?.call(true);
+        _onLoadingChanged?.call(false);
+        _isQueryingProduct = false;
+        return;
       }
+
+      _productDetails = response.productDetails.first;
+      if (kDebugMode) {
+        debugPrint(
+          '[BillingService] Loaded product: ${_productDetails!.id}, price: ${_productDetails!.price}',
+        );
+      }
+      _onPriceLoaded?.call(_productDetails!.price);
+      _onStoreUnavailable?.call(false);
+      _onProductNotFound?.call(false);
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BillingService] Exception querying products: $e');
       }
+      _onError?.call(e.toString());
+    } finally {
+      _onLoadingChanged?.call(false);
+      _isQueryingProduct = false;
     }
+  }
+
+  /// Retries querying product details if previous query failed or timed out.
+  Future<void> retryProductQuery() async {
+    _isQueryingProduct = false;
+    await loadProductDetails();
   }
 
   /// Initiates the Google Play purchase flow for the lifetime Pro license.
@@ -130,6 +176,14 @@ class BillingService {
   /// Restores previous purchases across devices and reinstallations.
   Future<void> restorePurchases() async {
     try {
+      final bool available = await _iap.isAvailable();
+      if (!available) {
+        _onStoreUnavailable?.call(true);
+        _onError?.call(
+          'Google Play Store is unavailable. Please check your connection.',
+        );
+        return;
+      }
       _onPendingChanged?.call(true);
       await _iap.restorePurchases();
     } catch (e) {
@@ -150,22 +204,50 @@ class BillingService {
       switch (purchase.status) {
         case PurchaseStatus.pending:
           _onPendingChanged?.call(true);
+          _onError?.call(null);
 
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
           _onPendingChanged?.call(false);
-          // Grant entitlement
-          _onEntitlementChanged?.call(true);
 
-          // Acknowledge/complete the transaction with Google Play
-          if (purchase.pendingCompletePurchase) {
-            try {
-              await _iap.completePurchase(purchase);
-            } catch (e) {
-              if (kDebugMode) {
-                debugPrint('[BillingService] Error completing purchase: $e');
+          // Verify purchase data integrity and check for errors
+          final bool hasValidVerification =
+              purchase.verificationData.serverVerificationData
+                  .trim()
+                  .isNotEmpty ||
+              purchase.verificationData.localVerificationData
+                  .trim()
+                  .isNotEmpty ||
+              (purchase.purchaseID != null &&
+                  purchase.purchaseID!.trim().isNotEmpty);
+          final bool hasNoError = purchase.error == null;
+
+          if (hasValidVerification && hasNoError) {
+            // Grant verified entitlement
+            _onEntitlementChanged?.call(true);
+
+            // Acknowledge/complete the transaction with Google Play
+            if (purchase.pendingCompletePurchase) {
+              try {
+                await _iap.completePurchase(purchase);
+              } catch (e) {
+                if (kDebugMode) {
+                  debugPrint('[BillingService] Error completing purchase: $e');
+                }
+                _onError?.call(
+                  'Failed to acknowledge purchase with Google Play. Please check your connection.',
+                );
               }
             }
+          } else {
+            if (kDebugMode) {
+              debugPrint(
+                '[BillingService] Purchase verification failed or reported error: ${purchase.error}',
+              );
+            }
+            _onError?.call(
+              purchase.error?.message ?? 'Invalid purchase verification.',
+            );
           }
 
         case PurchaseStatus.error:
@@ -185,5 +267,6 @@ class BillingService {
 
   void dispose() {
     _subscription?.cancel();
+    _subscription = null;
   }
 }

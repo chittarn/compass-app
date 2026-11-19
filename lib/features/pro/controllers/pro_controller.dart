@@ -15,56 +15,62 @@ final proControllerProvider = StateNotifierProvider<ProController, ProState>((
 });
 
 /// ProController manages the user's lifetime Pro entitlement status and Pro-tier tools.
-/// Prepared for Google Play Billing in-app purchase integration.
+/// Enforces genuine Google Play purchase verification with isolated in-memory debug testing.
 class ProController extends StateNotifier<ProState> {
-  static const String _keyIsPro = 'compass_is_pro';
+  // Entitlement storage keys
+  static const String keyLegacyIsPro = 'compass_is_pro';
+  static const String keyProEntitlementCacheV2 =
+      'compass_pro_entitlement_cache_v2';
+  static const String keyEntitlementSchemaVersion =
+      'compass_entitlement_schema_version';
+  static const int currentSchemaVersion = 2;
+
+  // Preferences keys
   static const String _keyNightVision = 'compass_night_vision';
   static const String _keyThemeMode = 'compass_theme_mode';
 
   final BillingService _billingService;
+  bool _isGenuinePro = false;
+  bool _debugProOverride = false;
+
   int _lastDriftStep = 0;
   DateTime _lastDriftHapticTime = DateTime.fromMillisecondsSinceEpoch(0);
 
   ProController({BillingService? billingService})
     : _billingService = billingService ?? BillingService(),
-      super(const ProState()) {
-    _loadPreferences();
+      super(const ProState(isBillingLoading: true)) {
+    _init();
+  }
+
+  /// Evaluates effective Pro status: genuine verified purchase or debug in-memory override.
+  bool get isEffectivePro => _isGenuinePro || (kDebugMode && _debugProOverride);
+
+  /// Initializes entitlement migration and Google Play billing in deterministic order.
+  Future<void> _init() async {
+    await _migrateAndLoadPreferences();
     _initBilling();
   }
 
-  void _initBilling() {
-    _billingService.initialize(
-      onEntitlementChanged: (isPro) {
-        setEntitled(isPro);
-      },
-      onPriceLoaded: (price) {
-        state = state.copyWith(productPrice: price);
-      },
-      onPendingChanged: (isPending) {
-        state = state.copyWith(isPurchasePending: isPending);
-      },
-      onError: (error) {
-        state = state.copyWith(billingErrorMessage: error);
-      },
-    );
-  }
-
-  Future<bool> buyProLifetime() async {
-    return await _billingService.buyProLifetime();
-  }
-
-  Future<void> restorePurchases() async {
-    await _billingService.restorePurchases();
-  }
-
-  void clearBillingError() {
-    state = state.copyWith(clearBillingError: true);
-  }
-
-  Future<void> _loadPreferences() async {
+  /// Migrates legacy test entitlements safely and loads new-schema confirmed cache.
+  Future<void> _migrateAndLoadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final isPro = prefs.getBool(_keyIsPro) ?? false;
+
+      // 1. Check schema version for entitlement migration
+      final schemaVersion = prefs.getInt(keyEntitlementSchemaVersion) ?? 0;
+      if (schemaVersion < currentSchemaVersion) {
+        // Legacy schema detected: DO NOT trust legacy test switch compass_is_pro
+        await prefs.remove(keyLegacyIsPro);
+        // Initialize v2 entitlement cache as false (Free)
+        await prefs.setBool(keyProEntitlementCacheV2, false);
+        // Mark migration as completed so it never repeats on subsequent launches
+        await prefs.setInt(keyEntitlementSchemaVersion, currentSchemaVersion);
+      }
+
+      // 2. Read only valid new-schema confirmed entitlement cache
+      _isGenuinePro = prefs.getBool(keyProEntitlementCacheV2) ?? false;
+
+      // 3. Read other preferences without resetting them
       final isNightVision = prefs.getBool(_keyNightVision) ?? false;
       final themeIndex = prefs.getInt(_keyThemeMode) ?? 0;
       final themeMode =
@@ -73,51 +79,133 @@ class ProController extends StateNotifier<ProState> {
           : AppThemeMode.tacticalDark;
 
       state = state.copyWith(
-        isPro: isPro,
-        isNightVision: isPro ? isNightVision : false,
-        themeMode: isPro ? themeMode : AppThemeMode.tacticalDark,
+        isPro: isEffectivePro,
+        isNightVision: isEffectivePro ? isNightVision : false,
+        themeMode: isEffectivePro ? themeMode : AppThemeMode.tacticalDark,
       );
     } catch (_) {
-      // In testing environments where SharedPreferences platform channel is uninitialized
+      // Graceful degradation in mock / testing environments
     }
   }
 
-  /// Sets the user's Pro entitlement (to be called by Google Play Billing on verified purchase / restore)
-  Future<void> setEntitled(bool isEntitled) async {
+  /// Subscribes to BillingService events and registers callbacks.
+  void _initBilling() {
+    _billingService.initialize(
+      onEntitlementChanged: (isPurchased) {
+        _onGenuinePurchaseConfirmed(isPurchased);
+      },
+      onPriceLoaded: (price) {
+        state = state.copyWith(
+          productPrice: price,
+          isBillingLoading: false,
+          isStoreUnavailable: false,
+          isProductNotFound: false,
+        );
+      },
+      onLoadingChanged: (isLoading) {
+        state = state.copyWith(isBillingLoading: isLoading);
+      },
+      onStoreUnavailable: (isUnavailable) {
+        state = state.copyWith(
+          isStoreUnavailable: isUnavailable,
+          isBillingLoading: false,
+        );
+      },
+      onProductNotFound: (isNotFound) {
+        state = state.copyWith(
+          isProductNotFound: isNotFound,
+          isBillingLoading: false,
+        );
+      },
+      onPendingChanged: (isPending) {
+        state = state.copyWith(isPurchasePending: isPending);
+      },
+      onError: (error) {
+        state = state.copyWith(
+          billingErrorMessage: error,
+          isBillingLoading: false,
+        );
+      },
+    );
+  }
+
+  /// Handles store-verified purchase/restore events. Updates genuine Pro cache.
+  Future<void> _onGenuinePurchaseConfirmed(bool isPurchased) async {
+    _isGenuinePro = isPurchased;
     state = state.copyWith(
-      isPro: isEntitled,
-      isNightVision: isEntitled ? state.isNightVision : false,
-      themeMode: isEntitled ? state.themeMode : AppThemeMode.tacticalDark,
+      isPro: isEffectivePro,
+      isNightVision: isEffectivePro ? state.isNightVision : false,
+      themeMode: isEffectivePro ? state.themeMode : AppThemeMode.tacticalDark,
+      isPurchasePending: false,
     );
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_keyIsPro, isEntitled);
+      await prefs.setBool(keyProEntitlementCacheV2, isPurchased);
     } catch (_) {}
   }
 
-  /// Legacy helper for testing or billing callbacks
-  Future<void> setPro(bool value) async {
-    await setEntitled(value);
+  /// Initiates purchase of the lifetime Pro license via Google Play.
+  Future<bool> buyProLifetime() async {
+    return await _billingService.buyProLifetime();
   }
 
-  /// Development-only Pro toggle. Strictly disabled in release builds.
-  Future<void> debugTogglePro() async {
+  /// Restores previous Google Play purchases across devices.
+  Future<void> restorePurchases() async {
+    await _billingService.restorePurchases();
+  }
+
+  /// Retries querying product details from Google Play.
+  Future<void> retryProductQuery() async {
+    clearBillingError();
+    state = state.copyWith(
+      isBillingLoading: true,
+      isStoreUnavailable: false,
+      isProductNotFound: false,
+    );
+    await _billingService.retryProductQuery();
+  }
+
+  /// Clears active billing error message.
+  void clearBillingError() {
+    state = state.copyWith(clearBillingError: true);
+  }
+
+  /// In-memory developer toggle for testing Pro UI/features in debug builds.
+  /// Strictly disabled in release builds. Does NOT write to persistent storage or fake purchases.
+  void debugTogglePro() {
     if (!kDebugMode) return;
     HapticFeedback.mediumImpact();
-    final newPro = !state.isPro;
-    await setEntitled(newPro);
+    _debugProOverride = !_debugProOverride;
+    state = state.copyWith(
+      isPro: isEffectivePro,
+      isNightVision: isEffectivePro ? state.isNightVision : false,
+      themeMode: isEffectivePro ? state.themeMode : AppThemeMode.tacticalDark,
+    );
   }
 
-  /// Backward-compatible alias for development testing; disabled in release builds.
-  Future<void> toggleProMode() async {
-    if (!kDebugMode) return;
-    await debugTogglePro();
+  /// Sets in-memory debug Pro override. For automated testing and QA fixtures only.
+  @visibleForTesting
+  void debugSetPro(bool value) {
+    if (kDebugMode) {
+      _debugProOverride = value;
+      state = state.copyWith(
+        isPro: isEffectivePro,
+        isNightVision: isEffectivePro ? state.isNightVision : false,
+        themeMode: isEffectivePro ? state.themeMode : AppThemeMode.tacticalDark,
+      );
+    }
   }
 
-  /// Wrapper around debugTogglePro to preserve backwards compatibility in debug mode
-  Future<void> togglePro() async {
-    if (!kDebugMode) return;
-    await debugTogglePro();
+  /// Sets genuine Pro entitlement for testing verified billing callbacks.
+  @visibleForTesting
+  Future<void> setEntitledForTesting(bool value) async {
+    await _onGenuinePurchaseConfirmed(value);
+  }
+
+  /// Backward-compatible test helper for bearing lock unit tests.
+  @visibleForTesting
+  Future<void> setEntitled(bool isEntitled) async {
+    await setEntitledForTesting(isEntitled);
   }
 
   Future<void> toggleNightVision() async {

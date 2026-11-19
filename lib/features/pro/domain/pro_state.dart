@@ -10,9 +10,11 @@ class ProState {
   final double? waypointLat;
   final double? waypointLng;
   final String? waypointLabel;
-  final String productPrice;
+  final String? productPrice;
   final bool isBillingLoading;
   final bool isPurchasePending;
+  final bool isStoreUnavailable;
+  final bool isProductNotFound;
   final String? billingErrorMessage;
 
   const ProState({
@@ -24,9 +26,11 @@ class ProState {
     this.waypointLat,
     this.waypointLng,
     this.waypointLabel,
-    this.productPrice = '₹149',
+    this.productPrice,
     this.isBillingLoading = false,
     this.isPurchasePending = false,
+    this.isStoreUnavailable = false,
+    this.isProductNotFound = false,
     this.billingErrorMessage,
   });
 
@@ -62,8 +66,11 @@ class ProState {
     String? waypointLabel,
     bool clearWaypoint = false,
     String? productPrice,
+    bool clearProductPrice = false,
     bool? isBillingLoading,
     bool? isPurchasePending,
+    bool? isStoreUnavailable,
+    bool? isProductNotFound,
     String? billingErrorMessage,
     bool clearBillingError = false,
   }) {
@@ -82,9 +89,13 @@ class ProState {
       waypointLabel: clearWaypoint
           ? null
           : (waypointLabel ?? this.waypointLabel),
-      productPrice: productPrice ?? this.productPrice,
+      productPrice: clearProductPrice
+          ? null
+          : (productPrice ?? this.productPrice),
       isBillingLoading: isBillingLoading ?? this.isBillingLoading,
       isPurchasePending: isPurchasePending ?? this.isPurchasePending,
+      isStoreUnavailable: isStoreUnavailable ?? this.isStoreUnavailable,
+      isProductNotFound: isProductNotFound ?? this.isProductNotFound,
       billingErrorMessage: clearBillingError
           ? null
           : (billingErrorMessage ?? this.billingErrorMessage),
