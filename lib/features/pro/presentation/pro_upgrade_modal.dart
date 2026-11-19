@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../controllers/pro_controller.dart';
+import '../domain/pro_state.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class ProUpgradeModal extends ConsumerWidget {
